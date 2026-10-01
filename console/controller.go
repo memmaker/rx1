@@ -2228,7 +2228,11 @@ func (u *UI) mapLookup(loc geometry.Point) (foundation.TextIcon, bool) {
 		if icon.Bg == u.getIconForMap(foundation.TileFloor).Bg {
 			icon.Bg = u.getIconForMap(u.game.MapAt(loc)).Bg
 		}
-		return u.applyLight(icon, loc), ok
+		icon = u.applyLight(icon, loc)
+		if u.phosphor.tint != nil && u.game.ActorAt(loc) != nil { // monsters at full phosphor brightness
+			icon.Fg = color.RGBA{255, 255, 255, 255}
+		}
+		return icon, ok
 	} else if u.game.IsExplored(loc) {
 		// remembered: lit rooms stay brighter than what we only saw by torchlight
 		factor := 0.16
