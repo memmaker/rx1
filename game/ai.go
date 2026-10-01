@@ -29,6 +29,10 @@ func (g *GameState) aiAct(enemy *Actor) {
 		}
 	}
 
+	if enemy.HasFlag(foundation.FlagDisguised) {
+		return
+	}
+
 	if enemy.HasFlag(foundation.FlagHeld) {
 		if rand.Intn(10) == 0 {
 			enemy.GetFlags().Unset(foundation.FlagHeld)
@@ -86,6 +90,13 @@ func (g *GameState) aiAct(enemy *Actor) {
 	}
 
 	if !enemy.HasFlag(foundation.FlagAwareOfPlayer) {
+		if enemy.HasFlag(foundation.FlagGreedy) {
+			g.aiGoForGold(enemy)
+		}
+		return
+	}
+
+	if sameRoom && losToPlayer && g.aiGaze(enemy) {
 		return
 	}
 
@@ -130,6 +141,10 @@ func (g *GameState) defaultBehaviour(enemy *Actor) {
 		useEffect := aiUseEffects[rand.Intn(len(aiUseEffects))]
 		_, consequencesOfMonsterUseEffect := g.actorInvokeUseEffect(enemy, useEffect)
 		g.ui.AddAnimations(consequencesOfMonsterUseEffect)
+		return
+	}
+
+	if g.aiSpecialMove(enemy) {
 		return
 	}
 

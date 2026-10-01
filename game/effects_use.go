@@ -10,6 +10,7 @@ import (
 func GetAllUseEffects() map[string]func(g *GameState, user *Actor) (bool, []foundation.Animation) {
 	return map[string]func(g *GameState, user *Actor) (endsTurnDirectly bool, animations []foundation.Animation){
 		"phase_door":                     endTurn(true, phaseDoor),
+		"darkness":                       endTurn(true, noAnim(darkness)),
 		"confuse":                        endTurn(true, confuse),
 		"haste":                          endTurn(true, noAnim(haste)),
 		"blindness":                      endTurn(true, noAnim(blindness)),
@@ -696,4 +697,18 @@ func (g *GameState) uncancelPlayer() {
 	flags := player.GetFlags()
 	flags.Unset(foundation.FlagCancel)
 	g.msg(foundation.Msg("You feel your powers return"))
+}
+
+// darkness puts out the lights in the user's room (wraith, ur-vile).
+func darkness(g *GameState, user *Actor) {
+	room := g.dungeonLayout.GetRoomAt(user.Position())
+	if room == nil {
+		return
+	}
+	for _, pos := range room.GetAbsoluteRoomTiles() {
+		g.gridMap.SetLit(pos, false)
+	}
+	if room.ContainsIncludingWalls(g.Player.Position()) {
+		g.msg(foundation.HiLite("%s puts out the lights", user.Name()))
+	}
 }

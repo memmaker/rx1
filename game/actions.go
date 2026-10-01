@@ -277,6 +277,7 @@ func (g *GameState) actorMeleeAttack(attacker *Actor, attackMod []rpg.Modifier, 
 		defenseScore = -1
 	}
 
+	g.revealDisguised(defender)
 	outcome := rpg.Attack(attackerMeleeSkill, attackerMeleeDamageDice, defenseScore, defender.GetDamageResistance())
 
 	_, damageDone := outcome.TypeOfHit, outcome.DamageDone

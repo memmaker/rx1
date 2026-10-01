@@ -32,6 +32,7 @@ func (g *GameState) removeDeadAndApplyRegeneration() {
 	hungerInterval := 300
 
 	g.Player.decrementStatusEffectCounters()
+	g.applyPoison()
 
 	if !g.Player.HasFlag(foundation.FlagSlowDigestion) || g.TurnsTaken%2 == 0 {
 		g.Player.GetFlags().Increment(foundation.FlagTurnsSinceEating)

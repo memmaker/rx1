@@ -7,7 +7,7 @@ dlvl: 1
 color: LightGray
 gold: 0
 carry_chance: 1
-flags: flying | chase
+flags: flying | chase | erratic
 strength: 2
 dexterity: 12
 health: 12
@@ -53,7 +53,7 @@ dlvl: 1
 color: Green
 gold: 5d4
 carry_chance: 35
-flags: mean
+flags: mean | group
 strength: 5
 dexterity: 13
 health: 12
@@ -89,6 +89,7 @@ size_modifier: -2
 dodge: 9
 dr: 0
 attack: 10 | 1d4 | beak
+hit_effect: hit_and_run | 100
 
 name: jackal
 internal_name: jackal
@@ -97,7 +98,7 @@ dlvl: 2
 color: Orange
 gold: 0
 carry_chance: 10
-flags: chase
+flags: chase | group
 strength: 8
 dexterity: 12
 health: 9
@@ -133,6 +134,7 @@ dodge: 9
 dr: 0
 attack: 9 | 1d8 | bite
 struck_effect: freeze | 100
+flags: stationary
 
 name: ice monster
 internal_name: ice_monster
@@ -177,6 +179,8 @@ size_modifier: 1
 dodge: 6
 dr: 0
 attack: 8 | 1d4 | absorb
+struck_effect: split | 50
+struck_effect: rust_weapon | 30
 
 name: snake
 internal_name: snake
@@ -198,6 +202,7 @@ size_modifier: -2
 dodge: 10
 dr: 0
 attack: 8 | 1d6+2 | bite
+hit_effect: poison | 50
 
 name: gnome
 internal_name: gnome
@@ -219,6 +224,7 @@ size_modifier: 0
 dodge: 7
 dr: 0
 attack: 11 | 1d8+2 | punch
+flags: tunnel
 
 name: orc
 internal_name: orc
@@ -241,6 +247,7 @@ dodge: 7
 dr: 0
 attack: 12 | 1d6+2 | strike
 zap_effect: charge_attack
+flags: greedy
 
 name: rattlesnake
 internal_name: rattlesnake
@@ -271,7 +278,7 @@ dlvl: 9
 color: White
 gold: 1d8
 carry_chance: 25
-flags: chase | invisible
+flags: chase | invisible | erratic
 strength: 11
 dexterity: 10
 health: 11
@@ -315,7 +322,7 @@ dlvl: 9
 color: Orange
 gold: 1d100
 carry_chance: 85
-flags: chase
+flags: chase | slow
 strength: 11
 dexterity: 5
 health: 8
@@ -329,6 +336,7 @@ size_modifier: 0
 dodge: 5
 dr: 0
 attack: 10 | 1d6 | bite
+hit_effect: hunger | 20
 
 name: giant ant
 internal_name: ant
@@ -463,6 +471,7 @@ dodge: 8
 dr: 1
 attack: 13 | 2d6 | kick
 zap_effect: charge_attack
+use_effect: phase_door
 
 name: quagga
 internal_name: quagga
@@ -529,6 +538,7 @@ size_modifier: 0
 dodge: 10
 dr: 0
 attack: 9 | 1d8 | punch
+flags: disguised
 
 name: yeti
 internal_name: yeti
@@ -551,12 +561,14 @@ size_modifier: 1
 dodge: 7
 dr: 1
 attack: 10 | 2d6+2 | crush
+hit_effect: hold | 30
+hit_effect: slow | 50
 
 name: troll
 internal_name: troll
 letter: T
 dlvl: 16
-flags: regenerating
+flags: regenerating | revive
 color: Orange
 gold: 2d10
 carry_chance: 55
@@ -595,6 +607,7 @@ dodge: 5
 dr: 0
 attack: 12 | 1d6 | bite
 hit_effect: hold | 100
+flags: stationary
 
 name: wraith
 internal_name: wraith
@@ -617,6 +630,7 @@ dodge: 9
 dr: 1
 attack: 10 | 1d6+2 | strike
 hit_effect: drain_level | 15
+use_effect: darkness
 
 name: venus flytrap
 internal_name: venus_flytrap
@@ -625,7 +639,7 @@ dlvl: 18
 color: Green
 gold: 2d20
 carry_chance: 60
-flags: mean
+flags: mean | stationary
 strength: 12
 dexterity: 10
 health: 12
@@ -648,7 +662,7 @@ dlvl: 19
 color: LightGray
 gold: 0
 carry_chance: 20
-flags: invisible | chase | wall_crawler
+flags: invisible | chase | wall_crawler | erratic
 strength: 10
 dexterity: 10
 health: 7
@@ -685,6 +699,7 @@ dr: 3
 attack_1: 12 | 3d6+3 | bite
 attack_2: 13 | 3d6+5 | stinger
 hit_effect: poison_strength | 30
+flags: tunnel
 
 name: ur-vile
 internal_name: ur_vile
@@ -706,6 +721,8 @@ size_modifier: 0
 dodge: 8
 dr: 0
 attack: 11 | 1d8 | punch
+flags: group
+use_effect: darkness
 
 name: umber hulk
 internal_name: umber_hulk
@@ -727,6 +744,8 @@ size_modifier: 2
 dodge: 6
 dr: 2
 attack: 14 | 2d8+2 | punch
+flags: tunnel
+gaze_effect: confuse
 
 name: griffin
 internal_name: griffin
@@ -751,6 +770,7 @@ dr: 1
 attack_1: 12 | 1d6+3 | kick
 zap_effect: lightning_ray
 attack_2: 14 | 1d6+2 | peck
+hit_effect: knockback | 30
 
 name: medusa
 internal_name: medusa
@@ -772,6 +792,7 @@ size_modifier: 0
 dodge: 10
 dr: 1
 attack: 10 | 1d6 | punch
+gaze_effect: confuse
 
 name: quasit
 internal_name: quasit
@@ -794,6 +815,7 @@ dodge: 10
 dr: 0
 attack: 12 | 1d6+2 | claws
 use_effect: phase_door
+hit_effect: drain_dex | 30
 
 name: xeroc
 internal_name: xeroc
@@ -815,6 +837,7 @@ size_modifier: -1
 dodge: 8
 dr: 0
 attack: 10 | 1d6 | strike
+flags: disguised
 
 name: xeroc mk ii
 internal_name: xeroc_2
@@ -859,6 +882,7 @@ dodge: 7
 dr: 1
 attack: 12 | 2d8 | punch
 flags: wall_crawler
+hit_effect: eat_gold | 100
 
 name: vampire
 internal_name: vampire
@@ -904,6 +928,7 @@ size_modifier: 3
 dodge: 11
 dr: 2
 attack: 13 | 2d6 | claws
+gaze_effect: scare
 
 name: dragon
 internal_name: dragon
@@ -912,7 +937,7 @@ dlvl: 26
 color: Green
 gold: 3d100
 carry_chance: 95
-flags: mean | flying | regenerating
+flags: mean | flying | regenerating | greedy
 strength: 35
 dexterity: 14
 health: 15

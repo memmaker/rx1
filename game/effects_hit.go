@@ -3,6 +3,7 @@ package game
 import (
 	"math/rand"
 	"rx1/foundation"
+	"rx1/geometry"
 	"rx1/rpg"
 )
 
@@ -17,6 +18,15 @@ func GetAllHitEffects() map[string]func(g *GameState, attacker, defender *Actor)
 		"hold":            holdAndSqueeze,
 		"steal_gold":      stealGold,
 		"steal_item":      stealItem,
+		"eat_gold":        eatGold,
+		"slow":            slowDown,
+		"hunger":          causeHunger,
+		"knockback":       knockback,
+		"drain_dex":       drainDex,
+		"poison":          poisonOverTime,
+		"hit_and_run":     hitAndRun,
+		"split":           split,
+		"rust_weapon":     rustWeapon,
 	}
 }
 
@@ -31,7 +41,7 @@ func (g *GameState) applyStruckEffects(attacker, defender *Actor) []foundation.A
 
 // rollEffects applies owner's effects to victim; effect funcs see owner as "attacker".
 func (g *GameState) rollEffects(owner, victim *Actor, effects []HitEffect) []foundation.Animation {
-	if !victim.IsAlive() || owner.HasFlag(foundation.FlagCancel) {
+	if !victim.IsAlive() || !owner.IsAlive() || owner.HasFlag(foundation.FlagCancel) {
 		return nil
 	}
 	var anims []foundation.Animation
@@ -145,5 +155,93 @@ func stealItem(g *GameState, attacker, defender *Actor) []foundation.Animation {
 	g.removeItemFromInventory(defender, stolen)
 	g.gridMap.RemoveActor(attacker)
 	g.msg(foundation.HiLite("%s stole %s!", attacker.Name(), stolen.Name()))
+	return nil
+}
+
+func eatGold(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	amount := min(defender.GetGold(), rand.Intn(20+5*g.currentDungeonLevel)+1)
+	if amount > 0 {
+		defender.RemoveGold(amount)
+		g.msg(foundation.HiLite("%s eats some of %s's gold", attacker.Name(), defender.Name()))
+	}
+	return nil
+}
+
+func slowDown(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	slow(g, defender)
+	return nil
+}
+
+func causeHunger(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	if defender != g.Player {
+		return nil
+	}
+	defender.GetFlags().Increment(foundation.FlagHunger)
+	g.msg(foundation.Msg("You suddenly feel very hungry"))
+	return nil
+}
+
+func knockback(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	from, at := attacker.Position(), defender.Position()
+	dest := geometry.Point{X: at.X + sign(at.X-from.X), Y: at.Y + sign(at.Y-from.Y)}
+	if !g.gridMap.IsWalkableFor(dest, defender) {
+		return nil
+	}
+	g.msg(foundation.HiLite("%s knocks %s back", attacker.Name(), defender.Name()))
+	return g.actorMoveAnimated(defender, dest)
+}
+
+func drainDex(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	if _, result, _ := rpg.SuccessRoll(defender.GetHealth()); result.IsSuccess() {
+		return nil
+	}
+	defender.charSheet.AddStatModifier(rpg.Dexterity, ModFlat(-1, "drained"))
+	g.msg(foundation.HiLite("%s feels clumsier", defender.Name()))
+	return nil
+}
+
+func poisonOverTime(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	if defender != g.Player {
+		return nil
+	}
+	if _, result, _ := rpg.SuccessRoll(defender.GetHealth()); result.IsSuccess() {
+		return nil
+	}
+	if !defender.HasFlag(foundation.FlagPoisoned) {
+		g.msg(foundation.Msg("You feel very sick"))
+	}
+	defender.GetFlags().Increase(foundation.FlagPoisoned, rand.Intn(6)+5)
+	return nil
+}
+
+func hitAndRun(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	attacker.GetFlags().Set(foundation.FlagScared)
+	return nil
+}
+
+// split is a struck_effect: attacker is the slime, defender whoever hit it.
+func split(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	half := attacker.GetHitPoints() / 2
+	def, exists := g.monsterDefByInternalName(attacker.GetInternalName())
+	if half < 1 || !exists {
+		return nil
+	}
+	clone := g.NewEnemyFromDef(def)
+	clone.GetFlags().Set(foundation.FlagAwareOfPlayer)
+	clone.TakeDamage(clone.GetHitPoints() - half)
+	attacker.TakeDamage(half)
+	g.gridMap.AddActorWithDisplacement(clone, attacker.Position())
+	g.msg(foundation.HiLite("%s splits in two", attacker.Name()))
+	return nil
+}
+
+// rustWeapon is a struck_effect: corrodes the weapon that hit the monster.
+func rustWeapon(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	weapon := defender.GetEquipment().GetMainWeapon(MeleeAttack)
+	if weapon == nil || !weapon.GetWeapon().Corrode() {
+		return nil
+	}
+	g.msg(foundation.HiLite("Your %s corrodes", weapon.Name()))
+	g.ui.UpdateInventory()
 	return nil
 }

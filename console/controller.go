@@ -329,6 +329,10 @@ func (u *UI) getIconForActor(actor foundation.ActorForUI) foundation.TextIcon {
 
 	var backGroundColor color.RGBA
 
+	if category, disguised := actor.Disguise(); disguised {
+		return u.getIconForItem(category)
+	}
+
 	if actor.HasFlag(foundation.FlagHeld) {
 		return foundation.TextIcon{
 			Rune: actor.Icon(),
