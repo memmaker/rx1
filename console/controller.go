@@ -6,9 +6,9 @@ import (
 	"RogueUI/rpg"
 	"RogueUI/util"
 	"cmp"
-	"code.rocketnine.space/tslocum/cview"
 	"fmt"
 	"github.com/gdamore/tcell/v2"
+	"github.com/memmaker/go/cview"
 	"image/color"
 	"math"
 	"math/rand"
@@ -55,7 +55,7 @@ type UI struct {
 	listTable map[string]*cview.List
 
 	gameIsReady     bool
-	gameIsOver       bool
+	gameIsOver      bool
 	autoRun         bool
 	onTargetUpdated func(targetPos geometry.Point)
 	showCursor      bool
@@ -69,7 +69,6 @@ type UI struct {
 	lastFrameStyle   map[geometry.Point]tcell.Style
 	isAnimationFrame bool
 	lastHudStats     map[foundation.HudValue]int
-
 }
 
 func (u *UI) OpenVendorMenu(itemsForSale []util.Tuple[foundation.ItemForUI, int], buyItem func(ui foundation.ItemForUI, price int)) {
@@ -2410,7 +2409,6 @@ func (u *UI) getAdvancedTargetingCommandForKey(key UIKey) string {
 	//println("No command found for key %s", key.String())
 	return ""
 }
-
 
 func (u *UI) updateLastFrame() {
 	// iterate the map and force and update of the last frame

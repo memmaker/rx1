@@ -2,8 +2,8 @@ package console
 
 import (
 	"RogueUI/foundation"
-	"code.rocketnine.space/tslocum/cview"
 	"github.com/gdamore/tcell/v2"
+	"github.com/memmaker/go/cview"
 )
 
 type InputCapturer interface {

@@ -6,6 +6,7 @@ import (
 	"RogueUI/util"
 	"fmt"
 	"github.com/gdamore/tcell/v2"
+	"github.com/memmaker/go/cview"
 	"image/color"
 	"math/rand"
 	"strings"
@@ -330,25 +331,7 @@ func BorderCaseFromString(s string) BorderCases {
 	return BorderHorizontal
 }
 
-func (t Theme) SetBorders(s *struct {
-	Horizontal       rune
-	Vertical         rune
-	TopLeft          rune
-	TopRight         rune
-	BottomLeft       rune
-	BottomRight      rune
-	LeftT            rune
-	RightT           rune
-	TopT             rune
-	BottomT          rune
-	Cross            rune
-	HorizontalFocus  rune
-	VerticalFocus    rune
-	TopLeftFocus     rune
-	TopRightFocus    rune
-	BottomLeftFocus  rune
-	BottomRightFocus rune
-}) {
+func (t Theme) SetBorders(s *cview.BorderDef) {
 	s.Horizontal = t.uiBorder[BorderHorizontal]
 	s.Vertical = t.uiBorder[BorderVertical]
 	s.TopLeft = t.uiBorder[BorderTopLeft]

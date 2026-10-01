@@ -4,7 +4,7 @@ import (
 	"RogueUI/foundation"
 	"RogueUI/geometry"
 	"RogueUI/rpg"
-	"code.rocketnine.space/tslocum/cview"
+	"github.com/memmaker/go/cview"
 	"fmt"
 	"image/color"
 	"math/rand"

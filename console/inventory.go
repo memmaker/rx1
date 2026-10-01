@@ -3,9 +3,9 @@ package console
 import (
 	"RogueUI/foundation"
 	"RogueUI/geometry"
-	"code.rocketnine.space/tslocum/cview"
 	"fmt"
 	"github.com/gdamore/tcell/v2"
+	"github.com/memmaker/go/cview"
 	"image/color"
 	"strings"
 	"unicode"
