@@ -3,8 +3,8 @@ package console
 import (
 	"RogueUI/foundation"
 	"RogueUI/geometry"
-	"code.rocketnine.space/tslocum/cview"
 	"github.com/gdamore/tcell/v2"
+	"github.com/memmaker/go/cview"
 )
 
 func (u *UI) SelectTarget(origin geometry.Point, onSelected func(targetPos geometry.Point)) {
