@@ -1104,9 +1104,11 @@ func (u *UI) handleMainInput(ev *tcell.EventKey) *tcell.EventKey {
 		return nil
 	}
 	u.autoRun = false
-	if mod == 64 && u.autoExplore && ch == autoExploreRune {
-		time.Sleep(64 * time.Millisecond)
-		u.autoExplore = u.game.AutoExploreStep()
+	if mod == 64 && ch == autoExploreRune { // a leftover continuation after exploring stopped is dropped
+		if u.autoExplore {
+			time.Sleep(64 * time.Millisecond)
+			u.autoExplore = u.game.AutoExploreStep()
+		}
 		return nil
 	}
 	u.autoExplore = false
@@ -1128,6 +1130,8 @@ func (u *UI) ChooseDirectionForRun() {
 const autoExploreRune = '0'
 
 func (u *UI) startAutoExplore() {
+	// must be set before stepping: AfterPlayerMoved only queues the next step while it is true
+	u.autoExplore = true
 	u.autoExplore = u.game.AutoExploreStep()
 }
 
