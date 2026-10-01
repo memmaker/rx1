@@ -1,10 +1,10 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
-	"RogueUI/rpg"
 	"math/rand"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/rpg"
 )
 
 func GetAllUseEffects() map[string]func(g *GameState, user *Actor) (bool, []foundation.Animation) {
@@ -13,13 +13,13 @@ func GetAllUseEffects() map[string]func(g *GameState, user *Actor) (bool, []foun
 		"confuse":                        endTurn(true, confuse),
 		"haste":                          endTurn(true, noAnim(haste)),
 		"blindness":                      endTurn(true, noAnim(blindness)),
-		"hallucination":				  endTurn(true, noAnim(hallucination)),
+		"hallucination":                  endTurn(true, noAnim(hallucination)),
 		"levitation":                     endTurn(true, noAnim(levitation)),
 		"see_invisible":                  endTurn(true, noAnim(seeInvisible)),
 		"confuse_monster_on_next_attack": endTurn(true, noAnim(confuseEnemyOnNextAttack)),
 		"reveal_map":                     endTurn(true, revealMap),
 		"freeze_monsters_in_room":        endTurn(true, holdAllVisibleMonsters),
-		"sleep_monsters_in_room":        endTurn(true, sleepAllVisibleMonsters),
+		"sleep_monsters_in_room":         endTurn(true, sleepAllVisibleMonsters),
 		"scare_monsters_in_room":         endTurn(true, scareAllVisibleMonsters),
 		"enchant_armor":                  endTurn(false, playerEnchantArmor),
 		"enchant_weapon":                 endTurn(false, playerEnchantWeapon),
@@ -27,7 +27,7 @@ func GetAllUseEffects() map[string]func(g *GameState, user *Actor) (bool, []foun
 		"detect_food":                    endTurn(true, noAnim(playerDetectFood)),
 		"detect_magic":                   endTurn(true, noAnim(playerDetectMagic)),
 		"detect_monsters":                endTurn(true, noAnim(playerDetectMonsters)),
-		"detect_traps":                endTurn(true, noAnim(playerDetectTraps)),
+		"detect_traps":                   endTurn(true, noAnim(playerDetectTraps)),
 		"create_monster":                 endTurn(true, noAnim(createMonster)),
 		"light":                          endTurn(true, noAnim(light)),
 		"drain_life":                     endTurn(true, drainLife),
@@ -38,7 +38,7 @@ func GetAllUseEffects() map[string]func(g *GameState, user *Actor) (bool, []foun
 		"vorpalize":                      endTurn(false, playerVorpalizeWeapon),
 		"satiate_fully":                  endTurn(true, satiateFully),
 		"identify_item":                  endTurn(false, playerIdentifyItem),
-		"remove_curse":					  endTurn(false, removeCurse),
+		"remove_curse":                   endTurn(false, removeCurse),
 	}
 }
 

@@ -1,9 +1,9 @@
 package dungen
 
 import (
-	"RogueUI/geometry"
-	"RogueUI/util"
 	"math/rand"
+	"rx1/geometry"
+	"rx1/util"
 )
 
 // based on https://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/

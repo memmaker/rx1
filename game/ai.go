@@ -1,10 +1,10 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
-	"RogueUI/rpg"
 	"math/rand"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/rpg"
 )
 
 func (g *GameState) aiAct(enemy *Actor) {

@@ -1,10 +1,10 @@
 package dungen
 
 import (
-	"RogueUI/geometry"
-	"RogueUI/util"
 	"math"
 	"math/rand"
+	"rx1/geometry"
+	"rx1/util"
 )
 
 type RogueGenerator struct {

@@ -1,8 +1,8 @@
 package foundation
 
 import (
-	"RogueUI/geometry"
 	"image/color"
+	"rx1/geometry"
 )
 
 type ActorForUI interface {

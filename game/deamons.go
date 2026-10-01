@@ -1,7 +1,7 @@
 package game
 
 import (
-	"RogueUI/foundation"
+	"rx1/foundation"
 )
 
 func (g *GameState) enemyMovement(playerTimeSpent int) {
@@ -42,7 +42,7 @@ func (g *GameState) removeDeadAndApplyRegeneration() {
 	if turnsSinceEating%hungerInterval == 0 {
 		wasHungry := g.Player.IsHungry()
 		g.Player.GetFlags().Increment(foundation.FlagHunger)
-		if g.Player.IsHungry() && !wasHungry{
+		if g.Player.IsHungry() && !wasHungry {
 			g.msg(foundation.Msg("You are hungry."))
 		}
 	}

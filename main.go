@@ -1,17 +1,17 @@
 package main
 
 import (
-	"RogueUI/console"
-	"RogueUI/dungen"
-	"RogueUI/foundation"
-	"RogueUI/game"
-	"RogueUI/util"
 	"bufio"
 	"fmt"
 	"image"
 	"math/rand"
 	"os"
 	"path"
+	"rx1/console"
+	"rx1/dungen"
+	"rx1/foundation"
+	"rx1/game"
+	"rx1/util"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"

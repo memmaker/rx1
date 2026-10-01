@@ -1,9 +1,9 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/recfile"
-	"RogueUI/rpg"
+	"rx1/foundation"
+	"rx1/recfile"
+	"rx1/rpg"
 	"strings"
 )
 

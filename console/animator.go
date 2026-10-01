@@ -1,9 +1,9 @@
 package console
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
 	"cmp"
+	"rx1/foundation"
+	"rx1/geometry"
 	"slices"
 )
 

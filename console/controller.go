@@ -1,10 +1,6 @@
 package console
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
-	"RogueUI/rpg"
-	"RogueUI/util"
 	"cmp"
 	"fmt"
 	"github.com/gdamore/tcell/v2"
@@ -13,6 +9,10 @@ import (
 	"math"
 	"math/rand"
 	"path"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/rpg"
+	"rx1/util"
 	"slices"
 	"strings"
 	"time"

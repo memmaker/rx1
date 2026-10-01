@@ -3,10 +3,10 @@
 package main
 
 import (
-	"RogueUI/console"
 	"embed"
 	"io/fs"
 	"net/url"
+	"rx1/console"
 	"syscall/js"
 
 	"github.com/gdamore/tcell/v2"

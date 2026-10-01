@@ -1,10 +1,10 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/recfile"
-	"RogueUI/rpg"
 	"regexp"
+	"rx1/foundation"
+	"rx1/recfile"
+	"rx1/rpg"
 )
 
 /*

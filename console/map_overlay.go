@@ -1,9 +1,9 @@
 package console
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
 	"image/color"
+	"rx1/foundation"
+	"rx1/geometry"
 )
 
 type Overlay struct {

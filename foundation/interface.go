@@ -1,9 +1,9 @@
 package foundation
 
 import (
-	"RogueUI/geometry"
-	"RogueUI/rpg"
-	"RogueUI/util"
+	"rx1/geometry"
+	"rx1/rpg"
+	"rx1/util"
 )
 
 // Actions that the User Interface can trigger on the game

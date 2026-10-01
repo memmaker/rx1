@@ -1,13 +1,13 @@
 package console
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
-	"RogueUI/util"
 	"bufio"
 	"fmt"
 	"github.com/gdamore/tcell/v2"
 	"regexp"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/util"
 	"strings"
 )
 

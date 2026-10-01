@@ -1,8 +1,8 @@
 package util
 
 import (
-	"RogueUI/geometry"
 	"fmt"
+	"rx1/geometry"
 	"strings"
 )
 

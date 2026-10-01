@@ -1,9 +1,6 @@
 package gridmap
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
-	"RogueUI/util"
 	"bytes"
 	"encoding/gob"
 	"fmt"
@@ -11,6 +8,9 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/util"
 	"sort"
 	"strconv"
 	"time"

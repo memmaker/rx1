@@ -1,8 +1,8 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/rpg"
+	"rx1/foundation"
+	"rx1/rpg"
 )
 
 type Equipment struct {
@@ -140,7 +140,6 @@ func (e *Equipment) GetArmor() []*Item {
 	return armor
 
 }
-
 
 func (e *Equipment) CanEquip(item *Item) bool {
 	toBeReplaced := e.GetItemsToReplace(item)

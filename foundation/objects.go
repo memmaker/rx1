@@ -15,7 +15,7 @@ const (
 )
 
 func RandomObjectCategory() ObjectCategory {
-	return ObjectCategory(rand.Intn(int(ObjectBearTrap)+1))
+	return ObjectCategory(rand.Intn(int(ObjectBearTrap) + 1))
 }
 
 func GetAllTrapCategories() []ObjectCategory {

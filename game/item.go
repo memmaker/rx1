@@ -1,13 +1,13 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
-	"RogueUI/rpg"
-	"github.com/memmaker/go/cview"
 	"fmt"
+	"github.com/memmaker/go/cview"
 	"image/color"
 	"math/rand"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/rpg"
 )
 
 type WeaponInfo struct {
@@ -192,11 +192,11 @@ func (i *Item) Name() string {
 		name = fmt.Sprintf("*%d* %s", i.GetCharges(), name)
 	}
 
-	if i.statBonus != 0 && (i.isKnown ||i.id.IsItemIdentified(i.internalName)) {
+	if i.statBonus != 0 && (i.isKnown || i.id.IsItemIdentified(i.internalName)) {
 		name = fmt.Sprintf("%s [%+d %s]", name, i.statBonus, i.stat.ToShortString())
 	}
 
-	if i.skillBonus != 0 && (i.isKnown ||i.id.IsItemIdentified(i.internalName)) {
+	if i.skillBonus != 0 && (i.isKnown || i.id.IsItemIdentified(i.internalName)) {
 		name = fmt.Sprintf("%s [%+d %s]", name, i.skillBonus, i.skill.ToShortString())
 	}
 

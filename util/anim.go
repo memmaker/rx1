@@ -1,8 +1,8 @@
 package util
 
 import (
-	"RogueUI/geometry"
 	"image/color"
+	"rx1/geometry"
 )
 
 func GetLoopingFrameFromTick(tick uint64, delayBetweenFramesInSeconds float64, frameCount int) int32 {

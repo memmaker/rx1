@@ -1,10 +1,10 @@
 package gridmap
 
 import (
-	"RogueUI/foundation"
 	"encoding/binary"
 	"fmt"
 	"io"
+	"rx1/foundation"
 )
 
 type Tile struct {

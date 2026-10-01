@@ -31,7 +31,6 @@ func SkillNameFromString(s string) SkillName {
 		return SkillNameStealth
 	}
 	panic(fmt.Sprintf("Unknown skill name: %s", s))
-	return ""
 }
 func (n SkillName) GetDefaultValue(getCharStat func(stat Stat) int) int {
 	switch n {

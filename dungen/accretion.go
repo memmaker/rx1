@@ -1,11 +1,11 @@
 package dungen
 
 import (
-	"RogueUI/geometry"
-	"RogueUI/util"
 	"cmp"
 	"fmt"
 	"math/rand"
+	"rx1/geometry"
+	"rx1/util"
 	"slices"
 )
 

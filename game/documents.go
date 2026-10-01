@@ -1,10 +1,10 @@
 package game
 
 import (
-	"RogueUI/foundation"
 	"fmt"
 	"os"
 	"path"
+	"rx1/foundation"
 	"strings"
 
 	"github.com/memmaker/go/cview"
