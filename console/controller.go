@@ -54,6 +54,7 @@ type UI struct {
 	targetPos geometry.Point
 
 	isMonochrome bool
+	phosphor     phosphorScreen
 
 	listTable map[string]*cview.List
 
@@ -980,6 +981,13 @@ func (u *UI) StartGameLoop() {
 			}
 		}()
 	}
+	if u.phosphor.Screen == nil {
+		s, err := tcell.NewScreen()
+		if err != nil {
+			panic(err)
+		}
+		u.SetScreen(s)
+	}
 	u.application.SetAfterResizeFunc(u.onTerminalResized)
 	if err := u.application.Run(); err != nil {
 		panic(err)
@@ -1167,6 +1175,7 @@ func (u *UI) continueAutoRun(direction geometry.CompassDirection) {
 
 func (u *UI) applyStylingToUI() {
 	u.isMonochrome = u.currentTheme.IsMonochrome()
+	u.phosphor.tint = u.currentTheme.phosphorTint
 
 	fg := u.currentTheme.GetUIColorForTcell(UIColorUIForeground)
 	bg := u.currentTheme.GetUIColorForTcell(UIColorUIBackground)
@@ -2603,4 +2612,7 @@ func (u *UI) GetKeysForCommandAsString(layer KeyLayer, command string) string {
 }
 
 // SetScreen lets the caller supply an already initialized screen (used by the web build).
-func (u *UI) SetScreen(s tcell.Screen) { u.application.SetScreen(s) }
+func (u *UI) SetScreen(s tcell.Screen) {
+	u.phosphor.Screen = s
+	u.application.SetScreen(&u.phosphor)
+}

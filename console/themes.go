@@ -57,6 +57,7 @@ type Theme struct {
 	iconsForMap     map[foundation.TileType]foundation.TextIcon
 	defaultStyle    tcell.Style
 	isMonoChrome    bool
+	phosphorTint    *color.RGBA // optional %rec: phosphor, tints the whole screen
 }
 
 func (t Theme) GetIconForItem(category foundation.ItemCategory) foundation.TextIcon {
@@ -95,8 +96,19 @@ func NewThemeFromFile(filename string) Theme {
 	var defaultStyle tcell.Style
 	defaultStyle = defaultStyle.Foreground(toTcellColor(uiColors[UIColorUIForeground])).Background(toTcellColor(uiColors[UIColorUIBackground]))
 
+	var phosphorTint *color.RGBA
+	if rec, ok := records["phosphor"]; ok && len(rec) > 0 {
+		for _, field := range rec[0] {
+			if field.Name == "Tint" {
+				tint := field.AsRGB("|")
+				phosphorTint = &tint
+			}
+		}
+	}
+
 	return Theme{
-		colorDefs: colors,
+		phosphorTint: phosphorTint,
+		colorDefs:    colors,
 
 		uiColors: uiColors,
 		//uiStyles:            uiStyles,
