@@ -1599,12 +1599,12 @@ func (u *UI) OpenInventoryForManagement(items []foundation.ItemForUI) {
 	inv := u.openInventory(items)
 	inv.SetTitle("Inventory")
 	inv.SetDefaultSelection(func(item foundation.ItemForUI) {
-		if item.GetCategory() == foundation.ItemCategoryDocuments { // selecting a document reads it
-			inv.closeHandler()
+		if item.IsEquippable() {
+			u.game.EquipToggle(item)
+		} else if item.GetCategory() == foundation.ItemCategoryDocuments || item.IsUsableOrZappable() {
+			inv.closeHandler() // selecting anything else uses it
 			u.game.PlayerApplyItem(item)
-			return
 		}
-		u.game.EquipToggle(item)
 	})
 	inv.SetShiftSelection(u.game.DropItem)
 	inv.SetControlSelection(u.game.PlayerApplyItem)
