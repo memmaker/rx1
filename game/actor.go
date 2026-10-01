@@ -1,14 +1,14 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
-	"RogueUI/rpg"
-	"RogueUI/util"
 	"fmt"
 	"image/color"
 	"math"
 	"math/rand"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/rpg"
+	"rx1/util"
 	"strings"
 )
 

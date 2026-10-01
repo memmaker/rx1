@@ -1,12 +1,12 @@
 package game
 
 import (
-    "RogueUI/foundation"
-    "RogueUI/geometry"
-    "RogueUI/rpg"
-    "fmt"
-    "math/rand"
-    "strings"
+	"fmt"
+	"math/rand"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/rpg"
+	"strings"
 )
 
 var NoModifiers []rpg.Modifier
@@ -526,7 +526,6 @@ func (g *GameState) actorUnequipItem(wearer *Actor, item *Item) {
 	}
 }
 
-
 func (g *GameState) ChooseItemForApply() {
 	inventory := g.GetFilteredInventory(func(item *Item) bool {
 		return item.IsUsableOrZappable()
@@ -554,8 +553,6 @@ func (g *GameState) ChooseItemForApply() {
 		g.playerUseOrZapItem(item)
 	})
 }
-
-
 
 func (g *GameState) ChooseItemForDrop() {
 	inventory := g.GetFilteredInventory(func(item *Item) bool {
@@ -810,7 +807,7 @@ func (g *GameState) ChooseArmorToTakeOff() {
 		return
 	}
 	if len(wornArmor) == 1 {
-		stack, isStack :=  wornArmor[0].(*InventoryStack)
+		stack, isStack := wornArmor[0].(*InventoryStack)
 		if !isStack {
 			return
 		}
@@ -837,7 +834,7 @@ func (g *GameState) ChooseRingToRemove() {
 		return
 	}
 	if len(wornRings) == 1 {
-		stack, isStack :=  wornRings[0].(*InventoryStack)
+		stack, isStack := wornRings[0].(*InventoryStack)
 		if !isStack {
 			return
 		}

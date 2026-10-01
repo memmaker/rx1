@@ -1,8 +1,8 @@
 package game
 
 import (
-	"RogueUI/dungen"
-	"RogueUI/geometry"
+	"rx1/dungen"
+	"rx1/geometry"
 )
 
 func (g *GameState) applyCorridorExploration() {

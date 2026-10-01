@@ -1,9 +1,9 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
 	"math/rand"
+	"rx1/foundation"
+	"rx1/geometry"
 )
 
 func (g *GameState) ManualMovePlayer(direction geometry.CompassDirection) {

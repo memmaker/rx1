@@ -3,10 +3,10 @@
 package main
 
 import (
-	"RogueUI/console"
-	"RogueUI/util"
 	"fmt"
 	"os"
+	"rx1/console"
+	"rx1/util"
 
 	"golang.org/x/term"
 )

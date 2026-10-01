@@ -1,8 +1,8 @@
 package console
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
+	"rx1/foundation"
+	"rx1/geometry"
 )
 
 type BaseAnimation struct {

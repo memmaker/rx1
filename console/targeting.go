@@ -1,10 +1,10 @@
 package console
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
 	"github.com/gdamore/tcell/v2"
 	"github.com/memmaker/go/cview"
+	"rx1/foundation"
+	"rx1/geometry"
 )
 
 func (u *UI) SelectTarget(origin geometry.Point, onSelected func(targetPos geometry.Point)) {

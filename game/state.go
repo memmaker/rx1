@@ -1,12 +1,6 @@
 package game
 
 import (
-	"RogueUI/dungen"
-	"RogueUI/foundation"
-	"RogueUI/geometry"
-	"RogueUI/gridmap"
-	"RogueUI/rpg"
-	"RogueUI/util"
 	"cmp"
 	"encoding/gob"
 	"fmt"
@@ -14,6 +8,12 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"rx1/dungen"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/gridmap"
+	"rx1/rpg"
+	"rx1/util"
 	"slices"
 	"time"
 )
@@ -145,43 +145,43 @@ func (g *GameState) QuickShot() {
 func (g *GameState) OpenTacticsMenu() {
 	var menuItems []foundation.MenuItem
 	/*
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "Aimed Attack",
-		Action:     nil,
-		CloseMenus: true,
-	})
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "All-Out Attack",
-		Action:     nil,
-		CloseMenus: true,
-	})
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "All-Out Defense",
-		Action:     nil,
-		CloseMenus: true,
-	})
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "Feint",
-		Action:     nil,
-		CloseMenus: true,
-	})
+		menuItems = append(menuItems, foundation.MenuItem{
+			Name:       "Aimed Attack",
+			Action:     nil,
+			CloseMenus: true,
+		})
+		menuItems = append(menuItems, foundation.MenuItem{
+			Name:       "All-Out Attack",
+			Action:     nil,
+			CloseMenus: true,
+		})
+		menuItems = append(menuItems, foundation.MenuItem{
+			Name:       "All-Out Defense",
+			Action:     nil,
+			CloseMenus: true,
+		})
+		menuItems = append(menuItems, foundation.MenuItem{
+			Name:       "Feint",
+			Action:     nil,
+			CloseMenus: true,
+		})
 
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "Toggle Acrobatic Dodge",
-		Action:     nil,
-		CloseMenus: true,
-	})
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "Defend & Retreat",
-		Action:     nil,
-		CloseMenus: true,
-	})
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "Dive for cover",
-		Action:     nil,
-		CloseMenus: true,
-	})
-	 */
+		menuItems = append(menuItems, foundation.MenuItem{
+			Name:       "Toggle Acrobatic Dodge",
+			Action:     nil,
+			CloseMenus: true,
+		})
+		menuItems = append(menuItems, foundation.MenuItem{
+			Name:       "Defend & Retreat",
+			Action:     nil,
+			CloseMenus: true,
+		})
+		menuItems = append(menuItems, foundation.MenuItem{
+			Name:       "Dive for cover",
+			Action:     nil,
+			CloseMenus: true,
+		})
+	*/
 
 	menuItems = append(menuItems, foundation.MenuItem{
 		Name: "Charge Attack",
@@ -213,7 +213,6 @@ func (g *GameState) OpenTacticsMenu() {
 			},
 			CloseMenus: true,
 		})
-
 
 	}
 	g.ui.OpenMenu(menuItems)
@@ -1395,7 +1394,7 @@ func (g *GameState) AddCurseToEquippable(item *Item) {
 	if item.IsMissile() { // don't curse missiles
 		return
 	}
-	if item.equipFlag == foundation.FlagNone && (item.charges == 0|| item.charges == 1) {
+	if item.equipFlag == foundation.FlagNone && (item.charges == 0 || item.charges == 1) {
 		item.equipFlag = foundation.FlagCurseStuck
 		item.charges = rand.Intn(300) + 100
 	}
@@ -1404,7 +1403,6 @@ func (g *GameState) AddCurseToEquippable(item *Item) {
 		item.statBonus = -(rand.Intn(4) + 1)
 	}
 }
-
 
 func saveHighScoreTable(scoresFile string, scoreTable []foundation.ScoreInfo) {
 	file := util.CreateFile(scoresFile)

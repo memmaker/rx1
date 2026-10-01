@@ -1,8 +1,8 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
+	"rx1/foundation"
+	"rx1/geometry"
 )
 
 type Object struct {

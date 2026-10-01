@@ -1,4 +1,4 @@
-module RogueUI
+module rx1
 
 go 1.22.1
 

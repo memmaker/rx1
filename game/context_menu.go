@@ -1,6 +1,6 @@
 package game
 
-import "RogueUI/foundation"
+import "rx1/foundation"
 
 // Currently not in use
 func (g *GameState) openContextMenuForItem(uiItem foundation.ItemForUI) {

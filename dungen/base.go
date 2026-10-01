@@ -1,10 +1,10 @@
 package dungen
 
 import (
-	"RogueUI/geometry"
 	"fmt"
 	"math"
 	"math/rand"
+	"rx1/geometry"
 )
 
 type DungeonTile int

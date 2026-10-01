@@ -1,13 +1,13 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/recfile"
-	"RogueUI/rpg"
-	"RogueUI/util"
 	"fmt"
 	"math/rand"
 	"path"
+	"rx1/foundation"
+	"rx1/recfile"
+	"rx1/rpg"
+	"rx1/util"
 )
 
 type DataDefinitions struct {

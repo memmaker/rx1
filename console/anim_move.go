@@ -1,10 +1,10 @@
 package console
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
-	"RogueUI/util"
 	"image/color"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/util"
 )
 
 type MovementAnimation struct {

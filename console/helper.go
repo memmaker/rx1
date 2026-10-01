@@ -1,9 +1,9 @@
 package console
 
 import (
-	"RogueUI/foundation"
 	"github.com/gdamore/tcell/v2"
 	"github.com/memmaker/go/cview"
+	"rx1/foundation"
 )
 
 type InputCapturer interface {

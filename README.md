@@ -4,9 +4,9 @@ A modern take on the rules of the 1980 Rogue, played in an 80x25 terminal. Writt
 
 ## Desktop
 
-    go build && ./RogueUI          # asks "Who are you?"
-    ./RogueUI -n Name              # skip the prompt
-    ./RogueUI -s                   # show high scores
+    go build && ./rx1          # asks "Who are you?"
+    ./rx1 -n Name              # skip the prompt
+    ./rx1 -s                   # show high scores
 
 Run it from the repo root, it reads `data_rx1/` and `config.rec`.
 

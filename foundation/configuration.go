@@ -1,10 +1,10 @@
 package foundation
 
 import (
-	"RogueUI/recfile"
-	"RogueUI/util"
 	"os"
 	"path"
+	"rx1/recfile"
+	"rx1/util"
 	"time"
 )
 

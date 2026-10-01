@@ -1,12 +1,12 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
 	"cmp"
-	"github.com/memmaker/go/cview"
 	"fmt"
+	"github.com/memmaker/go/cview"
 	"image/color"
+	"rx1/foundation"
+	"rx1/geometry"
 	"slices"
 )
 

@@ -1,14 +1,14 @@
 package game
 
 import (
-	"RogueUI/dungen"
-	"RogueUI/foundation"
-	"RogueUI/geometry"
-	"RogueUI/gridmap"
 	"bufio"
 	"math/rand"
 	"os"
 	"path"
+	"rx1/dungen"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/gridmap"
 	"time"
 )
 

@@ -1,8 +1,8 @@
 package game
 
 import (
-	"RogueUI/foundation"
 	"math/rand"
+	"rx1/foundation"
 )
 
 func itemsForUI(stack []*Item) []foundation.ItemForUI {

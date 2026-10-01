@@ -236,7 +236,6 @@ func StatFromString(stat string) Stat {
 		return MaximumLoad
 	}
 	panic("Invalid stat: " + stat)
-	return -1
 }
 
 var probabilityTable = map[int]float64{

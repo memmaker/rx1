@@ -1,11 +1,11 @@
 package game
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/geometry"
-	"RogueUI/rpg"
-	"RogueUI/util"
 	"math/rand"
+	"rx1/foundation"
+	"rx1/geometry"
+	"rx1/rpg"
+	"rx1/util"
 )
 
 func GetAllZapEffects() map[string]func(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.Animation {
@@ -401,7 +401,7 @@ func holdTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []foundat
 
 	if g.gridMap.IsActorAt(targetPos) {
 		targetActor := g.gridMap.ActorAt(targetPos)
-		targetActor.GetFlags().Increase(foundation.FlagHeld, rand.Intn(10) + 5)
+		targetActor.GetFlags().Increase(foundation.FlagHeld, rand.Intn(10)+5)
 		if zapper == g.Player && !g.Player.IsBlind() && (g.isInPlayerRoom(targetPos) || g.canPlayerSee(targetPos)) {
 			g.identification.EffectWitnessed()
 		}

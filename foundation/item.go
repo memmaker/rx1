@@ -1,8 +1,8 @@
 package foundation
 
 import (
-	"RogueUI/geometry"
 	"math/rand"
+	"rx1/geometry"
 	"strings"
 )
 
@@ -62,8 +62,9 @@ const (
 	ItemCategoryDocuments
 	ItemCategoryOther
 )
+
 func RandomItemCategory() ItemCategory {
-	return ItemCategory(rand.Intn(int(ItemCategoryOther)+1))
+	return ItemCategory(rand.Intn(int(ItemCategoryOther) + 1))
 }
 func ItemCategoryFromString(s string) ItemCategory {
 	s = strings.TrimPrefix(strings.ToLower(s), "item")

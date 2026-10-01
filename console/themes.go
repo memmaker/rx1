@@ -1,14 +1,14 @@
 package console
 
 import (
-	"RogueUI/foundation"
-	"RogueUI/recfile"
-	"RogueUI/util"
 	"fmt"
 	"github.com/gdamore/tcell/v2"
 	"github.com/memmaker/go/cview"
 	"image/color"
 	"math/rand"
+	"rx1/foundation"
+	"rx1/recfile"
+	"rx1/util"
 	"strings"
 )
 
