@@ -892,6 +892,7 @@ func (g *GameState) NewEnemyFromDef(def MonsterDef) *Actor {
 	actor.SetIntrinsicZapEffects(def.ZapEffects)
 	actor.SetIntrinsicUseEffects(def.UseEffects)
 	actor.SetIntrinsicHitEffects(def.HitEffects)
+	actor.SetIntrinsicStruckEffects(def.StruckEffects)
 	actor.SetInternalName(def.InternalName)
 
 	actor.SetSizeModifier(def.SizeModifier)

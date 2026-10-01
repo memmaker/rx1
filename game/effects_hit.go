@@ -21,12 +21,22 @@ func GetAllHitEffects() map[string]func(g *GameState, attacker, defender *Actor)
 }
 
 func (g *GameState) applyHitEffects(attacker, defender *Actor) []foundation.Animation {
-	if !defender.IsAlive() || attacker.HasFlag(foundation.FlagCancel) {
+	return g.rollEffects(attacker, defender, attacker.GetIntrinsicHitEffects())
+}
+
+// applyStruckEffects fires the defender's struck_effects back at whoever hit it (e.g. floating eye).
+func (g *GameState) applyStruckEffects(attacker, defender *Actor) []foundation.Animation {
+	return g.rollEffects(defender, attacker, defender.GetIntrinsicStruckEffects())
+}
+
+// rollEffects applies owner's effects to victim; effect funcs see owner as "attacker".
+func (g *GameState) rollEffects(owner, victim *Actor, effects []HitEffect) []foundation.Animation {
+	if !victim.IsAlive() || owner.HasFlag(foundation.FlagCancel) {
 		return nil
 	}
 	var anims []foundation.Animation
 	allEffects := GetAllHitEffects()
-	for _, effect := range attacker.GetIntrinsicHitEffects() {
+	for _, effect := range effects {
 		if rand.Intn(100) >= effect.Chance {
 			continue
 		}
@@ -34,7 +44,7 @@ func (g *GameState) applyHitEffects(attacker, defender *Actor) []foundation.Anim
 		if !exists {
 			panic("Unknown hit effect: " + effect.Name)
 		}
-		anims = append(anims, apply(g, attacker, defender)...)
+		anims = append(anims, apply(g, owner, victim)...)
 	}
 	return anims
 }

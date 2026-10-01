@@ -11,14 +11,14 @@ func TestHitEffectsParse(t *testing.T) {
 	known := GetAllHitEffects()
 	n := 0
 	for _, d := range defs {
-		for _, e := range d.HitEffects {
+		for _, e := range append(d.HitEffects, d.StruckEffects...) {
 			if _, ok := known[e.Name]; !ok || e.Chance <= 0 {
 				t.Errorf("%s: bad hit effect %+v", d.Name, e)
 			}
 			n++
 		}
 	}
-	if n != 12 {
-		t.Errorf("expected 12 hit effects, got %d", n)
+	if n != 13 {
+		t.Errorf("expected 13 hit effects, got %d", n)
 	}
 }

@@ -31,10 +31,11 @@ type Actor struct {
 
 	statusFlags *foundation.MapFlags
 
-	intrinsicAttacks    []IntrinsicAttack
-	intrinsicZapEffects []string
-	intrinsicUseEffects []string
-	intrinsicHitEffects []HitEffect
+	intrinsicAttacks       []IntrinsicAttack
+	intrinsicZapEffects    []string
+	intrinsicUseEffects    []string
+	intrinsicHitEffects    []HitEffect
+	intrinsicStruckEffects []HitEffect
 
 	icon                   rune
 	color                  string
@@ -320,6 +321,14 @@ func (a *Actor) SetIntrinsicHitEffects(effects []HitEffect) {
 
 func (a *Actor) GetIntrinsicHitEffects() []HitEffect {
 	return a.intrinsicHitEffects
+}
+
+func (a *Actor) SetIntrinsicStruckEffects(effects []HitEffect) {
+	a.intrinsicStruckEffects = effects
+}
+
+func (a *Actor) GetIntrinsicStruckEffects() []HitEffect {
+	return a.intrinsicStruckEffects
 }
 
 func (a *Actor) GetIntrinsicUseEffects() []string {
