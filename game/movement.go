@@ -108,18 +108,12 @@ func (g *GameState) exploreMap() {
 
 	playerRoom := g.getPlayerRoom()
 
-	if playerRoom == nil {
-		g.applyCorridorExploration()
-	} else if playerRoom.IsLit() {
+	if playerRoom != nil && playerRoom.IsLit() {
 		g.applyLightRoomExploration(playerRoom)
-		if g.dungeonLayout.IsDoorAt(g.Player.Position()) {
-			g.applyDarkRoomExploration()
-		}
 		if g.TurnsTaken-playerRoom.LastSeenTurn > 50 {
 			g.checkTilesForHiddenObjects(playerRoom.GetAbsoluteFloorTiles())
 			playerRoom.LastSeenTurn = g.TurnsTaken
 		}
-	} else { // dark room, light the walls and explore the area around the player
-		g.applyDarkRoomExploration()
 	}
+	g.applyLightExploration()
 }

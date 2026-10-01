@@ -83,7 +83,7 @@ func (g *GameState) aiAct(enemy *Actor) {
 		}
 	}
 
-	losToPlayer := g.canPlayerSee(enemy.Position())
+	losToPlayer := g.enemyCanSpotPlayer(enemy.Position())
 	if !enemy.HasFlag(foundation.FlagAwareOfPlayer) && sameRoom && losToPlayer && (enemy.HasFlag(foundation.FlagMean) || enemy.CanPerceivePlayer(g.Player.GetSkill(rpg.SkillNameStealth), distanceToPlayer)) {
 		enemy.GetFlags().Set(foundation.FlagAwareOfPlayer)
 		g.msg(foundation.HiLite("%s notices you", enemy.Name()))

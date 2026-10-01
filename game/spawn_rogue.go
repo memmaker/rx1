@@ -191,12 +191,13 @@ func (g *GameState) rogueNewThing(random *rand.Rand, level int) *Item {
 		weight   int
 	}{
 		{foundation.ItemCategoryPotions, 26},
-		{foundation.ItemCategoryScrolls, 36},
+		{foundation.ItemCategoryScrolls, 33},
 		{foundation.ItemCategoryFood, 16},
 		{foundation.ItemCategoryWeapons, 7},
 		{foundation.ItemCategoryArmor, 7},
 		{foundation.ItemCategoryRings, 4},
 		{foundation.ItemCategoryWands, 4},
+		{foundation.ItemCategoryOther, 3}, // lights
 	}
 	category := foundation.ItemCategoryFood
 	if g.levelsWithoutFood <= 3 {
@@ -212,8 +213,14 @@ func (g *GameState) rogueNewThing(random *rand.Rand, level int) *Item {
 	if category == foundation.ItemCategoryFood {
 		g.levelsWithoutFood = 0
 	}
-	item := NewItem(pickWeighted(random, g.dataDefinitions.Items[category]), g.identification)
-	if item.IsEquippable() && random.Intn(5) == 0 {
+	var defs []ItemDef
+	for _, def := range g.dataDefinitions.Items[category] {
+		if def.MinLevel <= level {
+			defs = append(defs, def)
+		}
+	}
+	item := NewItem(pickWeighted(random, defs), g.identification)
+	if item.IsEquippable() && !item.IsLight() && random.Intn(5) == 0 {
 		g.AddCurseToEquippable(item)
 	}
 	return item

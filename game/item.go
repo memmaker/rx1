@@ -131,6 +131,20 @@ type Item struct {
 	thrownDamage rpg.Dice
 	isKnown      bool
 	text         string
+
+	light foundation.LightInfo // Radius is the full radius, see LightRadius()
+}
+
+func (i *Item) IsLight() bool {
+	return i.light.Radius > 0
+}
+
+// LightRadius is 0 once the fuel is burnt out (charges -1 = infinite)
+func (i *Item) LightRadius() int {
+	if i.charges == 0 {
+		return 0
+	}
+	return i.light.Radius
 }
 
 func (i *Item) InventoryNameWithColorsAndShortcut(lineColorCode string) string {

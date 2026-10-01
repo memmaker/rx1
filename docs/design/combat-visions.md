@@ -148,6 +148,52 @@ environment.
 3. How lethal should a "fair" fight be at equal level: about 50/50, or clearly
    in the player's favour?
 
+## Light sources (decided, built)
+
+Angband-style light, with tiers and visuals copied from heavenandhell. This
+supports both visions, and Vision 2 most of all: darkness is both a danger and
+a place to hide.
+
+### Rules
+
+- **Slot:** a dedicated `light_source` equip slot. The player starts with a
+  torch equipped.
+- **Tiers** (radius, fuel, color, flicker):
+
+  | Item | Radius | Fuel (turns) | Color | Flicker |
+  |---|---|---|---|---|
+  | Torch | 2 | 2500 | 255 223 117 | fire, 0.125s |
+  | Brass Lantern | 3 | 5000 | 255 223 117 | fire, 0.125s |
+  | The Star-Glass | 4 | infinite | 5 250 255 | smooth, 0.125s |
+  | The Morning Star | 12 | infinite | 255 248 207 | smooth, 0.5s |
+
+- **Fuel:** burns 1 per player turn, only while the light is equipped and the
+  player is not standing in a lit room. No burning in town.
+- **Burnt out:** the light stays equipped with radius 0. There are no warnings
+  and no refuelling; find a new light.
+- **Darkness:** with no working light in a dark area the player sees nothing
+  but their own tile (no free "adjacent tiles" rule). Lit rooms are seen as before.
+- **With a light:** the player sees every tile within the light radius that is
+  in line of sight.
+- **Memory:** seen tiles are remembered and drawn dim. Lit rooms out of view at
+  ×0.5 brightness, dark tiles at ×0.16.
+- **Visuals:** brightness falls off as `1 − EaseInExpo(d / (r + 1))`, between
+  0.16 and 1.0, tinted by the light's color and its flicker frame. Each tile's
+  flicker frame is offset by `x·7 + y·13`, so the edge shimmers instead of
+  pulsing as one.
+- **Stealth cost:** monsters notice the player within 4 tiles regardless of
+  light. A player carrying a working light, or standing in a lit room, can also
+  be noticed from 10 tiles with line of sight.
+- **Finding lights:** torches and lanterns appear in the item tables and town
+  stores; the Star-Glass and Morning Star are deep, rare finds.
+
+### Open
+
+- The flicker (done: 100ms redraw ticker) rx1 used to only redraw on input and
+  animations.
+- Whether wands of light or the `darkness` ability should also light/unlight
+  rooms permanently, as in Rogue.
+
 ## First steps either way
 
 - Fix the defense roll (`rpg/rpg.go:164`). Both visions need it.

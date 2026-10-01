@@ -39,6 +39,8 @@ type GameForUI interface {
 
 	// State Queries
 	GetPlayerPosition() geometry.Point
+	// GetPlayerLight returns false where light does not matter (town)
+	GetPlayerLight() (LightInfo, bool)
 	GetCharacterSheet() []string
 
 	GetHudStats() map[HudValue]int
