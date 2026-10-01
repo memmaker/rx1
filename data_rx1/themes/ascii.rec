@@ -117,6 +117,8 @@ TileStairsUp: %
 TileStairsUp_Colors: LightGray | Black
 TileStairsDown: %
 TileStairsDown_Colors: LightGray | Black
+TileTownStairsDown: %
+TileTownStairsDown_Colors: LightGray | Black
 TileMountain: ^
 TileMountain_Colors: LightGray | Black
 TileMountainPeak: ^

@@ -127,6 +127,8 @@ TileStairsUp: <
 TileStairsUp_Colors: White | Cyan
 TileStairsDown: >
 TileStairsDown_Colors: White | Cyan
+TileTownStairsDown: >
+TileTownStairsDown_Colors: White | TownGrass
 TileMountain: ▓
 TileMountain_Colors: RockHi | Rock
 TileMountainPeak: ▲
