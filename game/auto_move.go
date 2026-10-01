@@ -80,7 +80,17 @@ func (g *GameState) TravelToStairsStep(down bool) bool {
 	if g.IsPlayerOnStairs(down) || len(g.GetVisibleEnemies()) > 0 || g.Player.HasFlag(foundation.FlagConfused) {
 		return false
 	}
-	return g.autoMoveToward(isGoal, false)
+	if g.autoMoveToward(isGoal, false) {
+		return true
+	}
+	if !g.IsPlayerOnStairs(down) { // no step and not arrived: no known path
+		direction := "up"
+		if down {
+			direction = "down"
+		}
+		g.msg(foundation.Msg("You don't know the way to the stairs " + direction))
+	}
+	return false
 }
 
 // AutoExploreStep walks one step toward the nearest explored tile that borders unexplored space.
