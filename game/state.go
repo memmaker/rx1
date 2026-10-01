@@ -41,7 +41,10 @@ type GameState struct {
 	currentDungeonLevel              int
 	maximumDungeonLevel              int
 	deepestDungeonLevelPlayerReached int
-	levelsWithoutFood                int                             // Rogue's no_food
+	levelsWithoutFood                int // Rogue's no_food
+	lightsRolledUpTo                 int
+	starGlassSpawned                 bool
+	morningStarSpawned               bool
 	secrets                          map[geometry.Point]gridmap.Tile // secret doors/passages: the real tile until found
 
 	tileStyle         int
@@ -442,6 +445,9 @@ func (g *GameState) init() {
 	g.logBuffer = []foundation.HiLiteString{}
 	g.currentDungeonLevel = 0
 	g.deepestDungeonLevelPlayerReached = 0
+	g.lightsRolledUpTo = 0
+	g.starGlassSpawned = false
+	g.morningStarSpawned = false
 	g.showEverything = false
 	g.usedDocuments = make(map[string]bool)
 }

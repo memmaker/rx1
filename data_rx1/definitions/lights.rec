@@ -1,13 +1,23 @@
 # Light sources. charges = fuel in player turns, omitted = infinite.
+# Spawned by spawnLights (game/spawn_rogue.go), not the random item table.
 # light_flicker_frame_delay is in milliseconds.
 
 name: torch
 internal_name: torch
 category: other
 slot: light_source
-chance: 60
-charges: 2500
+charges: 800
 light_radius: 1
+light_color: 255 223 117
+light_flicker_pattern: fire
+light_flicker_frame_delay: 125
+
+name: lantern
+internal_name: lantern
+category: other
+slot: light_source
+charges: 1000-1200
+light_radius: 2
 light_color: 255 223 117
 light_flicker_pattern: fire
 light_flicker_frame_delay: 125
@@ -16,8 +26,7 @@ name: brass lantern
 internal_name: brass_lantern
 category: other
 slot: light_source
-chance: 30
-charges: 5000
+charges: 1000-1200
 light_radius: 3
 light_color: 255 223 117
 light_flicker_pattern: fire
@@ -27,8 +36,6 @@ name: the Star-Glass
 internal_name: star_glass
 category: other
 slot: light_source
-chance: 3
-min_level: 8
 light_radius: 4
 light_color: 5 250 255
 light_flicker_pattern: smooth
@@ -38,8 +45,6 @@ name: the Morning Star
 internal_name: morning_star
 category: other
 slot: light_source
-chance: 1
-min_level: 12
 light_radius: 12
 light_color: 255 248 207
 light_flicker_pattern: smooth
