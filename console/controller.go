@@ -1982,8 +1982,9 @@ func (u *UI) calculateOverlayPos(position geometry.Point, widthNeeded int) (labe
 }
 
 func (u *UI) onTerminalResized(width int, height int) {
-	tty, _ := u.application.GetScreen().Tty()
-	tty.Write([]byte{0x1B, 0x3E}) // set keypad to numeric mode
+	if tty, ok := u.application.GetScreen().Tty(); ok { // no tty on the web
+		tty.Write([]byte{0x1B, 0x3E}) // set keypad to numeric mode
+	}
 	tSizeX, tSizeY := u.settings.GetMinTerminalSize()
 	u.application.QueueUpdateDraw(func() {
 		if height <= tSizeY {
@@ -2439,3 +2440,6 @@ func (u *UI) GetKeysForCommandAsString(layer KeyLayer, command string) string {
 	})
 	return strings.Join(keys, ", ")
 }
+
+// SetScreen lets the caller supply an already initialized screen (used by the web build).
+func (u *UI) SetScreen(s tcell.Screen) { u.application.SetScreen(s) }

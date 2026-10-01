@@ -8,13 +8,13 @@ import (
 	"RogueUI/util"
 	"bufio"
 	"fmt"
-	"github.com/gdamore/tcell/v2"
-	"golang.org/x/term"
 	"image"
 	"math/rand"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/gdamore/tcell/v2"
 )
 
 func main() {
@@ -24,37 +24,15 @@ func main() {
 	//setKeypadToApplicationMode()   // set application mode
 	//estKeyCodes()
 	//return
-	if !term.IsTerminal(0) {
-		fmt.Println("This program must be run in a terminal.")
+	playerName, showScoresOnly, ok := startup()
+	if !ok {
 		return
-	}
-	width, _, err := term.GetSize(0)
-	if err != nil {
-		return
-	}
-
-	util.SetKeypadToNumericMode()
-
-	var playerName string
-	var showScoresOnly bool
-	if len(os.Args) > 1 {
-		argName := os.Args[1]
-		if argName == "-s" {
-			showScoresOnly = true
-		} else if len(os.Args) > 2 && argName == "-n" {
-			playerName = os.Args[2]
-		}
-	} else {
-		showBanner(width)
-	}
-
-	if playerName == "" && !showScoresOnly {
-		playerName = askForName()
 	}
 
 	config := foundation.NewConfigurationFromFile("config.rec")
 	config.PlayerName = playerName
 	gameUI := console.NewTextUI(config)
+	prepareUI(gameUI)
 	game.NewGameState(gameUI, config)
 
 	if showScoresOnly {
