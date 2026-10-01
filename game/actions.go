@@ -201,7 +201,7 @@ func (g *GameState) PlayerTryAscend() {
 			if g.Player.GetInventory().HasItemWithName("amulet_of_yendor") {
 				g.gameWon()
 			} else {
-				g.msg(foundation.Msg("you are not leaving this place without that amulet."))
+				g.ascendWithStairs(stairs)
 			}
 		} else {
 			g.ascendWithStairs(stairs)
@@ -247,10 +247,7 @@ func (g *GameState) ascendWithStairs(stairs StairsInLevel) {
 		return
 	}
 	if g.currentDungeonLevel == 1 {
-		g.currentDungeonLevel = 0
 		g.GotoNamedLevel("town")
-		g.gridMap.SetAllExplored()
-		g.gridMap.SetAllLit()
 	} else {
 		g.GotoDungeonLevel(g.currentDungeonLevel-1, stairs, true)
 	}
