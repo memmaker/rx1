@@ -126,7 +126,7 @@ func (g *GameState) defaultBehaviour(enemy *Actor) {
 
 	aiUseEffects := enemy.GetIntrinsicUseEffects()
 	canUse := len(aiUseEffects) > 0 && !enemy.HasFlag(foundation.FlagCancel)
-	if canUse && sameRoom {
+	if canUse && sameRoom && rand.Intn(5) == 0 {
 		useEffect := aiUseEffects[rand.Intn(len(aiUseEffects))]
 		_, consequencesOfMonsterUseEffect := g.actorInvokeUseEffect(enemy, useEffect)
 		g.ui.AddAnimations(consequencesOfMonsterUseEffect)
