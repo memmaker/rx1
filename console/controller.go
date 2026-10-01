@@ -2229,7 +2229,7 @@ func (u *UI) mapLookup(loc geometry.Point) (foundation.TextIcon, bool) {
 			icon.Bg = u.getIconForMap(u.game.MapAt(loc)).Bg
 		}
 		icon = u.applyLight(icon, loc)
-		if u.phosphor.tint != nil && (u.game.ActorAt(loc) != nil || u.game.ItemAt(loc) != nil) { // actors and items at full phosphor brightness
+		if u.phosphor.tint != nil && isEntity(u.game.TopEntityAt(loc)) { // actors, items and objects at full phosphor brightness
 			icon.Fg = color.RGBA{255, 255, 255, 255}
 		}
 		return icon, ok
@@ -2271,6 +2271,10 @@ func scaleIcon(icon foundation.TextIcon, factor float64, tint color.RGBA) founda
 	icon.Fg = scale(icon.Fg)
 	icon.Bg = scale(icon.Bg)
 	return icon
+}
+
+func isEntity(t foundation.EntityType) bool {
+	return t == foundation.EntityTypeActor || t == foundation.EntityTypeItem || t == foundation.EntityTypeObject
 }
 
 func (u *UI) visibleLookup(loc geometry.Point) (foundation.TextIcon, bool) {
