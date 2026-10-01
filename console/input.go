@@ -3,14 +3,14 @@ package console
 import (
 	"bufio"
 	"fmt"
-	"github.com/gdamore/tcell/v2"
 	"regexp"
 	"rx1/foundation"
 	"rx1/geometry"
 	"rx1/util"
-	"sort"
 	"strings"
 	"unicode"
+
+	"github.com/gdamore/tcell/v2"
 )
 
 func (u *UI) executePlayerCommand(command string) {
@@ -506,24 +506,38 @@ func (k UIKey) String() string {
 }
 
 // openCommandMenu lists every bound main-layer command with its keys.
+// commandMenuGroups is the command menu's layout; commands not listed (movement, running) are left out
+var commandMenuGroups = []struct {
+	name     string
+	commands []string
+}{
+	{"Items", []string{"inventory", "pickup", "drop", "use", "apply", "eat", "quaff", "read", "zap", "throw", "wear", "take_off", "wield", "ring_put_on", "ring_remove"}},
+	{"Combat", []string{"aim", "quick_shot", "launch", "tactics", "look"}},
+	{"Explore", []string{"auto_explore", "descend", "ascend", "map_interaction", "wait"}},
+	{"Info", []string{"character", "monsters", "items", "log", "help", "show_key_bindings"}},
+	{"Display", []string{"overlay_monsters", "overlay_items", "themes", "gamma_up", "gamma_down", "toggle_cursor"}},
+	{"Game", []string{"wizard", "quit"}},
+}
+
 func (u *UI) openCommandMenu() {
-	var items []foundation.MenuItem
-	var commands []string
-	for cmd := range friendlyNames {
-		commands = append(commands, cmd)
-	}
-	sort.Strings(commands)
-	for _, cmd := range commands {
-		action, exists := u.commandTable[cmd]
-		keys := u.GetKeysForCommandAsString(KeyLayerMain, cmd)
-		if !exists || keys == "" || cmd == "commands" {
-			continue
+	var groups []foundation.MenuItem
+	for _, group := range commandMenuGroups {
+		var items []foundation.MenuItem
+		for _, cmd := range group.commands {
+			action, exists := u.commandTable[cmd]
+			keys := u.GetKeysForCommandAsString(KeyLayerMain, cmd)
+			if !exists || keys == "" {
+				continue
+			}
+			items = append(items, foundation.MenuItem{
+				Name:       fmt.Sprintf("%-18s %s", friendlyNames[cmd], keys),
+				Action:     action,
+				CloseMenus: true,
+			})
 		}
-		items = append(items, foundation.MenuItem{
-			Name:       fmt.Sprintf("%-18s %s", friendlyNames[cmd], keys),
-			Action:     action,
-			CloseMenus: true,
-		})
+		if len(items) > 0 {
+			groups = append(groups, foundation.MenuItem{Name: group.name, Action: func() { u.OpenMenu(items) }})
+		}
 	}
-	u.OpenMenu(items)
+	u.OpenMenu(groups)
 }
