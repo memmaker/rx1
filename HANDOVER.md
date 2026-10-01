@@ -3,85 +3,56 @@
 Goal: give rx1's monsters the abilities from Rogue 3.6 and 5.4, plus picks from
 the abilities list at https://ruzzoli.de/roguelikes/abilities/.
 The Rogue sources are in `~/Games/rogue3.6` and `~/Games/rogue5.4`.
-Most of the monster logic is in `fight.c` (`attack()`), `monsters.c` and `chase.c`.
 
-## Done (commit aee824a)
+## How abilities are defined (`data_rx1/definitions/monsters.rec`)
 
-- **On-hit hook.** A monster gets a `hit_effect: <name> | <chance%>` line in
-  `data_rx1/definitions/monsters.rec`. The effect is rolled when the monster's
-  melee attack lands (`applyHitEffects` in `game/effects_hit.go`, called from
-  `actorMeleeAttack`). Monsters with `FlagCancel` skip their effects.
-- **Effects:** `rust_armor`, `freeze`, `poison_strength`, `drain_level`,
-  `drain_max_hp`, `hold`, `steal_gold`, `steal_item`.
-  They are given to: aquator, rust monster, ice monster, giant ant,
-  rattlesnake, wraith, vampire, violet fungi, venus flytrap, leprechaun and nymph.
-- **Data fixes:** troll and vampire regenerate, and "kestral" is now "kestrel".
-  The ice monster no longer has its cold ray. Rust monster and aquator hits
-  deal 0 damage.
-- **Zap throttle:** a monster in the player's room zaps 1 turn in 5 (`game/ai.go`).
-- **Test:** `game/effects_hit_test.go` checks that every `hit_effect` in the
-  data file names a real effect.
-
-## Missing: Rogue abilities
-
-| Monster | Ability | Needs |
+| Field | Fires | Code |
 |---|---|---|
-| floating eye (3.6) | Paralyzes you when *you* hit it | Hook 2: an effect that fires when the player hits the monster |
-| umber hulk (3.6), medusa (5.4) | Confusion gaze when it first sees you; resisted by a Will roll; once per monster | Hook 3: gaze on sight |
-| mimic, xeroc | Disguised as an item until touched | Spawn-time disguise. `xeroc_2` (shown in-game as "xeroc mk ii") already has a wall-mimic AI in `customBehaviours` (`state.go`); reuse that pattern |
-| bat (50%), phantom / invisible stalker (20%) | Erratic movement | `erratic` flag in the AI move step |
-| orc (5.4), dragon (3.6) | Greedy: guards gold in its room | `greedy` flag; target the room's gold |
-| leprechaun, nymph | In Rogue the stolen gold or item is gone for good | Done this way. Could change it so killing the thief gets it back |
+| `hit_effect: <name> \| <chance%>` | When the monster's melee attack lands | `game/effects_hit.go` |
+| `struck_effect: <name> \| <chance%>` | When something hits the monster; the effect targets the attacker | same registry |
+| `gaze_effect: confuse \| scare` | Once, when the monster first sees the player; a Will roll resists it | `aiGaze` in `game/abilities.go` |
+| `use_effect`, `zap_effect` | 1 turn in 5 while in the player's room | `game/ai.go` |
+| `flags:` | see below | `foundation/mapflags.go`, `game/abilities.go` |
 
-## Missing: suggested new abilities (from the abilities list)
+New flags: `stationary`, `erratic` (50% for flyers, otherwise 20%), `greedy`
+(walks to gold in its room and picks it up while unaware of you), `disguised`
+(drawn as a random item and inactive until it is attacked), `group` (spawns 1–3
+extra of its kind), `revive` (gets up once at full HP), `tunnel` (digs
+corridors), `poisoned` (player status; 1 damage per turn).
+`wall_crawler` now moves the monster through rock as well as spawning it in walls.
 
-| Monster | Ability | Needs |
-|---|---|---|
-| floating eye, violet fungi, venus flytrap | Stationary (never moves) | `stationary` flag |
-| phantom | Moves through walls | `wall_crawler` (flag exists) |
-| xorn | Moves through walls; eats gold | `wall_crawler`, plus a new `eat_gold` hit effect |
-| umber hulk, purple worm, gnome | Tunnels through rock | `wall_crawler`, or a real dig that leaves corridors |
-| purple worm | Poisonous stinger | Hit effect `poison_strength` |
-| snake | Poison that does damage over time | New `poisoned` timed flag |
-| yeti | Chilling hug: holds you and slows you | `hold`, plus a new `slow` hit effect |
-| zombie | Slow mover; its bite makes you hungry | `slow` flag; new `hunger` hit effect |
-| griffin | Knockback | New `knockback` hit effect |
-| kestrel | Hit-and-run (flees after attacking) | AI: retreat a few turns after hitting |
-| quasit | Blink; drains Dexterity | `use_effect: phase_door`; new `drain_dex` hit effect |
-| black unicorn | Charge; blinks away when hurt | `zap_effect: charge_attack`; low-HP trigger |
-| quagga, emu | Charge | `zap_effect: charge_attack` (exists) |
-| centaur | Shoots arrows | `zap_effect: magic_arrow` (exists) |
-| kobold | Throws darts | `zap_effect: magic_dart` (exists) |
-| jabberwock | Fear on sight | Hook 3 with `scared` |
-| wraith, ur-vile | Darkness | New use effect |
-| jackal, hobgoblin, ur-vile | Spawn in packs | `group` spawn in `spawnEntities` |
-| troll | Revives once after death | Trigger on death (in `actorKilled`) |
-| slime | Splits when hit; corrodes your weapon | Trigger when hit; `rust_weapon` hit effect |
+`dodge` and `dr` from the data file are now applied.
 
-**Done (data only):** centaur arrows, kobold darts, emu/quagga/black unicorn
-charge, quasit blink, phantom and xorn `wall_crawler`, purple worm
-`poison_strength | 30`.
+## Who has what
 
-## Hooks to build
+- **Rogue:** floating eye (freezes whoever hits it; stationary), umber hulk and
+  medusa (confusion gaze), mimic and xeroc (disguised), bat, phantom and invisible
+  stalker (erratic), orc and dragon (greedy), plus the hit effects from commit aee824a.
+- **From the abilities list:** violet fungi and venus flytrap (stationary),
+  phantom and xorn (through walls), xorn (eats gold), umber hulk, purple worm and
+  gnome (tunnel), purple worm (poison sting), snake (poison over time), yeti
+  (hold, slow), zombie (slow, hunger), griffin (knockback), kestrel (hit and
+  run), quasit (blink, Dexterity drain), black unicorn, quagga and emu (charge),
+  black unicorn (blink), centaur (arrows), kobold (darts), jabberwock (fear
+  gaze), wraith and ur-vile (darkness), jackal, hobgoblin and ur-vile (packs),
+  troll (revives), slime (splits, corrodes weapons).
 
-1. ~~On-hit effect~~ (done)
-2. **Effect when the player hits the monster:** call it from `actorMeleeAttack`
-   when the defender is a monster and the hit landed. Same data shape as
-   `hit_effect`, e.g. a `struck_effect` field.
-3. **Gaze on sight:** check in `defaultBehaviour` when the monster is in the
-   player's room. Track a per-monster "already gazed" flag.
-4. **Flags and spawn rules:** `erratic`, `stationary`, `greedy`, `disguised`,
-   `group`; plus triggers when the monster dies (`revive`) or is hit (`split`).
+## Simplifications
 
-## Known issues found along the way
+- Wall-crawlers and tunnelers step in a straight line toward you. Another actor in
+  the way blocks them.
+- Greedy monsters take a greedy step toward the gold. That works in open rooms.
+- A disguised monster still shows its real name in look and info screens.
+- Kestrel "hit and run" sets `scared`. It stays scared until it leaves your room.
+- Jabberwock's fear is a stun.
+- Black unicorn blinks at random (its `use_effect`), not specifically when hurt.
+- Thieves (leprechaun, nymph) vanish with the loot, as in Rogue.
 
-- `dodge` and `dr` are read from `monsters.rec` but never applied. Dodge is
-  always calculated from speed, and monsters have no natural damage resistance.
-  The fix is in `NewEnemyFromDef` (`state.go`).
-- `getLevelForExperience` (`data_defs.go`) has no callers, and monsters have no
-  XP value for being killed.
-- `drain_level` subtracts character points. If the player has already spent
-  them, the point balance can go negative. Check that the character screen
-  handles a negative balance.
-- The new effects are untested in actual play. Fight each of the 12 monsters once
-  to check the messages and balance.
+## Still open
+
+- Monsters give no XP. `getLevelForExperience` (`data_defs.go`) has no callers.
+  This is a design decision for rx1's character-point system.
+- `drain_level` can push character points negative. Check the character screen.
+- Nothing here has been tried in actual play yet. Spawn each monster from the
+  wizard menu and check messages and balance. Splitting slimes, packs and
+  tunneling are the most likely to need tuning.
