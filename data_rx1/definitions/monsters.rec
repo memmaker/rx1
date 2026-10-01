@@ -67,8 +67,8 @@ dodge: 8
 dr: 0
 attack_1: 13 | 1d4+1 | slash
 
-name: kestral
-internal_name: kestral
+name: kestrel
+internal_name: kestrel
 letter: k
 dlvl: 1
 color: Orange
@@ -153,7 +153,7 @@ size_modifier: 0
 dodge: 9
 dr: 0
 attack: 11 | 0d0 | freeze
-zap_effect: cold_ray
+hit_effect: freeze | 100
 
 name: slime
 internal_name: slime
@@ -260,6 +260,7 @@ size_modifier: -2
 dodge: 9
 dr: 0
 attack: 10 | 1d6 | bite
+hit_effect: poison_strength | 100
 
 name: invisible stalker
 internal_name: invisible_stalker
@@ -302,7 +303,8 @@ speed: 8
 size_modifier: 1
 dodge: 7
 dr: 1
-attack: 11 | 1d8+2 | punch
+attack: 11 | 0d0 | touch
+hit_effect: rust_armor | 100
 
 name: zombie
 internal_name: zombie
@@ -346,6 +348,7 @@ size_modifier: 1
 dodge: 7
 dr: 1
 attack: 9 | 1d8 | bite
+hit_effect: poison_strength | 100
 
 name: leprechaun
 internal_name: leprechaun
@@ -368,6 +371,7 @@ size_modifier: 0
 dodge: 8
 dr: 0
 attack: 11 | 1d8 | punch
+hit_effect: steal_gold | 100
 
 name: centaur
 internal_name: centaur
@@ -431,7 +435,8 @@ speed: 8
 size_modifier: 0
 dodge: 9
 dr: 0
-attack: 10 | 1d6 | punch
+attack: 10 | 0d0 | touch
+hit_effect: rust_armor | 100
 
 name: black unicorn
 internal_name: black_unicorn
@@ -496,6 +501,7 @@ size_modifier: 0
 dodge: 8
 dr: 0
 attack: 10 | 1d6 | punch
+hit_effect: steal_item | 100
 
 name: mimic
 internal_name: mimic
@@ -544,6 +550,7 @@ name: troll
 internal_name: troll
 letter: T
 dlvl: 16
+flags: regenerating
 color: Orange
 gold: 2d10
 carry_chance: 55
@@ -581,6 +588,7 @@ size_modifier: 1
 dodge: 5
 dr: 0
 attack: 12 | 1d6 | bite
+hit_effect: hold | 100
 
 name: wraith
 internal_name: wraith
@@ -602,6 +610,7 @@ size_modifier: 0
 dodge: 9
 dr: 1
 attack: 10 | 1d6+2 | strike
+hit_effect: drain_level | 15
 
 name: venus flytrap
 internal_name: venus_flytrap
@@ -624,6 +633,7 @@ size_modifier: 1
 dodge: 8
 dr: 0
 attack: 12 | 1d6 | bite
+hit_effect: hold | 100
 
 name: phantom
 internal_name: phantom
@@ -848,7 +858,7 @@ dlvl: 24
 color: Red
 gold: 0
 carry_chance: 75
-flags: chase
+flags: chase | regenerating
 strength: 14
 dexterity: 14
 health: 9
@@ -862,6 +872,7 @@ size_modifier: 0
 dodge: 9
 dr: 1
 attack: 13 | 1d8+2 | claws
+hit_effect: drain_max_hp | 30
 
 name: jabberwock
 internal_name: jabberwock

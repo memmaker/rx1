@@ -292,6 +292,7 @@ func (g *GameState) actorMeleeAttack(attacker *Actor, attackMod []rpg.Modifier, 
 		animDamage := g.damageActor(attacker.Name(), defender, damageDone)
 		//animAttack := g.ui.GetAnimAttack(attacker, defender) // currently no attack animation
 		afterAttackAnimations = append(afterAttackAnimations, animDamage...)
+		afterAttackAnimations = append(afterAttackAnimations, g.applyHitEffects(attacker, defender)...)
 		//animAttack.SetFollowUp(afterAttackAnimations)
 	} else {
 		animMiss := g.ui.GetAnimDamage(defender.Position(), 0, nil)
