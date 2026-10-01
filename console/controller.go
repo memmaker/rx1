@@ -2498,7 +2498,29 @@ func (u *UI) OpenKeyMapper(layer KeyLayer) {
 }
 
 func (u *UI) ShowHelpScreen() {
-	u.ShowTextFile(path.Join(u.settings.DataRootDir, "help.txt"))
+	u.OpenTextWindow(u.colorizeHelp(util.ReadFileAsLines(path.Join(u.settings.DataRootDir, "help.txt"))))
+}
+
+// colorizeHelp colors section headers and the key column of help.txt (the colors are dropped in monochrome)
+func (u *UI) colorizeHelp(lines []string) []string {
+	const keyWidth = 15
+	header := RGBAToFgColorCode(u.currentTheme.GetUIColor(UIColorBorderForeground))
+	key := RGBAToFgColorCode(u.currentTheme.GetUIColor(UIColorTextForegroundHighlighted))
+	text := RGBAToFgColorCode(u.currentTheme.GetUIColor(UIColorUIForeground))
+	var out []string
+	for i, line := range lines {
+		switch {
+		case line != "" && strings.Trim(line, "=") == "": // underline of a header
+			continue
+		case i+1 < len(lines) && line != "" && lines[i+1] != "" && strings.Trim(lines[i+1], "=") == "":
+			out = append(out, "", " "+header+strings.ToUpper(cview.Escape(line))+text)
+		case len(line) > keyWidth && line[keyWidth-2:keyWidth] == "  " && line[0] != ' ':
+			out = append(out, " "+key+cview.Escape(strings.TrimRight(line[:keyWidth], " "))+strings.Repeat(" ", keyWidth-len(strings.TrimRight(line[:keyWidth], " ")))+text+cview.Escape(line[keyWidth:]))
+		default:
+			out = append(out, " "+cview.Escape(line))
+		}
+	}
+	return out
 }
 
 func (u *UI) getCommandForKey(key UIKey) string {
