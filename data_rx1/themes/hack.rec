@@ -196,11 +196,11 @@ UIBorder_TopLeft: ┌
 UIBorder_TopRight: ┐
 UIBorder_BottomLeft: └
 UIBorder_BottomRight: ┘
-UIBorder_LeftT: -
-UIBorder_RightT: -
-UIBorder_TopT: |
-UIBorder_BottomT: |
-UIBorder_Cross: +
+UIBorder_LeftT: ├
+UIBorder_RightT: ┤
+UIBorder_TopT: ┬
+UIBorder_BottomT: ┴
+UIBorder_Cross: ┼
 UIBorder_HorizontalFocus: ─
 UIBorder_VerticalFocus: │
 UIBorder_TopLeftFocus: ┌

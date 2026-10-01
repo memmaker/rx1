@@ -55,6 +55,8 @@ F4 -> wiz_ascend
 F5 -> wiz_descend
 
 Ctrl+T -> themes
+o -> auto_explore
+Tab -> commands
 F10 -> wizard
 
 % directional_targeting

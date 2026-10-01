@@ -6,7 +6,6 @@ import (
 	"github.com/memmaker/go/cview"
 	"image/color"
 	"rx1/foundation"
-	"rx1/geometry"
 	"strings"
 	"unicode"
 )
@@ -28,40 +27,21 @@ type TextInventory struct {
 	ourTitle             string
 	selectionOnly        bool
 	lineColor            func(foundation.ItemCategory) color.RGBA
+	cursor               int
+	contextMenu          func(item foundation.ItemForUI)
+}
+
+func (i *TextInventory) SetContextMenu(open func(item foundation.ItemForUI)) {
+	i.contextMenu = open
 }
 
 func (i *TextInventory) SetLineColor(lineColor func(foundation.ItemCategory) color.RGBA) {
 	i.lineColor = lineColor
 }
 func (i *TextInventory) drawInside(screen tcell.Screen, x int, y int, width int, height int) (int, int, int, int) {
-	// align top right
-	startX := x + width - i.listWidth - 2
-	startY := y
-	fg, _, _ := i.style.Decompose()
-	//cview.Borders.Cross
-	runes := []rune{cview.Borders.Horizontal, cview.Borders.Vertical, cview.Borders.TopLeft, cview.Borders.TopRight, cview.Borders.BottomRight, cview.Borders.BottomLeft}
-	drawBackgroundAndBorderWithTitleForInventory(screen, startX, startY, i.listWidth+2, i.listHeight+2, i.ourTitle, i.style, runes)
-
-	listOffset := geometry.Point{X: 2, Y: 1}
-	var equipRunes []rune
-	var unequipRunes []rune
-	var useRunes []rune
-	var dropRunes []rune
-
-	for lineIndex, invItem := range i.items {
-		item := invItem
-		shortcut := invItem.Shortcut()
-		line := invItem.InventoryNameWithColorsAndShortcut(RGBAToFgColorCode(i.lineColor(invItem.GetCategory())))
-		taggedStringWidth := cview.TaggedStringWidth(line)
-		if taggedStringWidth < i.listWidth {
-			line = RightPadColored(line, i.listWidth)
-		}
-		if i.isEquipped != nil && i.isEquipped(item) {
-			line = line[:2] + "+" + line[3:]
-		}
-		drawX := startX + listOffset.X
-		drawY := startY + listOffset.Y + lineIndex
-		cview.Print(screen, []byte(line), drawX, drawY, width, cview.AlignLeft, fg)
+	var equipRunes, unequipRunes, useRunes, dropRunes []rune
+	for _, item := range i.items {
+		shortcut := item.Shortcut()
 		if item.IsEquippable() && i.isEquipped != nil {
 			if i.isEquipped(item) {
 				unequipRunes = append(unequipRunes, shortcut)
@@ -74,37 +54,62 @@ func (i *TextInventory) drawInside(screen tcell.Screen, x int, y int, width int,
 		}
 		dropRunes = append(dropRunes, shortcut)
 	}
+	infoLines := []string{"[Up/Down] Move  [Enter] Select"}
+	if !i.selectionOnly {
+		infoLines = append(infoLines, "[Space] Actions")
+		if len(unequipRunes) > 0 {
+			infoLines = append(infoLines, fmt.Sprintf("[%s] Unequip", string(unequipRunes)))
+		}
+		if len(equipRunes) > 0 {
+			infoLines = append(infoLines, fmt.Sprintf("[%s] Equip", string(equipRunes)))
+		}
+		if len(useRunes) > 0 {
+			infoLines = append(infoLines, fmt.Sprintf("[<CTRL> + %s] Use", string(useRunes)))
+		}
+		if len(dropRunes) > 0 {
+			infoLines = append(infoLines, fmt.Sprintf("[%s] Drop", strings.ToUpper(string(dropRunes))))
+		}
+	}
+	innerWidth := i.listWidth + 2
+	for _, line := range infoLines {
+		innerWidth = max(innerWidth, len(line)+2)
+	}
 
-	lineAfterList := startY + listOffset.Y + i.listHeight + 1
-	var infoLines []string
-	if len(unequipRunes) > 0 {
-		infoLines = append(infoLines, fmt.Sprintf("[%s] Unequip", string(unequipRunes)))
+	// align top right; list, a separator, then the key help, all inside one box
+	boxWidth := innerWidth + 2
+	boxHeight := i.listHeight + 3 + len(infoLines)
+	startX := x + width - boxWidth
+	startY := y
+	fg, _, _ := i.style.Decompose()
+	runes := []rune{cview.Borders.Horizontal, cview.Borders.Vertical, cview.Borders.TopLeft, cview.Borders.TopRight, cview.Borders.BottomRight, cview.Borders.BottomLeft}
+	drawBackgroundAndBorderWithTitle(screen, startX, startY, boxWidth, boxHeight, i.ourTitle, i.style, runes)
+	separatorY := startY + 1 + i.listHeight
+	screen.SetContent(startX, separatorY, cview.Borders.LeftT, nil, i.style)
+	screen.SetContent(startX+boxWidth-1, separatorY, cview.Borders.RightT, nil, i.style)
+	for sx := startX + 1; sx < startX+boxWidth-1; sx++ {
+		screen.SetContent(sx, separatorY, cview.Borders.Horizontal, nil, i.style)
 	}
-	if len(equipRunes) > 0 {
-		infoLines = append(infoLines, fmt.Sprintf("[%s] Equip", string(equipRunes)))
-	}
-	if len(useRunes) > 0 {
-		infoLines = append(infoLines, fmt.Sprintf("[<CTRL> + %s] Use", string(useRunes)))
-	}
-	if len(dropRunes) > 0 {
-		infoLines = append(infoLines, fmt.Sprintf("[%s] Drop", strings.ToUpper(string(dropRunes))))
-	}
-	if i.selectionOnly {
-		return x, y, width, height
-	}
-	additionalLines := len(infoLines)
-	// draw more background
 
-	for lineY := 0; lineY < additionalLines; lineY++ {
-		for lineX := 0; lineX < i.listWidth+2; lineX++ {
-			screen.SetContent(startX+lineX, lineAfterList+lineY, ' ', nil, i.style)
+	i.cursor = min(max(i.cursor, 0), max(len(i.items)-1, 0))
+	for lineIndex, item := range i.items {
+		line := item.InventoryNameWithColorsAndShortcut(RGBAToFgColorCode(i.lineColor(item.GetCategory())))
+		if i.isEquipped != nil && i.isEquipped(item) {
+			line = line[:2] + "+" + line[3:]
+		}
+		drawY := startY + 1 + lineIndex
+		cview.Print(screen, []byte(line), startX+2, drawY, innerWidth-2, cview.AlignLeft, fg)
+		if lineIndex == i.cursor { // the cursor line is drawn inverted, across the whole inner width
+			for cx := startX + 1; cx < startX+boxWidth-1; cx++ {
+				mainc, combc, style, _ := screen.GetContent(cx, drawY)
+				cfg, cbg, _ := style.Decompose()
+				screen.SetContent(cx, drawY, mainc, combc, style.Foreground(cbg).Background(cfg))
+			}
 		}
 	}
 
 	for idx, line := range infoLines {
-		cview.Print(screen, []byte(cview.Escape(line)), startX, lineAfterList+idx, width, cview.AlignLeft, fg)
+		cview.Print(screen, []byte(cview.Escape(line)), startX+2, separatorY+1+idx, innerWidth-2, cview.AlignLeft, fg)
 	}
-
 	return x, y, width, height
 }
 
@@ -166,6 +171,30 @@ func (i *TextInventory) handleInput(event *tcell.EventKey) *tcell.EventKey {
 	if i.closeHandler != nil && event.Key() == tcell.KeyEscape {
 		i.closeHandler()
 		return nil
+	}
+	if len(i.items) > 0 {
+		switch event.Key() {
+		case tcell.KeyUp:
+			i.cursor = (i.cursor - 1 + len(i.items)) % len(i.items)
+			return nil
+		case tcell.KeyDown:
+			i.cursor = (i.cursor + 1) % len(i.items)
+			return nil
+		case tcell.KeyEnter:
+			if i.defaultSelection != nil {
+				item := i.items[i.cursor]
+				if i.closeOnSelect {
+					i.closeHandler()
+				}
+				i.defaultSelection(item)
+				i.updateListBounds()
+			}
+			return nil
+		}
+		if event.Key() == tcell.KeyRune && event.Rune() == ' ' && i.contextMenu != nil {
+			i.contextMenu(i.items[i.cursor])
+			return nil
+		}
 	}
 	runeReceived := event.Rune()
 	// to upper

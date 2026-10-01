@@ -8,7 +8,9 @@ import (
 	"rx1/foundation"
 	"rx1/geometry"
 	"rx1/util"
+	"sort"
 	"strings"
+	"unicode"
 )
 
 func (u *UI) executePlayerCommand(command string) {
@@ -139,66 +141,71 @@ func (u *UI) setupCommandTable() {
 	u.commandTable["ascend"] = u.game.PlayerTryAscend
 	u.commandTable["wait"] = u.game.Wait
 	u.commandTable["show_key_bindings"] = u.showKeyBindings
+	u.commandTable["auto_explore"] = u.startAutoExplore
+	u.commandTable["commands"] = u.openCommandMenu
+}
+
+var friendlyNames = map[string]string{
+	"quit":              "Quit",
+	"inventory":         "Inventory",
+	"tactics":           "Tactics Menu",
+	"character":         "Character",
+	"wizard":            "Wizard",
+	"themes":            "Themes",
+	"log":               "Log",
+	"monsters":          "Monster List",
+	"items":             "Item List",
+	"help":              "Help",
+	"show_key_bindings": "Key Bindings",
+	"north":             "North",
+	"south":             "South",
+	"west":              "West",
+	"east":              "East",
+	"northwest":         "Northwest",
+	"northeast":         "Northeast",
+	"southwest":         "Southwest",
+	"southeast":         "Southeast",
+	"run_north":         "Run North",
+	"run_south":         "Run South",
+	"run_west":          "Run West",
+	"run_east":          "Run East",
+	"run_northwest":     "Run Northwest",
+	"run_northeast":     "Run Northeast",
+	"run_southwest":     "Run Southwest",
+	"run_southeast":     "Run Southeast",
+	"look":              "Look",
+	"overlay_monsters":  "Overlay Monsters",
+	"overlay_items":     "Overlay Items",
+	"gamma_up":          "Gamma Up",
+	"gamma_down":        "Gamma Down",
+	"toggle_cursor":     "Toggle Cursor",
+	"throw":             "Throw",
+	"quaff":             "Quaff",
+	"read":              "Read",
+	"zap":               "Zap",
+	"use":               "Use",
+	"apply":             "Apply",
+	"wear":              "Wear",
+	"take_off":          "Take Off",
+	"wield":             "Wield",
+	"ring_put_on":       "Put On Ring",
+	"ring_remove":       "Remove Ring",
+	"drop":              "Drop",
+	"eat":               "Eat",
+	"launch":            "Launch",
+	"aim":               "Aim",
+	"quick_shot":        "Quick Shot",
+	"pickup":            "Pickup",
+	"map_interaction":   "Map Interaction",
+	"run_direction":     "Run Direction",
+	"descend":           "Descend",
+	"auto_explore":      "Auto Explore",
+	"commands":          "Command Menu",
+	"ascend":            "Ascend",
+	"wait":              "Wait",
 }
 
 func (u *UI) showKeyBindings() {
-	friendlyNames := map[string]string{
-		"quit":              "Quit",
-		"inventory":         "Inventory",
-		"tactics":           "Tactics Menu",
-		"character":         "Character",
-		"wizard":            "Wizard",
-		"themes":            "Themes",
-		"log":               "Log",
-		"monsters":          "Monster List",
-		"items":             "Item List",
-		"help":              "Help",
-		"show_key_bindings": "Key Bindings",
-		"north":             "North",
-		"south":             "South",
-		"west":              "West",
-		"east":              "East",
-		"northwest":         "Northwest",
-		"northeast":         "Northeast",
-		"southwest":         "Southwest",
-		"southeast":         "Southeast",
-		"run_north":         "Run North",
-		"run_south":         "Run South",
-		"run_west":          "Run West",
-		"run_east":          "Run East",
-		"run_northwest":     "Run Northwest",
-		"run_northeast":     "Run Northeast",
-		"run_southwest":     "Run Southwest",
-		"run_southeast":     "Run Southeast",
-		"look":              "Look",
-		"overlay_monsters":  "Overlay Monsters",
-		"overlay_items":     "Overlay Items",
-		"gamma_up":          "Gamma Up",
-		"gamma_down":        "Gamma Down",
-		"toggle_cursor":     "Toggle Cursor",
-		"throw":             "Throw",
-		"quaff":             "Quaff",
-		"read":              "Read",
-		"zap":               "Zap",
-		"use":               "Use",
-		"apply":             "Apply",
-		"wear":              "Wear",
-		"take_off":          "Take Off",
-		"wield":             "Wield",
-		"ring_put_on":       "Put On Ring",
-		"ring_remove":       "Remove Ring",
-		"drop":              "Drop",
-		"eat":               "Eat",
-		"launch":            "Launch",
-		"aim":               "Aim",
-		"quick_shot":        "Quick Shot",
-		"pickup":            "Pickup",
-		"map_interaction":   "Map Interaction",
-		"run_direction":     "Run Direction",
-		"descend":           "Descend",
-		"ascend":            "Ascend",
-		"wait":              "Wait",
-	}
 
 	leftColCommands := []string{
 		"help",
@@ -314,6 +321,9 @@ func toUIKey(keyEvent *tcell.EventKey) UIKey {
 		ch = rune(keyEvent.Key()) // the keymap stores these with ch 13/9; tcell's web screen reports ch 0
 	}
 	mod := keyEvent.Modifiers()
+	if r := unicode.ToUpper(ch); keyEvent.Key() == tcell.KeyRune && mod&tcell.ModCtrl != 0 && r >= 'A' && r <= 'Z' {
+		return CtrlCombo(tcell.KeyCtrlA + tcell.Key(r-'A')) // web screen: rune + Ctrl
+	}
 	if keyEvent.Key() == tcell.KeyRune {
 		mod &^= tcell.ModShift // the rune is already shifted ('>', 'W'); only tcell's web screen reports Shift here
 	}
@@ -390,6 +400,9 @@ func UIKeyFromString(s string) UIKey {
 		matches := ctrlComboRegex.FindStringSubmatch(s)
 		keyString = matches[1]
 		mods = tcell.ModCtrl
+		if l := []rune(strings.ToUpper(keyString)); len(l) == 1 && l[0] >= 'A' && l[0] <= 'Z' {
+			return CtrlCombo(tcell.KeyCtrlA + tcell.Key(l[0]-'A')) // tcell reports Ctrl+T as KeyCtrlT, not a rune
+		}
 	}
 	shiftComboRegex, _ := regexp.Compile(`Shift\+(\w)`)
 	if shiftComboRegex.MatchString(s) {
@@ -490,4 +503,27 @@ func NonPrintableKeyCombo(key tcell.Key, mod tcell.ModMask) UIKey {
 }
 func (k UIKey) String() string {
 	return fmt.Sprintf("UIKey{mod: %d, key: %d, ch: %d, name: %s}", k.mod, k.key, k.ch, k.name)
+}
+
+// openCommandMenu lists every bound main-layer command with its keys.
+func (u *UI) openCommandMenu() {
+	var items []foundation.MenuItem
+	var commands []string
+	for cmd := range friendlyNames {
+		commands = append(commands, cmd)
+	}
+	sort.Strings(commands)
+	for _, cmd := range commands {
+		action, exists := u.commandTable[cmd]
+		keys := u.GetKeysForCommandAsString(KeyLayerMain, cmd)
+		if !exists || keys == "" || cmd == "commands" {
+			continue
+		}
+		items = append(items, foundation.MenuItem{
+			Name:       fmt.Sprintf("%-18s %s", friendlyNames[cmd], keys),
+			Action:     action,
+			CloseMenus: true,
+		})
+	}
+	u.OpenMenu(items)
 }
