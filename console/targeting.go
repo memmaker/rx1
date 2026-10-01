@@ -125,7 +125,14 @@ func (u *UI) cancelTargeting() {
 
 func (u *UI) beginAdvancedTargeting(onSelected func(targetPos geometry.Point)) {
 	u.state = StateTargeting
-	listOfVisibleEnemies := u.game.GetVisibleEnemies()
+	// only enemies the aim line reaches: one hidden behind another would select the front one twice
+	var listOfVisibleEnemies []foundation.ActorForUI
+	for _, enemy := range u.game.GetVisibleEnemies() {
+		u.updateTarget(enemy.Position())
+		if u.targetPos == enemy.Position() {
+			listOfVisibleEnemies = append(listOfVisibleEnemies, enemy)
+		}
+	}
 	preselected := u.game.GetPlayerPosition()
 	if len(listOfVisibleEnemies) > 0 {
 		preselected = listOfVisibleEnemies[0].Position()
