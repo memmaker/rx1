@@ -18,33 +18,58 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 		return
 	}
 	var spawnPos geometry.Point
+	mapRunes := []rune(mapData)
+	at := func(p geometry.Point) rune {
+		i := p.Y*g.config.MapWidth + p.X
+		if p.X < 0 || p.X >= g.config.MapWidth || p.Y < 0 || i >= len(mapRunes) {
+			return 0
+		}
+		return mapRunes[i]
+	}
+	isBuilding := func(c rune) bool { return c == '#' || (c >= '1' && c <= '4') }
 	simpleMapper := func(gridMap *gridmap.GridMap[*Actor, *Item, *Object], icon rune, pos geometry.Point) {
 		switch icon {
 		case '@':
 			gridMap.SetTile(pos, gridmap.Tile{
-				Feature:            foundation.TileFloor,
+				Feature:            townGrass(pos),
 				DefinedDescription: "floor",
 				IsWalkable:         true,
 				IsTransparent:      true,
 			})
 			spawnPos = pos
 		case '^':
+			var feature foundation.TileType = foundation.TileMountain
+			for _, d := range []geometry.Point{{X: 1}, {X: -1}, {Y: 1}, {Y: -1}} {
+				if c := at(pos.Add(d)); c != '^' && c != 0 {
+					feature = foundation.TileMountainPeak
+				}
+			}
 			gridMap.SetTile(pos, gridmap.Tile{
-				Feature:            foundation.TileMountain,
+				Feature:            feature,
 				DefinedDescription: "wall",
 				IsWalkable:         false,
 				IsTransparent:      false,
 			})
 		case '#':
+			var feature foundation.TileType
+			if !isBuilding(at(pos.Add(geometry.Point{Y: -1}))) {
+				feature = foundation.TileRoof
+			} else if !isBuilding(at(pos.Add(geometry.Point{Y: 1}))) {
+				feature = foundation.TileTownWallBase
+			} else if isBuilding(at(pos.Add(geometry.Point{X: -1}))) && isBuilding(at(pos.Add(geometry.Point{X: 1}))) {
+				feature = foundation.TileTownInterior
+			} else {
+				feature = foundation.TileTownWallSide
+			}
 			gridMap.SetTile(pos, gridmap.Tile{
-				Feature:            foundation.TileWall,
+				Feature:            feature,
 				DefinedDescription: "wall",
 				IsWalkable:         false,
 				IsTransparent:      true,
 			})
 		case ' ':
 			gridMap.SetTile(pos, gridmap.Tile{
-				Feature:            foundation.TileFloor,
+				Feature:            townGrass(pos),
 				DefinedDescription: "floor",
 				IsWalkable:         true,
 				IsTransparent:      true,
@@ -112,6 +137,19 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 		Mode:      foundation.PlayerMoveModeManual,
 	})
 	g.updateUIStatus()
+}
+
+// townGrass scatters a few ZZT-style grass marks, fixed per position
+func townGrass(p geometry.Point) foundation.TileType {
+	switch uint32(p.X*73856093^p.Y*19349663) % 11 {
+	case 0, 1:
+		return foundation.TileTownGrassShade
+	case 2:
+		return foundation.TileTownGrassTuft
+	case 3:
+		return foundation.TileTownGrassDot
+	}
+	return foundation.TileTownGrass
 }
 
 func (g *GameState) GotoDungeonLevel(level int, stairs StairsInLevel, placePlayerOnStairs bool) {

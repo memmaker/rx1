@@ -2214,6 +2214,10 @@ func directionToRune(dir geometry.CompassDirection) rune {
 func (u *UI) mapLookup(loc geometry.Point) (foundation.TextIcon, bool) {
 	if u.game.IsVisibleToPlayer(loc) {
 		icon, ok := u.visibleLookup(loc)
+		// entities are themed on the floor background; give them the ground they stand on (town grass)
+		if icon.Bg == u.getIconForMap(foundation.TileFloor).Bg {
+			icon.Bg = u.getIconForMap(u.game.MapAt(loc)).Bg
+		}
 		return u.applyLight(icon, loc), ok
 	} else if u.game.IsExplored(loc) {
 		// remembered: lit rooms stay brighter than what we only saw by torchlight

@@ -170,6 +170,24 @@ TileStairsDown: ≡
 TileStairsDown_Colors: Blue | Green
 TileMountain: ∩
 TileMountain_Colors: Brown | Black
+TileMountainPeak: ∩
+TileMountainPeak_Colors: Brown | Black
+TileTownGrass: ,
+TileTownGrass_Colors: Green | Black
+TileTownGrassShade: ,
+TileTownGrassShade_Colors: Green | Black
+TileTownGrassTuft: ,
+TileTownGrassTuft_Colors: Green | Black
+TileTownGrassDot: ,
+TileTownGrassDot_Colors: Green | Black
+TileRoof: ▄
+TileRoof_Colors: LightGray | Black
+TileTownWallBase: █
+TileTownWallBase_Colors: LightGray | Black
+TileTownInterior: █
+TileTownInterior_Colors: LightGray | Black
+TileTownWallSide: █
+TileTownWallSide_Colors: LightGray | Black
 TileGrass: ,
 TileGrass_Colors: Green | Black
 TileTree: §

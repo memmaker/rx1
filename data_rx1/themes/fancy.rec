@@ -29,6 +29,12 @@ DarkYellow: 191 | 188 | 2
 DirtyBlue: 90 | 126 | 166
 DirtyYellow: 210 | 210 | 168
 LightGray: 170 | 170 | 170
+TownGrass: 10 | 42 | 10
+GrassShade: 47 | 111 | 47
+GrassDot: 59 | 109 | 17
+Rock: 68 | 68 | 65
+RockHi: 136 | 135 | 128
+Peak: 211 | 209 | 199
 White: 255 | 255 | 255
 
 %rec: ui
@@ -121,8 +127,26 @@ TileStairsUp: <
 TileStairsUp_Colors: White | Cyan
 TileStairsDown: >
 TileStairsDown_Colors: White | Cyan
-TileMountain: ^
-TileMountain_Colors: LightGray | Black
+TileMountain: ▓
+TileMountain_Colors: RockHi | Rock
+TileMountainPeak: ▲
+TileMountainPeak_Colors: Peak | Rock
+TileTownGrass: .
+TileTownGrass_Colors: TownGrass | TownGrass
+TileTownGrassShade: ░
+TileTownGrassShade_Colors: GrassShade | TownGrass
+TileTownGrassTuft: "
+TileTownGrassTuft_Colors: Green | TownGrass
+TileTownGrassDot: ∙
+TileTownGrassDot_Colors: GrassDot | TownGrass
+TileRoof: ▄
+TileRoof_Colors: LightRed | TownGrass
+TileTownWallBase: ▌
+TileTownWallBase_Colors: LightGray | Gray
+TileTownInterior: █
+TileTownInterior_Colors: LightGray | Gray
+TileTownWallSide: █
+TileTownWallSide_Colors: LightGray | Gray
 TileGrass: ,
 TileGrass_Colors: LightGray | Black
 TileTree: §
@@ -134,13 +158,13 @@ TileLava_Colors: Red | Black
 TileChasm: .
 TileChasm_Colors: DarkGray | Black
 TileVendorGeneral: 1
-TileVendorGeneral_Colors: Yellow | Black
+TileVendorGeneral_Colors: Black | Yellow
 TileVendorWeapons: 2
-TileVendorWeapons_Colors: LightGray | Black
+TileVendorWeapons_Colors: Black | LightGray
 TileVendorArmor: 3
-TileVendorArmor_Colors: LightBrown | Black
+TileVendorArmor_Colors: Black | LightBrown
 TileVendorAlchemist: 4
-TileVendorAlchemist_Colors: Blue | Black
+TileVendorAlchemist_Colors: Black | Blue
 
 %rec: items
 
