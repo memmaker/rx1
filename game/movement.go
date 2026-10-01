@@ -30,8 +30,8 @@ func (g *GameState) ManualMovePlayer(direction geometry.CompassDirection) {
 		var forwardLeftTest, forwardRightTest geometry.Point
 		if direction.IsDiagonal() {
 			dirVec := direction.ToPoint()
-			leftDir := geometry.Point{0, dirVec.Y}
-			rightDir := geometry.Point{dirVec.X, 0}
+			leftDir := geometry.Point{X: 0, Y: dirVec.Y}
+			rightDir := geometry.Point{X: dirVec.X, Y: 0}
 			forwardLeft = oldPos.Add(leftDir)
 			forwardRight = oldPos.Add(rightDir)
 			forwardLeftTest = forwardLeft

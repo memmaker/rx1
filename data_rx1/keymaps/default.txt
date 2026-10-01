@@ -29,6 +29,9 @@ h -> quick_shot
 , -> pickup
 . -> wait
 Enter -> map_interaction
+> -> descend
+< -> ascend
+r -> read
 
 
 Q -> quit
@@ -36,8 +39,10 @@ i -> inventory
 c -> character
 l -> log
 m -> monsters
+x -> look
 I -> items
 ? -> help
+F1 -> help
 t -> tactics
 
 U -> overlay_monsters
@@ -76,6 +81,7 @@ d -> east
 % advanced_targeting
 
 Tab -> target_next
+Enter -> target_confirm
 BackTab -> target_previous
 Esc -> target_cancel
 Space -> target_switch_to_directional

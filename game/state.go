@@ -50,6 +50,7 @@ type GameState struct {
 	showEverything        bool
 	playerName            string
 	dataDefinitions       DataDefinitions
+	usedDocuments         map[string]bool
 	identification        *IdentificationKnowledge
 	afterAnimationActions []func()
 
@@ -440,6 +441,23 @@ func (g *GameState) init() {
 	g.currentDungeonLevel = 0
 	g.deepestDungeonLevelPlayerReached = 0
 	g.showEverything = false
+	g.usedDocuments = make(map[string]bool)
+}
+
+// pickUnusedDocument returns a lore document that has not been placed in this game yet.
+func (g *GameState) pickUnusedDocument(random *rand.Rand) (ItemDef, bool) {
+	var pool []ItemDef
+	for _, def := range g.dataDefinitions.Items[foundation.ItemCategoryDocuments] {
+		if !g.usedDocuments[def.InternalName] {
+			pool = append(pool, def)
+		}
+	}
+	if len(pool) == 0 {
+		return ItemDef{}, false
+	}
+	doc := pool[random.Intn(len(pool))]
+	g.usedDocuments[doc.InternalName] = true
+	return doc, true
 }
 
 func (g *GameState) NewItemFromName(name string) *Item {
@@ -982,6 +1000,8 @@ func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.
 		}
 	}
 
+	docsToSpawn := 1 + random.Intn(2)
+
 	allRooms := dungeon.AllRooms()
 	randomRoomOrder := random.Perm(len(allRooms))
 	for _, roomIndex := range randomRoomOrder {
@@ -998,6 +1018,15 @@ func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.
 		if level > 1 && room != playerRoom && random.Intn(4) == 0 {
 			objectCount := random.Intn(3) + 1
 			spawnObjectsInRoom(room, objectCount)
+		}
+
+		if docsToSpawn > 0 {
+			if spawnPos, exists := room.GetRandomAbsoluteFloorPositionWithFilter(random, newMap.IsEmptyNonSpecialFloor); exists {
+				if doc, ok := g.pickUnusedDocument(random); ok {
+					newMap.AddItem(NewItem(doc, g.identification), spawnPos)
+				}
+				docsToSpawn--
+			}
 		}
 
 		if mustSpawnAmuletOfYendor {
@@ -1022,6 +1051,7 @@ func (g *GameState) openWizardCreateItemMenu() {
 		foundation.ItemCategoryScrolls,
 		foundation.ItemCategoryRings,
 		foundation.ItemCategoryWands,
+		foundation.ItemCategoryDocuments,
 	}
 	var menuActions []foundation.MenuItem
 
@@ -1267,7 +1297,7 @@ func (g *GameState) triggerTileEffectsAfterMovement(actor *Actor, oldPos, newPos
 	cell := g.gridMap.GetCell(newPos)
 	if cell.TileType.IsVendor() && isPlayer {
 		itemsForVendor := []util.Tuple[foundation.ItemForUI, int]{
-			{g.NewItemFromName("mace"), 100},
+			{Item1: g.NewItemFromName("mace"), Item2: 100},
 		}
 		g.ui.OpenVendorMenu(itemsForVendor, g.buyItemFromVendor)
 	}
@@ -1422,6 +1452,7 @@ func NewItem(def ItemDef, id *IdentificationKnowledge) *Item {
 		skillBonus:   def.SkillBonus.Roll(),
 		equipFlag:    def.EquipFlag,
 		thrownDamage: def.ThrowDamageDice,
+		text:         def.Text,
 	}
 
 	if def.IsValidWeapon() {

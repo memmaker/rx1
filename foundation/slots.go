@@ -115,5 +115,4 @@ func ItemSlotFromString(s string) EquipSlot {
 		return SlotNameQuiver
 	}
 	panic("Invalid slot: " + s)
-	return SlotNameNotEquippable
 }

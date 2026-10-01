@@ -252,7 +252,6 @@ func ActorFlagFromString(flag string) ActorFlag {
 		return FlagSlowDigestion
 	}
 	panic("Invalid actor flag: " + flag)
-	return 0
 
 }
 
