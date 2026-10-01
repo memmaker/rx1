@@ -1942,6 +1942,14 @@ func (m *GridMap[ActorType, ItemType, ObjectType]) AddActorWithDisplacement(acto
 	}
 }
 
+// ForceMoveActor ignores walkability, for monsters that pass through rock.
+func (m *GridMap[ActorType, ItemType, ObjectType]) ForceMoveActor(actor ActorType, to geometry.Point) {
+	from := actor.Position()
+	m.cells[from.X+from.Y*m.mapWidth] = m.cells[from.X+from.Y*m.mapWidth].WithActorHereRemoved(actor)
+	actor.SetPosition(to)
+	m.cells[to.X+to.Y*m.mapWidth] = m.cells[to.X+to.Y*m.mapWidth].WithActor(actor)
+}
+
 func (m *GridMap[ActorType, ItemType, ObjectType]) ForceSpawnActorInWall(actor ActorType, to geometry.Point) {
 	m.allActors = append(m.allActors, actor)
 	actor.SetPosition(to)

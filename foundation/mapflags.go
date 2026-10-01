@@ -121,6 +121,8 @@ func (f ActorFlag) StringShort() string { // short abbreviated strings (2-3 lett
 		return "Hlc"
 	case FlagSlowDigestion:
 		return "SDg"
+	case FlagPoisoned:
+		return "Psn"
 	}
 	return "Unk"
 
@@ -160,6 +162,15 @@ const (
 	FlagCurseTeleportitis
 	FlagHallucinating
 	FlagSlowDigestion
+	FlagErratic
+	FlagStationary
+	FlagGreedy
+	FlagDisguised
+	FlagGroup
+	FlagRevive
+	FlagTunnel
+	FlagGazed
+	FlagPoisoned
 )
 
 func AllFlagsExceptGoldOrdered() []ActorFlag {
@@ -190,6 +201,7 @@ func AllFlagsExceptGoldOrdered() []ActorFlag {
 		FlagCurseTeleportitis,
 		FlagHallucinating,
 		FlagSlowDigestion,
+		FlagPoisoned,
 	}
 }
 
@@ -250,6 +262,22 @@ func ActorFlagFromString(flag string) ActorFlag {
 		return FlagHallucinating
 	case "slow_digestion":
 		return FlagSlowDigestion
+	case "erratic":
+		return FlagErratic
+	case "stationary":
+		return FlagStationary
+	case "greedy":
+		return FlagGreedy
+	case "disguised":
+		return FlagDisguised
+	case "group":
+		return FlagGroup
+	case "revive":
+		return FlagRevive
+	case "tunnel":
+		return FlagTunnel
+	case "poisoned":
+		return FlagPoisoned
 	}
 	panic("Invalid actor flag: " + flag)
 

@@ -46,6 +46,15 @@ func (i *WeaponInfo) IsEnchantable() bool {
 	return i.damagePlus <= 7
 }
 
+// Corrode lowers the damage bonus, down to -3.
+func (i *WeaponInfo) Corrode() bool {
+	if i.damagePlus <= -3 {
+		return false
+	}
+	i.damagePlus--
+	return true
+}
+
 func (i *WeaponInfo) AddEnchantment() {
 	i.damagePlus++
 }

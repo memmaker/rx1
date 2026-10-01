@@ -893,6 +893,11 @@ func (g *GameState) NewEnemyFromDef(def MonsterDef) *Actor {
 	actor.SetIntrinsicUseEffects(def.UseEffects)
 	actor.SetIntrinsicHitEffects(def.HitEffects)
 	actor.SetIntrinsicStruckEffects(def.StruckEffects)
+	actor.SetIntrinsicGazeEffects(def.GazeEffects)
+	if actor.HasFlag(foundation.FlagDisguised) {
+		actor.disguise = foundation.RandomItemCategory()
+	}
+	actor.naturalDR = def.DamageResistance
 	actor.SetInternalName(def.InternalName)
 
 	actor.SetSizeModifier(def.SizeModifier)
@@ -907,6 +912,7 @@ func (g *GameState) NewEnemyFromDef(def MonsterDef) *Actor {
 	actor.charSheet.SetStat(rpg.HitPoints, max(1, def.HitPoints)) // hack to avoid 0 hp actors which would despawn immediately
 	actor.charSheet.SetStat(rpg.BasicSpeed, def.BasicSpeed)
 	actor.charSheet.ResetResources()
+	actor.charSheet.AddStatModifier(rpg.Dodge, ModFlat(def.Dodge-actor.charSheet.GetStat(rpg.Dodge), "natural"))
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	if random.Intn(100) < def.CarryChance {
@@ -931,6 +937,9 @@ func (g *GameState) actorKilled(causeOfDeath string, victim *Actor) {
 		return
 	}
 	g.msg(foundation.HiLite("%s killed %s", causeOfDeath, victim.Name()))
+	if g.tryRevive(victim) {
+		return
+	}
 	for _, effect := range victim.GetIntrinsicHitEffects() {
 		if effect.Name == "hold" {
 			g.Player.GetFlags().Unset(foundation.FlagHeld)
@@ -990,6 +999,17 @@ func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.
 				spawnPos = walls[random.Intn(len(walls))]
 			}
 			newMap.AddActor(monster, spawnPos)
+			if monster.HasFlag(foundation.FlagGroup) {
+				for j := 1 + random.Intn(3); j > 0; j-- {
+					packPos, ok := room.GetRandomAbsoluteFloorPositionWithFilter(random, newMap.IsEmptyNonSpecialFloor)
+					if !ok {
+						break
+					}
+					packMember := g.NewEnemyFromDef(monsterDef)
+					packMember.GetFlags().Init(monster.GetFlags().UnderlyingCopy())
+					newMap.AddActor(packMember, packPos)
+				}
+			}
 		}
 	}
 

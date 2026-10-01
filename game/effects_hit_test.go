@@ -17,8 +17,13 @@ func TestHitEffectsParse(t *testing.T) {
 			}
 			n++
 		}
+		for _, gaze := range d.GazeEffects {
+			if gaze != "confuse" && gaze != "scare" {
+				t.Errorf("%s: unknown gaze effect %s", d.Name, gaze)
+			}
+		}
 	}
-	if n != 13 {
-		t.Errorf("expected 13 hit effects, got %d", n)
+	if n != 23 {
+		t.Errorf("expected 23 hit effects, got %d", n)
 	}
 }

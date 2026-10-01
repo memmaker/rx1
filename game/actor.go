@@ -36,6 +36,9 @@ type Actor struct {
 	intrinsicUseEffects    []string
 	intrinsicHitEffects    []HitEffect
 	intrinsicStruckEffects []HitEffect
+	intrinsicGazeEffects   []string
+	disguise               foundation.ItemCategory
+	naturalDR              int
 
 	icon                   rune
 	color                  string
@@ -276,7 +279,7 @@ func (a *Actor) GetDamageResistance() int {
 	}
 	totalDRFromEquipment := a.GetEquipment().GetStatModifier(rpg.DamageResistance)
 
-	return totalDRFromArmor + totalDRFromEquipment
+	return totalDRFromArmor + totalDRFromEquipment + a.naturalDR
 }
 
 func (a *Actor) GetFlags() *foundation.MapFlags {
@@ -321,6 +324,19 @@ func (a *Actor) SetIntrinsicHitEffects(effects []HitEffect) {
 
 func (a *Actor) GetIntrinsicHitEffects() []HitEffect {
 	return a.intrinsicHitEffects
+}
+
+func (a *Actor) SetIntrinsicGazeEffects(effects []string) {
+	a.intrinsicGazeEffects = effects
+}
+
+func (a *Actor) GetIntrinsicGazeEffects() []string {
+	return a.intrinsicGazeEffects
+}
+
+// Disguise returns the item category a mimic is pretending to be.
+func (a *Actor) Disguise() (foundation.ItemCategory, bool) {
+	return a.disguise, a.HasFlag(foundation.FlagDisguised)
 }
 
 func (a *Actor) SetIntrinsicStruckEffects(effects []HitEffect) {
