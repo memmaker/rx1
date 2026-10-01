@@ -64,6 +64,25 @@ func (g *GameState) RunPlayer(direction geometry.CompassDirection, isStarting bo
 	return true
 }
 
+func (g *GameState) IsPlayerOnStairs(down bool) bool {
+	t := g.gridMap.GetCell(g.Player.Position()).TileType
+	return down && t.IsStairsDown() || !down && t.IsStairsUp()
+}
+
+// TravelToStairsStep walks one step toward the nearest explored stairs (down or up); false when
+// the player arrived, nothing is known or travel has to stop.
+func (g *GameState) TravelToStairsStep(down bool) bool {
+	m := g.gridMap
+	isGoal := func(p geometry.Point) bool {
+		t := m.GetCell(p).TileType
+		return m.IsExplored(p) && (down && t.IsStairsDown() || !down && t.IsStairsUp())
+	}
+	if g.IsPlayerOnStairs(down) || len(g.GetVisibleEnemies()) > 0 || g.Player.HasFlag(foundation.FlagConfused) {
+		return false
+	}
+	return g.autoMoveToward(isGoal, false)
+}
+
 // AutoExploreStep walks one step toward the nearest explored tile that borders unexplored space.
 func (g *GameState) AutoExploreStep() bool {
 	player := g.Player
@@ -76,19 +95,25 @@ func (g *GameState) AutoExploreStep() bool {
 		return false
 	}
 	m := g.gridMap
-	start := player.Position()
-	isKnownFloor := func(p geometry.Point) bool { return m.Contains(p) && m.IsExplored(p) && m.IsWalkable(p) }
 	isFrontier := func(p geometry.Point) bool {
 		return len(m.NeighborsAll(p, func(n geometry.Point) bool { return m.Contains(n) && !m.IsExplored(n) })) > 0
 	}
+	return g.autoMoveToward(isFrontier, true)
+}
+
+// autoMoveToward takes one step along a known-floor path to the nearest goal tile; false if none is reachable.
+func (g *GameState) autoMoveToward(isGoal func(geometry.Point) bool, isExploring bool) bool {
+	m := g.gridMap
+	start := g.Player.Position()
+	isKnownFloor := func(p geometry.Point) bool { return m.Contains(p) && m.IsExplored(p) && m.IsWalkable(p) }
 	// breadth-first search; firstStep remembers which neighbour of start each tile was reached through
 	firstStep := map[geometry.Point]geometry.Point{start: start}
 	queue := []geometry.Point{start}
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
-		if current != start && isFrontier(current) {
-			return g.autoExploreMove(start, firstStep[current])
+		if current != start && isGoal(current) {
+			return g.autoExploreMove(start, firstStep[current]) && !(firstStep[current] == current && !isExploring)
 		}
 		for _, next := range m.NeighborsAll(current, isKnownFloor) {
 			if _, seen := firstStep[next]; seen {
@@ -102,7 +127,9 @@ func (g *GameState) AutoExploreStep() bool {
 			queue = append(queue, next)
 		}
 	}
-	g.msg(foundation.Msg("There is nothing left to explore"))
+	if isExploring {
+		g.msg(foundation.Msg("There is nothing left to explore"))
+	}
 	return false
 }
 

@@ -60,7 +60,7 @@ type UI struct {
 	gameIsReady     bool
 	gameIsOver      bool
 	autoRun         bool
-	autoExplore     bool
+	autoStep        func() bool // repeated auto-explore / stairs travel; nil when idle
 	onTargetUpdated func(targetPos geometry.Point)
 	showCursor      bool
 	cursorStyle     tcell.CursorStyle
@@ -305,7 +305,7 @@ func (u *UI) GetMapWindowGridSize() (int, int) {
 	return w, h
 }
 func (u *UI) AfterPlayerMoved(moveInfo foundation.MoveInfo) {
-	if moveInfo.Mode == foundation.PlayerMoveModeRun && u.autoExplore {
+	if moveInfo.Mode == foundation.PlayerMoveModeRun && u.autoStep != nil {
 		u.application.QueueEvent(tcell.NewEventKey(tcell.KeyRune, autoExploreRune, 64))
 		return
 	}
@@ -1105,13 +1105,15 @@ func (u *UI) handleMainInput(ev *tcell.EventKey) *tcell.EventKey {
 	}
 	u.autoRun = false
 	if mod == 64 && ch == autoExploreRune { // a leftover continuation after exploring stopped is dropped
-		if u.autoExplore {
+		if step := u.autoStep; step != nil {
 			time.Sleep(64 * time.Millisecond)
-			u.autoExplore = u.game.AutoExploreStep()
+			if !step() {
+				u.autoStep = nil
+			}
 		}
 		return nil
 	}
-	u.autoExplore = false
+	u.autoStep = nil
 
 	uiKey := toUIKey(ev)
 	playerCommand := u.getCommandForKey(uiKey)
@@ -1129,10 +1131,25 @@ func (u *UI) ChooseDirectionForRun() {
 // autoExploreRune is the synthetic key event that continues auto-explore
 const autoExploreRune = '0'
 
-func (u *UI) startAutoExplore() {
-	// must be set before stepping: AfterPlayerMoved only queues the next step while it is true
-	u.autoExplore = true
-	u.autoExplore = u.game.AutoExploreStep()
+func (u *UI) startAutoExplore() { u.startAutoStep(u.game.AutoExploreStep) }
+
+// startAutoStep must set autoStep before stepping: AfterPlayerMoved only queues the next step while it is set
+func (u *UI) startAutoStep(step func() bool) {
+	u.autoStep = step
+	if !step() {
+		u.autoStep = nil
+	}
+}
+
+// useOrTravelToStairs takes the stairs when standing on them, otherwise walks to the nearest known ones
+func (u *UI) useOrTravelToStairs(down bool, use func()) func() {
+	return func() {
+		if u.game.IsPlayerOnStairs(down) {
+			use()
+			return
+		}
+		u.startAutoStep(func() bool { return u.game.TravelToStairsStep(down) })
+	}
 }
 
 func (u *UI) startAutoRun(direction geometry.CompassDirection) {

@@ -20,6 +20,9 @@ type GameForUI interface {
 	RunPlayer(direction geometry.CompassDirection, isStarting bool) bool
 	// AutoExploreStep Take one step toward the nearest unexplored area; false when exploring has to stop
 	AutoExploreStep() bool
+	// TravelToStairsStep Take one step toward the nearest known stairs; false on arrival or when travel has to stop
+	TravelToStairsStep(down bool) bool
+	IsPlayerOnStairs(down bool) bool
 
 	// Do stuff
 
