@@ -2,6 +2,7 @@ package game
 
 import (
 	"rx1/dungen"
+	"rx1/geometry"
 )
 
 func (g *GameState) applyLightRoomExploration(playerRoom *dungen.DungeonRoom) {
@@ -15,6 +16,9 @@ func (g *GameState) applyLightExploration() {
 	if radius := g.playerLightRadius(); radius > 0 {
 		g.gridMap.UpdateFieldOfView(g.playerFoV, g.Player.Position(), radius)
 		for _, pos := range g.playerFoV.Visibles {
+			if geometry.DistanceSquared(g.Player.Position(), pos) > radius*radius {
+				continue
+			}
 			g.gridMap.SetExplored(pos)
 		}
 	}
