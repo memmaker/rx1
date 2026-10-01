@@ -45,6 +45,8 @@ c              character sheet
 l              message log
 ? or F1         this help
 =              key bindings
+Tab            command menu (every action with its key)
+o              auto explore (any key stops it)
 
 Screen
 ======

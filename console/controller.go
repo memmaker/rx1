@@ -27,6 +27,9 @@ const (
 )
 
 type UI struct {
+	modalPanel   string
+	modalContent cview.Primitive // what makeModal centered in modalPanel, for click-outside tests
+
 	settings *foundation.Configuration
 	game     foundation.GameForUI
 
@@ -57,6 +60,7 @@ type UI struct {
 	gameIsReady     bool
 	gameIsOver      bool
 	autoRun         bool
+	autoExplore     bool
 	onTargetUpdated func(targetPos geometry.Point)
 	showCursor      bool
 	cursorStyle     tcell.CursorStyle
@@ -301,6 +305,10 @@ func (u *UI) GetMapWindowGridSize() (int, int) {
 	return w, h
 }
 func (u *UI) AfterPlayerMoved(moveInfo foundation.MoveInfo) {
+	if moveInfo.Mode == foundation.PlayerMoveModeRun && u.autoExplore {
+		u.application.QueueEvent(tcell.NewEventKey(tcell.KeyRune, autoExploreRune, 64))
+		return
+	}
 	if moveInfo.Mode == foundation.PlayerMoveModeRun && u.autoRun {
 		u.application.QueueEvent(tcell.NewEventKey(tcell.KeyRune, directionToRune(moveInfo.Direction), 64))
 	}
@@ -877,7 +885,7 @@ func (u *UI) openTextModal(description []string) *cview.TextView {
 
 func (u *UI) closeOnAnyClickInside(action cview.MouseAction, event *tcell.EventMouse) (outAction cview.MouseAction, outEvent *tcell.EventMouse) {
 	if action == cview.MouseLeftClick || action == cview.MouseRightClick {
-		u.pages.SetCurrentPanel("main")
+		u.closeModal()
 		return action, nil
 	}
 	return action, event
@@ -979,10 +987,19 @@ func (u *UI) initCoreUI() {
 
 	u.application.SetAfterResizeFunc(u.onTerminalResized)
 	u.application.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if frontName, frontPanel := u.pages.GetFrontPanel(); frontName == "inventory" && event.Key() == tcell.KeyCtrlC {
+		frontName, frontPanel := u.pages.GetFrontPanel()
+		if frontName == "inventory" && event.Key() == tcell.KeyCtrlC {
 			inventory := frontPanel.(*TextInventory)
 			inventory.handleInput(event)
 			return nil // don't forward, or else we will quit
+		}
+		// modals keep the focus: a stray click must never leave them without keyboard input
+		if frontPanel != nil && frontName != "main" && frontName != "blocker" && !frontPanel.GetFocusable().HasFocus() {
+			if event.Key() == tcell.KeyEscape {
+				u.closeModal()
+				return nil
+			}
+			u.application.SetFocus(frontPanel)
 		}
 		return event
 	})
@@ -1080,6 +1097,12 @@ func (u *UI) handleMainInput(ev *tcell.EventKey) *tcell.EventKey {
 		return nil
 	}
 	u.autoRun = false
+	if mod == 64 && u.autoExplore && ch == autoExploreRune {
+		time.Sleep(64 * time.Millisecond)
+		u.autoExplore = u.game.AutoExploreStep()
+		return nil
+	}
+	u.autoExplore = false
 
 	uiKey := toUIKey(ev)
 	playerCommand := u.getCommandForKey(uiKey)
@@ -1092,6 +1115,13 @@ func (u *UI) ChooseDirectionForRun() {
 	u.SelectDirection(u.game.GetPlayerPosition(), func(direction geometry.CompassDirection) {
 		u.startAutoRun(direction)
 	})
+}
+
+// autoExploreRune is the synthetic key event that continues auto-explore
+const autoExploreRune = '0'
+
+func (u *UI) startAutoExplore() {
+	u.autoExplore = u.game.AutoExploreStep()
 }
 
 func (u *UI) startAutoRun(direction geometry.CompassDirection) {
@@ -1574,6 +1604,26 @@ func (u *UI) OpenInventoryForManagement(items []foundation.ItemForUI) {
 
 	inv.SetCloseOnControlSelection(true)
 	inv.SetCloseOnShiftSelection(true)
+	inv.SetContextMenu(func(item foundation.ItemForUI) {
+		var actions []foundation.MenuItem
+		add := func(name string, act func(foundation.ItemForUI)) {
+			actions = append(actions, foundation.MenuItem{Name: name, Action: func() { act(item) }, CloseMenus: true})
+		}
+		if item.IsEquippable() {
+			if u.game.IsEquipped(item) {
+				add("Unequip", u.game.EquipToggle)
+			} else {
+				add("Equip", u.game.EquipToggle)
+			}
+		}
+		if item.GetCategory() == foundation.ItemCategoryDocuments {
+			add("Read", u.game.PlayerApplyItem)
+		} else if item.IsUsableOrZappable() {
+			add("Use", u.game.PlayerApplyItem)
+		}
+		add("Drop", u.game.DropItem)
+		u.OpenMenu(actions)
+	})
 }
 func (u *UI) OpenInventoryForSelection(itemStacks []foundation.ItemForUI, prompt string, onSelected func(item foundation.ItemForUI)) {
 	inv := u.openInventory(itemStacks)
@@ -1602,6 +1652,7 @@ func (u *UI) makeModal(wrapperFunc func(p cview.Primitive, contentHeight int, co
 	u.pages.AddPanel(panelName, modalContainer, true, true)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(primitive)
+	u.modalPanel, u.modalContent = panelName, primitive
 }
 func (u *UI) makeSideBySideModal(panelName string, primitive, qPrimitive cview.Primitive, contentHeight int, contentWidth int) {
 	w, h := u.application.GetScreenSize()
@@ -1697,9 +1748,17 @@ func (u *UI) getListForPanel(panelName string) (*cview.List, bool) {
 
 func (u *UI) popOnEscape(event *tcell.EventKey) *tcell.EventKey {
 	if event.Key() == tcell.KeyEscape {
-		u.pages.SetCurrentPanel("main")
+		u.closeModal()
 	}
 	return event
+}
+
+// closeModal hides every panel above "main" and gives the map the keyboard back.
+func (u *UI) closeModal() {
+	u.pages.SetCurrentPanel("main")
+	if u.mapWindow != nil {
+		u.application.SetFocus(u.mapWindow)
+	}
 }
 
 func (u *UI) yesNoReceiver(yes, no func()) func(event *tcell.EventKey) *tcell.EventKey {
@@ -1757,8 +1816,11 @@ func (u *UI) handleMainMouse(event *tcell.EventMouse, action cview.MouseAction) 
 		panelName, prim := u.pages.GetFrontPanel()
 		if panelName != "main" && panelName != "blocker" {
 			x, y, w, h := prim.GetRect()
+			if u.modalContent != nil && panelName == u.modalPanel { // the panel itself is a full-screen centering flex
+				x, y, w, h = u.modalContent.GetRect()
+			}
 			if newX < x || newY < y || newX >= x+w || newY >= y+h || action == cview.MouseRightDown {
-				u.pages.SetCurrentPanel("main")
+				u.closeModal()
 				return nil, action
 			}
 		}
@@ -2353,7 +2415,7 @@ func (u *UI) GetAnimUncloakAtPosition(actor foundation.ActorForUI, uncloakLocati
 }
 
 func (u *UI) OpenThemesMenu() {
-	themesDir := path.Join("data", "themes")
+	themesDir := path.Join(u.settings.DataRootDir, "themes")
 	allThemes := util.FilesInDirByExtension(themesDir, "rec")
 
 	actions := make([]foundation.MenuItem, 0)

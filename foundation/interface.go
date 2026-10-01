@@ -18,6 +18,8 @@ type GameForUI interface {
 	ManualMovePlayer(direction geometry.CompassDirection)
 	// RunPlayer Start or continue running in a direction
 	RunPlayer(direction geometry.CompassDirection, isStarting bool) bool
+	// AutoExploreStep Take one step toward the nearest unexplored area; false when exploring has to stop
+	AutoExploreStep() bool
 
 	// Do stuff
 
