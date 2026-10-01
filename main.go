@@ -118,7 +118,7 @@ func screenPrint(screen tcell.Screen, text string) {
 
 func askForName() string {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Who are you? ")
+	fmt.Print("\033[H\033[2J\033[3JWho are you? ") // clear screen + scrollback
 	userInput, _ := reader.ReadString('\n')
 	return strings.TrimSpace(userInput)
 }
