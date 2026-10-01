@@ -52,3 +52,21 @@ func TestLightOnlyLightsLineOfSight(t *testing.T) {
 		}
 	}
 }
+
+func TestTownRoundTrip(t *testing.T) {
+	cfg := foundation.NewDefaultConfiguration()
+	cfg.DataRootDir = "../data_rx1"
+	g := NewGameState(stubUI{}, cfg)
+	g.GotoNamedLevel("town")
+	if g.currentDungeonLevel != 0 || g.gridMap.GetCell(g.Player.Position()).TileType.IsStairsDown() {
+		t.Fatal("expected to spawn in town off the stairs")
+	}
+	g.descendWithStairs(StairsBoth)
+	if g.currentDungeonLevel != 1 {
+		t.Fatal("expected level 1")
+	}
+	g.PlayerTryAscend()
+	if g.currentDungeonLevel != 0 {
+		t.Fatal("expected town after ascending from level 1")
+	}
+}

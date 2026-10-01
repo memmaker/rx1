@@ -13,7 +13,7 @@ import (
 )
 
 func (g *GameState) GotoNamedLevel(levelName string) {
-	mapData := ReadFileAsOneStringWithoutNewLines(path.Join("data", "prefabs", levelName+".txt"))
+	mapData := ReadFileAsOneStringWithoutNewLines(path.Join(g.config.DataRootDir, "prefabs", levelName+".txt"))
 	if mapData == "" {
 		return
 	}
@@ -86,8 +86,7 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 			})
 		}
 	}
-	w, h := g.gridMap.GetWidth(), g.gridMap.GetHeight()
-	newMap := gridmap.NewMapFromString[*Actor, *Item, *Object](w, h, mapData, simpleMapper)
+	newMap := gridmap.NewMapFromString[*Actor, *Item, *Object](g.config.MapWidth, g.config.MapHeight, mapData, simpleMapper)
 	newMap.SetCardinalMovementOnly(!g.config.DiagonalMovementEnabled)
 
 	if g.gridMap != nil {
@@ -96,13 +95,22 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 	}
 
 	g.dungeonLayout = nil
+	g.currentDungeonLevel = 0
 
 	newMap.AddActor(g.Player, spawnPos)
 
 	g.gridMap = newMap
+	g.gridMap.SetAllExplored()
+	g.gridMap.SetAllLit()
 
 	g.afterPlayerMoved()
 
+	g.ui.AfterPlayerMoved(foundation.MoveInfo{
+		Direction: geometry.North,
+		OldPos:    spawnPos,
+		NewPos:    spawnPos,
+		Mode:      foundation.PlayerMoveModeManual,
+	})
 	g.updateUIStatus()
 }
 

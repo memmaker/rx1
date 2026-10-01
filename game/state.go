@@ -527,7 +527,7 @@ func (g *GameState) UIReady() {
 
 func (g *GameState) moveIntoDungeon() {
 	g.ui.InitDungeonUI()
-	g.GotoDungeonLevel(1, StairsBoth, true)
+	g.GotoNamedLevel("town")
 }
 
 func (g *GameState) updateUIStatus() {
