@@ -11,7 +11,9 @@ import (
 
 var NoModifiers []rpg.Modifier
 
+// Wait also searches the surrounding tiles, like Rogue's 's'.
 func (g *GameState) Wait() {
+	g.search()
 	g.endPlayerTurn()
 }
 

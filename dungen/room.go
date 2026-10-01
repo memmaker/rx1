@@ -30,6 +30,7 @@ type DungeonRoom struct {
 	bounds                  geometry.Rect
 	doors                   map[geometry.Point]bool
 	LastSeenTurn            int
+	isMaze                  bool
 }
 
 func (r *DungeonRoom) GetFreeConnectionsWithRotatedDirection() map[geometry.Point]RoomConnection {
@@ -571,6 +572,27 @@ func (r *DungeonRoom) GetPlugsIntoSlotId() int {
 
 func (r *DungeonRoom) GetFloorTileCount() int {
 	return len(r.floorTiles)
+}
+
+// NewDungeonRoomFromTiles makes a wall-less room from loose floor tiles (Rogue maze rooms).
+func NewDungeonRoomFromTiles(bounds geometry.Rect, tiles []geometry.Point) *DungeonRoom {
+	room := &DungeonRoom{
+		bounds:               bounds,
+		doors:                make(map[geometry.Point]bool),
+		connectedRooms:       make(map[geometry.Point]*DungeonRoom),
+		availableConnections: make(map[geometry.Point]RoomConnection),
+	}
+	room.SetFloorTiles(tiles)
+	room.SetRotationCount(0)
+	return room
+}
+
+func (r *DungeonRoom) SetMaze(isMaze bool) {
+	r.isMaze = isMaze
+}
+
+func (r *DungeonRoom) IsMaze() bool {
+	return r.isMaze
 }
 
 func (r *DungeonRoom) SetLit(lit bool) {

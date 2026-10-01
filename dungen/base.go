@@ -28,7 +28,16 @@ type DungeonMap struct {
 	lastRoom   *DungeonRoom
 	stairsUp   geometry.Point
 	stairsDown geometry.Point
+
+	secretDoors    map[geometry.Point]bool
+	secretPassages map[geometry.Point]bool
 }
+
+// SecretDoors are doors that look like wall until found by searching.
+func (m *DungeonMap) SecretDoors() map[geometry.Point]bool { return m.secretDoors }
+
+// SecretPassages are corridor tiles that look like rock until found by searching.
+func (m *DungeonMap) SecretPassages() map[geometry.Point]bool { return m.secretPassages }
 
 func (m *DungeonMap) GetJPSPath(start geometry.Point, end geometry.Point) []geometry.Point {
 	if !m.IsWalkable(end) || !m.IsWalkable(start) {
@@ -739,5 +748,8 @@ func NewDungeonMap(width, height int) *DungeonMap {
 		tiles:      make([]DungeonTile, width*height),
 		rooms:      make([]*DungeonRoom, 0),
 		pathfinder: geometry.NewPathRange(geometry.NewRect(0, 0, width, height)),
+
+		secretDoors:    make(map[geometry.Point]bool),
+		secretPassages: make(map[geometry.Point]bool),
 	}
 }

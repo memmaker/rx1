@@ -125,7 +125,7 @@ func askForName() string {
 
 func testMapGen() {
 	random := rand.New(rand.NewSource(42))
-	dunGen := dungen.NewRogueGenerator(random, 80, 23)
+	dunGen := dungen.NewRogueGenerator(random, 80, 23, 10)
 	for i := 0; i < 10; i++ {
 
 		dungeon := dunGen.Generate()

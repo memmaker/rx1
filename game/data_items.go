@@ -50,6 +50,7 @@ type ArmorDef struct {
 type ItemDef struct {
 	Name         string
 	InternalName string
+	Chance       int // relative weight within its category (Rogue's o_prob)
 
 	Slot foundation.EquipSlot
 
@@ -102,6 +103,8 @@ func NewItemDefFromRecord(record recfile.Record) ItemDef {
 			itemDef.Name = field.Value
 		case "internal_name":
 			itemDef.InternalName = field.Value
+		case "chance":
+			itemDef.Chance = field.AsInt()
 		case "category":
 			itemDef.Category = foundation.ItemCategoryFromString(field.Value)
 		case "slot":
