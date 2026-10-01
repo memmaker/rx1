@@ -107,6 +107,14 @@ func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.
 				}
 			}
 		}
+		if level > g.lightsRolledUpTo {
+			g.lightsRolledUpTo = level
+			for _, name := range g.rollLights(random, level) {
+				if pos, ok := findFloor(nil, 0, isFree); ok {
+					newMap.AddItem(g.NewItemFromName(name), pos)
+				}
+			}
+		}
 		if level >= 26 && !hasAmulet {
 			if pos, ok := findFloor(nil, 0, isFree); ok {
 				newMap.AddItem(g.NewItemFromName("amulet_of_yendor"), pos)
@@ -197,7 +205,6 @@ func (g *GameState) rogueNewThing(random *rand.Rand, level int) *Item {
 		{foundation.ItemCategoryArmor, 7},
 		{foundation.ItemCategoryRings, 4},
 		{foundation.ItemCategoryWands, 4},
-		{foundation.ItemCategoryOther, 3}, // lights
 	}
 	category := foundation.ItemCategoryFood
 	if g.levelsWithoutFood <= 3 {
@@ -213,17 +220,33 @@ func (g *GameState) rogueNewThing(random *rand.Rand, level int) *Item {
 	if category == foundation.ItemCategoryFood {
 		g.levelsWithoutFood = 0
 	}
-	var defs []ItemDef
-	for _, def := range g.dataDefinitions.Items[category] {
-		if def.MinLevel <= level {
-			defs = append(defs, def)
-		}
-	}
-	item := NewItem(pickWeighted(random, defs), g.identification)
-	if item.IsEquippable() && !item.IsLight() && random.Intn(5) == 0 {
+	item := NewItem(pickWeighted(random, g.dataDefinitions.Items[category]), g.identification)
+	if item.IsEquippable() && random.Intn(5) == 0 {
 		g.AddCurseToEquippable(item)
 	}
 	return item
+}
+
+// rollLights is rx1's own light drop, separate from Rogue's item table and
+// rolled once per dungeon level: ~3 torches by level 10, a ~75% chance of a
+// lantern from level 5 to 10, and the two unique lights once per run.
+func (g *GameState) rollLights(random *rand.Rand, level int) []string {
+	var lights []string
+	if rnd(random, 100) < 30 {
+		lights = append(lights, "torch")
+	}
+	if level >= 5 && rnd(random, 100) < 21 { // 1-0.79^6 ≈ 75% over levels 5-10
+		lights = append(lights, []string{"lantern", "brass_lantern"}[rnd(random, 2)])
+	}
+	if level > 8 && !g.starGlassSpawned && rnd(random, 100) < 10 {
+		g.starGlassSpawned = true
+		lights = append(lights, "star_glass")
+	}
+	if level > 10 && !g.morningStarSpawned && rnd(random, 100) < 5 {
+		g.morningStarSpawned = true
+		lights = append(lights, "morning_star")
+	}
+	return lights
 }
 
 // pickWeighted is pick_one(): by each def's chance, uniform if none are set.

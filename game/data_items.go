@@ -78,7 +78,6 @@ type ItemDef struct {
 
 	Text string // documents only
 
-	MinLevel          int // earliest dungeon level it is generated on
 	LightRadius       int
 	LightColor        color.RGBA
 	LightPattern      string
@@ -163,8 +162,6 @@ func NewItemDefFromRecord(record recfile.Record) ItemDef {
 			itemDef.Skill = rpg.SkillNameFromString(field.Value)
 		case "skill_bonus":
 			itemDef.SkillBonus = rpg.ParseDice(field.Value)
-		case "min_level":
-			itemDef.MinLevel = field.AsInt()
 		case "light_radius":
 			itemDef.LightRadius = field.AsInt()
 		case "light_color":
