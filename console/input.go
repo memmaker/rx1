@@ -137,8 +137,8 @@ func (u *UI) setupCommandTable() {
 	u.commandTable["pickup"] = u.game.PickupItem
 	u.commandTable["map_interaction"] = u.game.PlayerInteractWithMap
 	u.commandTable["run_direction"] = u.ChooseDirectionForRun
-	u.commandTable["descend"] = u.game.PlayerTryDescend
-	u.commandTable["ascend"] = u.game.PlayerTryAscend
+	u.commandTable["descend"] = u.useOrTravelToStairs(true, u.game.PlayerTryDescend)
+	u.commandTable["ascend"] = u.useOrTravelToStairs(false, u.game.PlayerTryAscend)
 	u.commandTable["wait"] = u.game.Wait
 	u.commandTable["show_key_bindings"] = u.showKeyBindings
 	u.commandTable["auto_explore"] = u.startAutoExplore
