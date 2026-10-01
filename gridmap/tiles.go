@@ -96,7 +96,7 @@ func (t Tile) IsStairsUp() bool {
 }
 
 func (t Tile) IsStairsDown() bool {
-	return t.Feature == foundation.TileStairsDown
+	return t.Feature == foundation.TileStairsDown || t.Feature == foundation.TileTownStairsDown
 }
 
 func (t Tile) IsChasm() bool {

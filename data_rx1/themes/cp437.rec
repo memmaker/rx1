@@ -168,6 +168,8 @@ TileStairsUp: ≡
 TileStairsUp_Colors: Blue | Green
 TileStairsDown: ≡
 TileStairsDown_Colors: Blue | Green
+TileTownStairsDown: ≡
+TileTownStairsDown_Colors: Blue | Green
 TileMountain: ∩
 TileMountain_Colors: Brown | Black
 TileMountainPeak: ∩

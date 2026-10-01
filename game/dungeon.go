@@ -89,7 +89,7 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 			})
 		case '>':
 			gridMap.SetTile(pos, gridmap.Tile{
-				Feature:            foundation.TileStairsDown,
+				Feature:            foundation.TileTownStairsDown,
 				DefinedDescription: "stairs down",
 				IsWalkable:         true,
 				IsTransparent:      true,

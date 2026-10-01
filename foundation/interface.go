@@ -249,6 +249,7 @@ const (
 	TileDoorLocked                             = "TileDoorLocked"
 	TileStairsUp                               = "TileStairsUp"
 	TileStairsDown                             = "TileStairsDown"
+	TileTownStairsDown                         = "TileTownStairsDown"
 	TileMountain                               = "TileMountain"
 	TileMountainPeak                           = "TileMountainPeak"
 	TileTownGrass                              = "TileTownGrass"
