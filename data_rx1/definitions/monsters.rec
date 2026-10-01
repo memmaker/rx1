@@ -44,6 +44,7 @@ dodge: 7
 dr: 0
 attack: 11 | 1d6 | kick
 attack_1: 14 | 1d4 | beak
+zap_effect: charge_attack
 
 name: hobgoblin
 internal_name: hobgoblin
@@ -393,6 +394,7 @@ size_modifier: 1
 dodge: 8
 dr: 1
 attack: 12 | 1d6+2 | bite
+zap_effect: magic_arrow
 
 name: kobold
 internal_name: kobold
@@ -414,6 +416,7 @@ size_modifier: 0
 dodge: 10
 dr: 0
 attack: 9 | 1d8 | punch
+zap_effect: magic_dart
 
 name: aquator
 internal_name: aquator
@@ -458,6 +461,7 @@ size_modifier: 2
 dodge: 8
 dr: 1
 attack: 13 | 2d6 | kick
+zap_effect: charge_attack
 
 name: quagga
 internal_name: quagga
@@ -479,6 +483,7 @@ size_modifier: 2
 dodge: 8
 dr: 0
 attack: 10 | 1d4 | kick
+zap_effect: charge_attack
 
 name: nymph
 internal_name: nymph
@@ -642,7 +647,7 @@ dlvl: 19
 color: LightGray
 gold: 0
 carry_chance: 20
-flags: invisible | chase
+flags: invisible | chase | wall_crawler
 strength: 10
 dexterity: 10
 health: 7
@@ -678,6 +683,7 @@ dodge: 8
 dr: 3
 attack_1: 12 | 3d6+3 | bite
 attack_2: 13 | 3d6+5 | stinger
+hit_effect: poison_strength | 30
 
 name: ur-vile
 internal_name: ur_vile
@@ -786,6 +792,7 @@ size_modifier: 0
 dodge: 10
 dr: 0
 attack: 12 | 1d6+2 | claws
+use_effect: phase_door
 
 name: xeroc
 internal_name: xeroc
@@ -850,6 +857,7 @@ size_modifier: 1
 dodge: 7
 dr: 1
 attack: 12 | 2d8 | punch
+flags: wall_crawler
 
 name: vampire
 internal_name: vampire

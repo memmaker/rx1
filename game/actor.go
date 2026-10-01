@@ -92,8 +92,6 @@ func NewActor(name string, icon rune, color string) *Actor {
 	characterSheet.AddStatModifier(rpg.Strength, ModHalveWhen("fatigued", a.IsFatigued))
 
 	characterSheet.AddStatModifier(rpg.Dodge, ModFlatWhen(-4, "stunned", a.IsStunned))
-	characterSheet.AddStatModifier(rpg.Dodge, ModFlatWhen(-4, "stunned", a.IsStunned))
-	characterSheet.AddStatModifier(rpg.Dodge, ModFlatWhen(-4, "stunned", a.IsStunned))
 
 	characterSheet.AddStatModifier(rpg.Strength, ModFlatWhen(-1, "hungry", a.IsHungry))
 	characterSheet.AddStatModifier(rpg.Strength, ModFlatWhen(-3, "starving", a.IsStarving))
