@@ -891,6 +891,7 @@ func (g *GameState) NewEnemyFromDef(def MonsterDef) *Actor {
 	actor.GetFlags().Init(def.Flags.UnderlyingCopy())
 	actor.SetIntrinsicZapEffects(def.ZapEffects)
 	actor.SetIntrinsicUseEffects(def.UseEffects)
+	actor.SetIntrinsicHitEffects(def.HitEffects)
 	actor.SetInternalName(def.InternalName)
 
 	actor.SetSizeModifier(def.SizeModifier)
@@ -929,6 +930,11 @@ func (g *GameState) actorKilled(causeOfDeath string, victim *Actor) {
 		return
 	}
 	g.msg(foundation.HiLite("%s killed %s", causeOfDeath, victim.Name()))
+	for _, effect := range victim.GetIntrinsicHitEffects() {
+		if effect.Name == "hold" {
+			g.Player.GetFlags().Unset(foundation.FlagHeld)
+		}
+	}
 
 	g.dropInventory(victim)
 }

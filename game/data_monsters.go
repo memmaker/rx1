@@ -27,6 +27,11 @@ type IntrinsicAttack struct {
 	DamageDice rpg.Dice
 	AttackName string
 }
+type HitEffect struct {
+	Name   string
+	Chance int // percent
+}
+
 type MonsterDef struct {
 	Name          string
 	InternalName  string
@@ -48,6 +53,7 @@ type MonsterDef struct {
 	DamageResistance int
 	ZapEffects       []string
 	UseEffects       []string
+	HitEffects       []HitEffect
 	DungeonLevel     int
 	Flags            *foundation.MapFlags
 
@@ -103,6 +109,9 @@ func NewMonsterDefFromRecord(record recfile.Record) MonsterDef {
 			monsterDef.DamageResistance = field.AsInt()
 		case "zap_effect":
 			monsterDef.ZapEffects = append(monsterDef.ZapEffects, field.Value)
+		case "hit_effect":
+			fields := field.AsList("|")
+			monsterDef.HitEffects = append(monsterDef.HitEffects, HitEffect{Name: fields[0].Value, Chance: fields[1].AsInt()})
 		case "use_effect":
 			monsterDef.UseEffects = append(monsterDef.UseEffects, field.Value)
 		case "strength":

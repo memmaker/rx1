@@ -419,3 +419,12 @@ func (i *Item) RemoveCurse() {
 		}
 	}
 }
+
+// Rust lowers the armor's protection by one; returns false if there is nothing left to rust.
+func (i *ArmorInfo) Rust() bool {
+	if i.GetDamageResistanceWithPlus() <= 0 {
+		return false
+	}
+	i.plus--
+	return true
+}

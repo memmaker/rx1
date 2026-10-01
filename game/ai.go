@@ -115,7 +115,7 @@ func (g *GameState) defaultBehaviour(enemy *Actor) {
 	// has skills?
 	zaps := enemy.GetIntrinsicZapEffects()
 	canZap := len(zaps) > 0 && !enemy.HasFlag(foundation.FlagCancel)
-	if canZap && sameRoom { //rand.Intn(3) == 0 {
+	if canZap && sameRoom && rand.Intn(5) == 0 { // Rogue 5.4: DRAGONSHOT
 		// zap
 		zap := zaps[rand.Intn(len(zaps))]
 		targetPos := g.Player.Position()

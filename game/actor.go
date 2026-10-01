@@ -34,6 +34,7 @@ type Actor struct {
 	intrinsicAttacks    []IntrinsicAttack
 	intrinsicZapEffects []string
 	intrinsicUseEffects []string
+	intrinsicHitEffects []HitEffect
 
 	icon                   rune
 	color                  string
@@ -313,6 +314,14 @@ func (a *Actor) SetIntrinsicUseEffects(effects []string) {
 
 func (a *Actor) GetIntrinsicZapEffects() []string {
 	return a.intrinsicZapEffects
+}
+
+func (a *Actor) SetIntrinsicHitEffects(effects []HitEffect) {
+	a.intrinsicHitEffects = effects
+}
+
+func (a *Actor) GetIntrinsicHitEffects() []HitEffect {
+	return a.intrinsicHitEffects
 }
 
 func (a *Actor) GetIntrinsicUseEffects() []string {
