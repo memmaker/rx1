@@ -162,7 +162,7 @@ a place to hide.
 
   | Item | Radius | Fuel (turns) | Color | Flicker |
   |---|---|---|---|---|
-  | Torch | 2 | 2500 | 255 223 117 | fire, 0.125s |
+  | Torch | 1 | 2500 | 255 223 117 | fire, 0.125s |
   | Brass Lantern | 3 | 5000 | 255 223 117 | fire, 0.125s |
   | The Star-Glass | 4 | infinite | 5 250 255 | smooth, 0.125s |
   | The Morning Star | 12 | infinite | 255 248 207 | smooth, 0.5s |

@@ -174,6 +174,9 @@ func (i *Item) InventoryNameWithColors(colorCode string) string {
 	if i.IsRing() && i.charges > 1 && i.id.IsItemIdentified(i.internalName) {
 		line = cview.Escape(fmt.Sprintf("%s (%d turns)", i.Name(), i.charges))
 	}
+	if i.IsLight() && i.charges >= 0 {
+		line = cview.Escape(fmt.Sprintf("%s (%d turns)", i.Name(), i.charges))
+	}
 	return colorCode + line + "[-]"
 }
 

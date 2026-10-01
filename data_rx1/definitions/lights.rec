@@ -7,7 +7,7 @@ category: other
 slot: light_source
 chance: 60
 charges: 2500
-light_radius: 2
+light_radius: 1
 light_color: 255 223 117
 light_flicker_pattern: fire
 light_flicker_frame_delay: 125
