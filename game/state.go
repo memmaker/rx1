@@ -41,6 +41,8 @@ type GameState struct {
 	currentDungeonLevel              int
 	maximumDungeonLevel              int
 	deepestDungeonLevelPlayerReached int
+	levelsWithoutFood                int                           // Rogue's no_food
+	secrets                          map[geometry.Point]gridmap.Tile // secret doors/passages: the real tile until found
 
 	tileStyle         int
 	defaultBackground color.RGBA
@@ -960,111 +962,6 @@ func (g *GameState) isInPlayerRoom(position geometry.Point) bool {
 		return false
 	}
 	return playerRoom.ContainsIncludingWalls(position)
-}
-
-func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.GridMap[*Actor, *Item, *Object], dungeon *dungen.DungeonMap) {
-
-	playerRoom := dungeon.GetRoomAt(g.Player.Position())
-
-	mustSpawnAmuletOfYendor := level == 26 && !g.Player.GetInventory().HasItemWithName("amulet_of_yendor")
-
-	spawnItemsInRoom := func(room *dungen.DungeonRoom, itemCount int) {
-		for i := 0; i < itemCount; i++ {
-			spawnPos, exists := room.GetRandomAbsoluteFloorPositionWithFilter(random, newMap.IsEmptyNonSpecialFloor)
-			if !exists {
-				break
-			}
-			itemDef := g.dataDefinitions.PickItemForLevel(random, level)
-			item := NewItem(itemDef, g.identification)
-			if item.IsEquippable() && random.Intn(5) == 0 {
-				g.AddCurseToEquippable(item)
-			}
-			newMap.AddItem(item, spawnPos)
-		}
-	}
-
-	spawnMonstersInRoom := func(room *dungen.DungeonRoom, monsterCount int) {
-		for i := 0; i < monsterCount; i++ {
-			spawnPos, exists := room.GetRandomAbsoluteFloorPositionWithFilter(random, newMap.IsEmptyNonSpecialFloor)
-			if !exists {
-				break
-			}
-			monsterDef := g.dataDefinitions.PickMonsterForLevel(random, level)
-			monster := g.NewEnemyFromDef(monsterDef)
-			if random.Intn(26) >= level {
-				monster.GetFlags().Set(foundation.FlagSleep)
-			}
-			if monster.HasFlag(foundation.FlagWallCrawl) {
-				walls := room.GetWalls()
-				spawnPos = walls[random.Intn(len(walls))]
-			}
-			newMap.AddActor(monster, spawnPos)
-			if monster.HasFlag(foundation.FlagGroup) {
-				for j := 1 + random.Intn(3); j > 0; j-- {
-					packPos, ok := room.GetRandomAbsoluteFloorPositionWithFilter(random, newMap.IsEmptyNonSpecialFloor)
-					if !ok {
-						break
-					}
-					packMember := g.NewEnemyFromDef(monsterDef)
-					packMember.GetFlags().Init(monster.GetFlags().UnderlyingCopy())
-					newMap.AddActor(packMember, packPos)
-				}
-			}
-		}
-	}
-
-	spawnObjectsInRoom := func(room *dungen.DungeonRoom, objectCount int) {
-		for i := 0; i < objectCount; i++ {
-			spawnPos, exists := room.GetRandomAbsoluteFloorPositionWithFilter(random, newMap.IsEmptyNonSpecialFloor)
-			if !exists {
-				break
-			}
-			trapEffects := foundation.GetAllTrapCategories()
-			randomEffect := trapEffects[random.Intn(len(trapEffects))]
-			object := g.NewTrap(randomEffect)
-			newMap.AddObject(object, spawnPos)
-		}
-	}
-
-	docsToSpawn := 1 + random.Intn(2)
-
-	allRooms := dungeon.AllRooms()
-	randomRoomOrder := random.Perm(len(allRooms))
-	for _, roomIndex := range randomRoomOrder {
-		room := allRooms[roomIndex]
-
-		itemCount := random.Intn(3)
-		spawnItemsInRoom(room, itemCount)
-
-		if random.Intn(2) == 0 || itemCount > 0 {
-			monsterCount := random.Intn(max(2, itemCount)) + 1
-			spawnMonstersInRoom(room, monsterCount)
-		}
-
-		if level > 1 && room != playerRoom && random.Intn(4) == 0 {
-			objectCount := random.Intn(3) + 1
-			spawnObjectsInRoom(room, objectCount)
-		}
-
-		if docsToSpawn > 0 {
-			if spawnPos, exists := room.GetRandomAbsoluteFloorPositionWithFilter(random, newMap.IsEmptyNonSpecialFloor); exists {
-				if doc, ok := g.pickUnusedDocument(random); ok {
-					newMap.AddItem(NewItem(doc, g.identification), spawnPos)
-				}
-				docsToSpawn--
-			}
-		}
-
-		if mustSpawnAmuletOfYendor {
-			spawnPos, exists := room.GetRandomAbsoluteFloorPositionWithFilter(random, newMap.IsEmptyNonSpecialFloor)
-			if !exists {
-				break
-			}
-			amulet := g.NewItemFromName("amulet_of_yendor")
-			newMap.AddItem(amulet, spawnPos)
-			mustSpawnAmuletOfYendor = false
-		}
-	}
 }
 
 func (g *GameState) openWizardCreateItemMenu() {

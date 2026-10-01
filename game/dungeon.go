@@ -122,10 +122,8 @@ func (g *GameState) GotoDungeonLevel(level int, stairs StairsInLevel, placePlaye
 	}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
-	dunGen := dungen.NewRogueGenerator(random, g.config.MapWidth, g.config.MapHeight)
-	dunGen.SetRoomLitChance(0.9)
-	dunGen.SetAdditionalRoomConnections(random.Intn(5))
-	dungeon := dunGen.Generate()
+	dungeon := dungen.NewRogueGenerator(random, g.config.MapWidth, g.config.MapHeight, level).Generate()
+	g.levelsWithoutFood++
 
 	mapWidth, mapHeight := dungeon.GetSize()
 
@@ -311,6 +309,15 @@ func (g *GameState) decorateMapWithTiles(newMap *gridmap.GridMap[*Actor, *Item, 
 				newMap.SetLit(pos, true)
 			}
 		}
+	}
+	// secrets look like wall or rock until searched for
+	g.secrets = make(map[geometry.Point]gridmap.Tile)
+	for pos := range dungeon.SecretDoors() {
+		g.secrets[pos] = fakeDoorTile
+	}
+	for pos := range dungeon.SecretPassages() {
+		g.secrets[pos] = newMap.GetCell(pos).TileType
+		newMap.SetTile(pos, corridorWall)
 	}
 	return stairsUpLoc, stairsDownLoc
 }
