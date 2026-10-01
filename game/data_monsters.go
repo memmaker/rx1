@@ -54,6 +54,7 @@ type MonsterDef struct {
 	ZapEffects       []string
 	UseEffects       []string
 	HitEffects       []HitEffect
+	StruckEffects    []HitEffect
 	DungeonLevel     int
 	Flags            *foundation.MapFlags
 
@@ -112,6 +113,9 @@ func NewMonsterDefFromRecord(record recfile.Record) MonsterDef {
 		case "hit_effect":
 			fields := field.AsList("|")
 			monsterDef.HitEffects = append(monsterDef.HitEffects, HitEffect{Name: fields[0].Value, Chance: fields[1].AsInt()})
+		case "struck_effect":
+			fields := field.AsList("|")
+			monsterDef.StruckEffects = append(monsterDef.StruckEffects, HitEffect{Name: fields[0].Value, Chance: fields[1].AsInt()})
 		case "use_effect":
 			monsterDef.UseEffects = append(monsterDef.UseEffects, field.Value)
 		case "strength":

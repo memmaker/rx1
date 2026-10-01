@@ -132,6 +132,7 @@ size_modifier: -1
 dodge: 9
 dr: 0
 attack: 9 | 1d8 | bite
+struck_effect: freeze | 100
 
 name: ice monster
 internal_name: ice_monster
