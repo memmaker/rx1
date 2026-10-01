@@ -117,8 +117,26 @@ TileStairsUp: <
 TileStairsUp_Colors: White | Black
 TileStairsDown: >
 TileStairsDown_Colors: White | Black
-TileMountain: ^
-TileMountain_Colors: LightGray | Black
+TileMountain: .
+TileMountain_Colors: Black | Black
+TileMountainPeak: #
+TileMountainPeak_Colors: Green | Black
+TileTownGrass: .
+TileTownGrass_Colors: LightGray | Black
+TileTownGrassShade: .
+TileTownGrassShade_Colors: LightGray | Black
+TileTownGrassTuft: .
+TileTownGrassTuft_Colors: LightGray | Black
+TileTownGrassDot: .
+TileTownGrassDot_Colors: LightGray | Black
+TileRoof: -
+TileRoof_Colors: LightGray | Black
+TileTownWallBase: -
+TileTownWallBase_Colors: LightGray | Black
+TileTownInterior: .
+TileTownInterior_Colors: LightGray | Black
+TileTownWallSide: |
+TileTownWallSide_Colors: LightGray | Black
 TileGrass: ,
 TileGrass_Colors: LightGray | Black
 TileTree: §

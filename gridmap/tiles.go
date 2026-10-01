@@ -84,7 +84,7 @@ func (t Tile) IsLand() bool {
 }
 
 func (t Tile) IsMountain() bool {
-	return t.Feature == foundation.TileMountain
+	return t.Feature == foundation.TileMountain || t.Feature == foundation.TileMountainPeak
 }
 
 func (t Tile) IsVoid() bool {
