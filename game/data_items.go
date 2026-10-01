@@ -72,6 +72,8 @@ type ItemDef struct {
 
 	Skill      rpg.SkillName
 	SkillBonus rpg.Dice
+
+	Text string // documents only
 }
 
 func (i ItemDef) IsValidArmor() bool {
@@ -183,5 +185,4 @@ func WeaponTypeFromString(value string) WeaponType {
 		return ItemTypeDart
 	}
 	panic("Invalid weapon type: " + value)
-	return ItemTypeUnknown
 }

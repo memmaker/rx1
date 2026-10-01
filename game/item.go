@@ -121,6 +121,7 @@ type Item struct {
 	equipFlag    foundation.ActorFlag
 	thrownDamage rpg.Dice
 	isKnown      bool
+	text         string
 }
 
 func (i *Item) InventoryNameWithColorsAndShortcut(lineColorCode string) string {
@@ -207,11 +208,15 @@ func (i *Item) IsThrowable() bool {
 }
 
 func (i *Item) IsUsableOrZappable() bool {
-	return i.useEffectName != "" || i.zapEffectName != ""
+	return i.IsUsable() || i.zapEffectName != ""
 }
 
 func (i *Item) IsUsable() bool {
-	return i.useEffectName != ""
+	return i.useEffectName != "" || i.IsDocument()
+}
+
+func (i *Item) IsDocument() bool {
+	return i.category == foundation.ItemCategoryDocuments
 }
 
 func (i *Item) GetUseEffectName() string {

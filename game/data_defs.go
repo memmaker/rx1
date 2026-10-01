@@ -82,6 +82,8 @@ func GetDataDefinitions(rootDir string) DataDefinitions {
 		items[foundation.ItemCategoryFood] = ItemDefsFromRecords(foodRecords)
 	}
 
+	items[foundation.ItemCategoryDocuments] = LoadDocuments(path.Join(rootDir, "lore"))
+
 	readCloser = util.MustOpen(path.Join(dataDir, "monsters.rec"))
 	monsterRecords := recfile.Read(readCloser)
 	readCloser.Close()

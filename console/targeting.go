@@ -117,7 +117,7 @@ func (u *UI) onTargetSelected(onSelected func(targetPos geometry.Point)) {
 
 func (u *UI) cancelTargeting() {
 	u.mapWindow.SetInputCapture(u.handleMainInput)
-	u.application.SetMouseCapture(nil)
+	u.application.SetMouseCapture(u.handleMainMouse)
 	u.state = StateNormal
 	clear(u.targetingTiles)
 	u.Print(foundation.NoMsg())

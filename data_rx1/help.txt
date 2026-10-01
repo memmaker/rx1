@@ -1,13 +1,59 @@
-Welcome to Rogue
+Welcome to rx1 - Rogue Variant I
 
-This file will explain all the Keybindings and commands you can use in Rogue.
+Find the Amulet of Yendor on the 26th level of the dungeon and bring it back up.
+Press = at any time for the exact key bindings of your current keymap.
 
-Keybindings
+Moving
+======
+w a s d        move north / west / south / east
+W A S D        run in that direction
+numpad 1-9     move in all eight directions (5: run in a direction)
+.              wait a turn
+Enter          take the stairs you are standing on (up or down)
+> / <          go down / up the stairs you are standing on
+
+Fighting
+========
+bump           walk into a monster to attack it
+f              launch (fire your missile weapon)
+g              aim at a target
+h              quick shot at the nearest enemy
+v              throw an item
+t              tactics menu
+
+Items
+=====
+,              pick up
+i              inventory: select an item to quaff, read, eat, wear,
+               wield, put on, remove, drop or zap it
+e              use an item
+r              read a scroll or a document you found
+I              list of items in view
+O              show item overlay on the map
+
+Looking around
+==============
+x              look: move the cursor over the map, select a monster
+               to see its stats and lore (Tab switches tabs)
+m              list of monsters in view
+U              show monster overlay on the map
+right click    open a monster's stats and lore
+
+Information
 ===========
+c              character sheet
+l              message log
+? or F1         this help
+=              key bindings
 
-Movement
+Screen
+======
+F2 / F3        darker / brighter
+Ctrl+T         switch the colour theme
+Q              quit
 
-h - Move left
-j - Move down
-k - Move up
-l - Move right
+Targeting
+=========
+While aiming or looking: move the cursor with wasd or the numpad,
+Space switches between direction and free targeting,
+Tab / Shift+Tab cycle through targets, Enter selects, Esc cancels.

@@ -70,14 +70,14 @@ func (o *Overlay) AsciiLine(origin geometry.Point, dest geometry.Point, steps []
 	blToTrRune := foundation.TextIcon{Rune: '/', Fg: o.defaultForeground, Bg: o.defaultBackground}
 	tlToBrRune := foundation.TextIcon{Rune: '\\', Fg: o.defaultForeground, Bg: o.defaultBackground}
 	directionToLineRune := map[geometry.Point]foundation.TextIcon{
-		geometry.Point{1, 0}:   horzRune,
-		geometry.Point{-1, 0}:  horzRune,
-		geometry.Point{0, 1}:   vertRune,
-		geometry.Point{0, -1}:  vertRune,
-		geometry.Point{1, 1}:   tlToBrRune,
-		geometry.Point{-1, -1}: tlToBrRune,
-		geometry.Point{1, -1}:  blToTrRune,
-		geometry.Point{-1, 1}:  blToTrRune,
+		{X: 1, Y: 0}:   horzRune,
+		{X: -1, Y: 0}:  horzRune,
+		{X: 0, Y: 1}:   vertRune,
+		{X: 0, Y: -1}:  vertRune,
+		{X: 1, Y: 1}:   tlToBrRune,
+		{X: -1, Y: -1}: tlToBrRune,
+		{X: 1, Y: -1}:  blToTrRune,
+		{X: -1, Y: 1}:  blToTrRune,
 	}
 
 	prev := origin

@@ -309,10 +309,18 @@ func toUIKey(keyEvent *tcell.EventKey) UIKey {
 	if keyEvent.Key() == tcell.KeyRune {
 		name = string(keyEvent.Rune())
 	}
+	ch := keyEvent.Rune()
+	if keyEvent.Key() == tcell.KeyEnter || keyEvent.Key() == tcell.KeyTab {
+		ch = rune(keyEvent.Key()) // the keymap stores these with ch 13/9; tcell's web screen reports ch 0
+	}
+	mod := keyEvent.Modifiers()
+	if keyEvent.Key() == tcell.KeyRune {
+		mod &^= tcell.ModShift // the rune is already shifted ('>', 'W'); only tcell's web screen reports Shift here
+	}
 	key := UIKey{
-		mod:  keyEvent.Modifiers(),
+		mod:  mod,
 		key:  keyEvent.Key(),
-		ch:   keyEvent.Rune(),
+		ch:   ch,
 		name: name,
 	}
 	return key

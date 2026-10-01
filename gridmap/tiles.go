@@ -53,7 +53,7 @@ func (t Tile) Description() string {
 }
 
 func (t Tile) EncodeAsString() string {
-	return fmt.Sprintf("%c: %s", t.Feature, t.DefinedDescription)
+	return fmt.Sprintf("%s: %s", t.Feature, t.DefinedDescription)
 }
 
 func (t Tile) WithIsWalkable(isWalkable bool) Tile {

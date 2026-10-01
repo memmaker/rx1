@@ -71,6 +71,12 @@ func (g *GameState) playerUseOrZapItem(item *Item) {
 	}
 }
 func (g *GameState) actorUseItem(user *Actor, item *Item) {
+	if item.IsDocument() {
+		if user == g.Player {
+			g.ui.OpenTextWindow(documentLines(item.name, item.text))
+		}
+		return
+	}
 	useEffectName := item.GetUseEffectName()
 
 	if useEffectName == "" {
@@ -631,10 +637,10 @@ func (g *GameState) ChooseItemForEat() {
 
 func (g *GameState) ChooseItemForRead() {
 	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsScroll()
+		return item.IsScroll() || item.IsDocument()
 	})
 	if len(inventory) == 0 {
-		g.msg(foundation.Msg("You are not carrying any scrolls."))
+		g.msg(foundation.Msg("You are not carrying anything to read."))
 		return
 	}
 	if len(inventory) == 1 {

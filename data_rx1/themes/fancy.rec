@@ -59,6 +59,7 @@ ItemPotions: Blue
 ItemWands: Green
 ItemRings: Red
 ItemAmulets: LightMagenta
+ItemDocuments: White
 
 %rec: map
 
@@ -169,6 +170,9 @@ ItemRings_Colors: LightRed | Cyan
 #
 ItemAmulets: &
 ItemAmulets_Colors: LightMagenta | Cyan
+#
+ItemDocuments: ♪
+ItemDocuments_Colors: Black | White
 
 %rec: objects
 

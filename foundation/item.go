@@ -41,6 +41,8 @@ func (c ItemCategory) String() string {
 		return "Wands"
 	case ItemCategoryAmulets:
 		return "Amulets"
+	case ItemCategoryDocuments:
+		return "Documents"
 	case ItemCategoryOther:
 		return "Other"
 	}
@@ -57,6 +59,7 @@ const (
 	ItemCategoryPotions
 	ItemCategoryWands
 	ItemCategoryAmulets
+	ItemCategoryDocuments
 	ItemCategoryOther
 )
 func RandomItemCategory() ItemCategory {
@@ -83,6 +86,8 @@ func ItemCategoryFromString(s string) ItemCategory {
 		return ItemCategoryWands
 	case "amulets":
 		return ItemCategoryAmulets
+	case "documents":
+		return ItemCategoryDocuments
 	case "other":
 		return ItemCategoryOther
 	}

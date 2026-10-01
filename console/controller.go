@@ -1557,7 +1557,14 @@ func (u *UI) openInventory(items []foundation.ItemForUI) *TextInventory {
 func (u *UI) OpenInventoryForManagement(items []foundation.ItemForUI) {
 	inv := u.openInventory(items)
 	inv.SetTitle("Inventory")
-	inv.SetDefaultSelection(u.game.EquipToggle)
+	inv.SetDefaultSelection(func(item foundation.ItemForUI) {
+		if item.GetCategory() == foundation.ItemCategoryDocuments { // selecting a document reads it
+			inv.closeHandler()
+			u.game.PlayerApplyItem(item)
+			return
+		}
+		u.game.EquipToggle(item)
+	})
 	inv.SetShiftSelection(u.game.DropItem)
 	inv.SetControlSelection(u.game.PlayerApplyItem)
 
@@ -2384,7 +2391,7 @@ func (u *UI) OpenKeyMapper(layer KeyLayer) {
 }
 
 func (u *UI) ShowHelpScreen() {
-	u.ShowTextFile(path.Join("data", "help.txt"))
+	u.ShowTextFile(path.Join(u.settings.DataRootDir, "help.txt"))
 }
 
 func (u *UI) getCommandForKey(key UIKey) string {
