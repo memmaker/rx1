@@ -756,6 +756,9 @@ func (u *UI) updateUntilDone() bool {
 	screen := u.application.GetScreen()
 	u.isAnimationFrame = true
 	var breakingKey *tcell.EventKey
+	if u.animator.Tick() { // fill the first frame now, not after a blank delay
+		u.updateLastFrame()
+	}
 outerLoop:
 	for len(u.animator.runningAnimations) > 0 {
 		u.mapWindow.Draw(screen)
@@ -1241,13 +1244,15 @@ func (u *UI) drawMap(screen tcell.Screen, x int, y int, width int, height int) (
 func (u *UI) renderMapPosition(mapPos geometry.Point, isAnimationFrame bool) (rune, tcell.Style) {
 	var ch rune
 	var textIcon foundation.TextIcon
-	var isPositionAnimated bool
 	foundIcon := false
 
-	if animIcon, exists := u.animator.animationState[mapPos]; isAnimationFrame && exists {
+	animIcon, exists := u.animator.animationState[mapPos]
+	if isAnimationFrame && !exists { // static tile: reuse the last frame, skip the lookup
+		return u.withTargeting(mapPos, u.lastFrameIcons[mapPos], u.lastFrameStyle[mapPos])
+	}
+	if isAnimationFrame {
 		textIcon = animIcon
 		foundIcon = true
-		isPositionAnimated = true
 	} else if u.mapOverlay.IsSet(mapPos.X, mapPos.Y) {
 		textIcon = u.mapOverlay.Get(mapPos.X, mapPos.Y)
 		foundIcon = true
@@ -1272,16 +1277,14 @@ func (u *UI) renderMapPosition(mapPos geometry.Point, isAnimationFrame bool) (ru
 		style = style.Background(tcell.NewRGBColor(int32(applyGamma(bg.R, u.gamma)), int32(applyGamma(bg.G, u.gamma)), int32(applyGamma(bg.B, u.gamma))))
 	}
 
-	if isAnimationFrame && !isPositionAnimated {
-		ch = u.lastFrameIcons[mapPos]
-		style = u.lastFrameStyle[mapPos]
-	}
-
 	if !isAnimationFrame {
 		u.lastFrameStyle[mapPos] = style
 		u.lastFrameIcons[mapPos] = ch
 	}
+	return u.withTargeting(mapPos, ch, style)
+}
 
+func (u *UI) withTargeting(mapPos geometry.Point, ch rune, style tcell.Style) (rune, tcell.Style) {
 	if _, ok := u.targetingTiles[mapPos]; u.state == StateTargeting && ok {
 		attr := tcell.AttrReverse
 		if mapPos == u.targetPos {
