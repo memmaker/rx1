@@ -982,10 +982,11 @@ func (u *UI) StartGameLoop() {
 		}()
 	}
 	if u.phosphor.Screen == nil {
-		s, err := tcell.NewScreen()
-		if err != nil {
+		s, err := tcell.NewScreen() // cview skips Init and mouse setup for a supplied screen
+		if err != nil || s.Init() != nil {
 			panic(err)
 		}
+		s.EnableMouse()
 		u.SetScreen(s)
 	}
 	u.application.SetAfterResizeFunc(u.onTerminalResized)
