@@ -52,14 +52,27 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 			})
 		case '#':
 			var feature foundation.TileType
-			if !isBuilding(at(pos.Add(geometry.Point{Y: -1}))) {
+			top := !isBuilding(at(pos.Add(geometry.Point{Y: -1})))
+			bottom := !isBuilding(at(pos.Add(geometry.Point{Y: 1})))
+			left := !isBuilding(at(pos.Add(geometry.Point{X: -1})))
+			right := !isBuilding(at(pos.Add(geometry.Point{X: 1})))
+			switch {
+			case top && left:
+				feature = foundation.TileTownCornerTopLeft
+			case top && right:
+				feature = foundation.TileTownCornerTopRight
+			case top:
 				feature = foundation.TileRoof
-			} else if !isBuilding(at(pos.Add(geometry.Point{Y: 1}))) {
+			case bottom && left:
+				feature = foundation.TileTownCornerBottomLeft
+			case bottom && right:
+				feature = foundation.TileTownCornerBottomRight
+			case bottom:
 				feature = foundation.TileTownWallBase
-			} else if isBuilding(at(pos.Add(geometry.Point{X: -1}))) && isBuilding(at(pos.Add(geometry.Point{X: 1}))) {
-				feature = foundation.TileTownInterior
-			} else {
+			case left || right:
 				feature = foundation.TileTownWallSide
+			default:
+				feature = foundation.TileTownInterior
 			}
 			gridMap.SetTile(pos, gridmap.Tile{
 				Feature:            feature,

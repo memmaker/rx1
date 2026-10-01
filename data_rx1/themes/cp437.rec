@@ -188,6 +188,14 @@ TileTownInterior: █
 TileTownInterior_Colors: LightGray | Black
 TileTownWallSide: █
 TileTownWallSide_Colors: LightGray | Black
+TileTownCornerTopLeft: ▄
+TileTownCornerTopLeft_Colors: LightGray | Black
+TileTownCornerTopRight: ▄
+TileTownCornerTopRight_Colors: LightGray | Black
+TileTownCornerBottomLeft: █
+TileTownCornerBottomLeft_Colors: LightGray | Black
+TileTownCornerBottomRight: █
+TileTownCornerBottomRight_Colors: LightGray | Black
 TileGrass: ,
 TileGrass_Colors: Green | Black
 TileTree: §
