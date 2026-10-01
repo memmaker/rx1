@@ -413,6 +413,7 @@ func (g *GameState) init() {
 	}
 	//
 	g.giveAndTryEquipItem(g.Player, g.NewItemFromName("short_bow"))
+	g.giveAndTryEquipItem(g.Player, g.NewItemFromName("torch"))
 
 	equipment := g.Player.GetEquipment()
 	g.Player.GetFlags().SetOnChangeHandler(func(flag foundation.ActorFlag, value int) {
@@ -814,48 +815,70 @@ func (g *GameState) canPlayerSee(pos geometry.Point) bool {
 	if g.currentDungeonLevel == 0 {
 		return true
 	}
-	playerRoom := g.getPlayerRoom()
 	playerPos := g.Player.Position()
 	if g.dungeonLayout == nil {
 		return g.playerFoV.Visible(pos)
 	}
-	isAtDoor := g.dungeonLayout.IsDoorAt(playerPos)
-	isInRoom := playerRoom != nil
-	isRoomLit := playerRoom != nil && playerRoom.IsLit()
 	if pos == playerPos {
 		return true
 	}
-	chebyDist := geometry.DistanceChebyshev(playerPos, pos)
-	nextToUs := chebyDist == 1
-	if nextToUs { // we will always see something right next us, save invisibility checks, blindness, etc.
+	// lit rooms are seen as a whole, everything else only by our own light
+	if playerRoom := g.getPlayerRoom(); playerRoom != nil && playerRoom.IsLit() && playerRoom.ContainsIncludingWalls(pos) {
 		return true
 	}
+	return g.playerLightRadius() > 0 && g.playerFoV.Visible(pos)
+}
 
-	// Case 1 corridor - we only see stuff right next to us
-	if !isInRoom {
-		return false
+// playerLightRadius is the radius of the equipped light, 0 if none or burnt out
+func (g *GameState) playerLightRadius() int {
+	if light := g.Player.GetEquipment().GetBySlot(foundation.SlotNameLightSource); light != nil {
+		return light.LightRadius()
 	}
+	return 0
+}
 
-	// Case 2 Special Case doors, we can see inside a lit room
-	actorInSameRoom := isInRoom && playerRoom.ContainsIncludingWalls(pos)
-	if isAtDoor {
-		if actorInSameRoom && isRoomLit {
-			return true
-		} else {
-			return false
-		}
+// GetPlayerLight returns false where light does not matter (town)
+func (g *GameState) GetPlayerLight() (foundation.LightInfo, bool) {
+	if g.currentDungeonLevel == 0 || g.dungeonLayout == nil {
+		return foundation.LightInfo{}, false
 	}
-
-	// Case 3 in a room
-	if !actorInSameRoom {
-		return false
+	light := g.Player.GetEquipment().GetBySlot(foundation.SlotNameLightSource)
+	if light == nil {
+		return foundation.LightInfo{}, true
 	}
+	info := light.light
+	info.Radius = light.LightRadius()
+	return info, true
+}
 
-	if isRoomLit {
+// burnPlayerLight burns 1 fuel per turn, but not in lit rooms or in town
+func (g *GameState) burnPlayerLight() {
+	light := g.Player.GetEquipment().GetBySlot(foundation.SlotNameLightSource)
+	if light == nil || light.charges <= 0 || g.currentDungeonLevel == 0 {
+		return
+	}
+	if room := g.getPlayerRoom(); room != nil && room.IsLit() {
+		return
+	}
+	light.charges--
+}
+
+// playerShowsLight: a working light or a lit room makes the player noticeable from afar
+func (g *GameState) playerShowsLight() bool {
+	if g.playerLightRadius() > 0 {
 		return true
-	} else {
-		return false
 	}
+	room := g.getPlayerRoom()
+	return room != nil && room.IsLit()
+}
+
+// enemyCanSpotPlayer: within 4 tiles always, up to 10 with line of sight if the player shows light
+func (g *GameState) enemyCanSpotPlayer(enemyPos geometry.Point) bool {
+	dist := geometry.Distance(g.Player.Position(), enemyPos)
+	if dist <= 4 {
+		return true
+	}
+	return dist <= 10 && g.playerShowsLight() && g.gridMap.IsLineOfSightClear(g.Player.Position(), enemyPos)
 }
 
 func (g *GameState) GetFilteredInventory(filter func(item *Item) bool) []foundation.ItemForUI {
@@ -1221,6 +1244,8 @@ func (g *GameState) triggerTileEffectsAfterMovement(actor *Actor, oldPos, newPos
 	if cell.TileType.IsVendor() && isPlayer {
 		itemsForVendor := []util.Tuple[foundation.ItemForUI, int]{
 			{Item1: g.NewItemFromName("mace"), Item2: 100},
+			{Item1: g.NewItemFromName("torch"), Item2: 15},
+			{Item1: g.NewItemFromName("brass_lantern"), Item2: 80},
 		}
 		g.ui.OpenVendorMenu(itemsForVendor, g.buyItemFromVendor)
 	}
@@ -1360,6 +1385,8 @@ func NewItem(def ItemDef, id *IdentificationKnowledge) *Item {
 	charges := 1
 	if def.Charges.NotZero() {
 		charges = def.Charges.Roll()
+	} else if def.LightRadius > 0 {
+		charges = -1 // no fuel given = infinite
 	}
 	item := &Item{
 		name:         def.Name,
@@ -1375,6 +1402,12 @@ func NewItem(def ItemDef, id *IdentificationKnowledge) *Item {
 		equipFlag:    def.EquipFlag,
 		thrownDamage: def.ThrowDamageDice,
 		text:         def.Text,
+		light: foundation.LightInfo{
+			Radius:  def.LightRadius,
+			Color:   def.LightColor,
+			Pattern: def.LightPattern,
+			DelayMs: def.LightFrameDelayMs,
+		},
 	}
 
 	if def.IsValidWeapon() {

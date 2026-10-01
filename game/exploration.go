@@ -2,32 +2,20 @@ package game
 
 import (
 	"rx1/dungen"
-	"rx1/geometry"
 )
-
-func (g *GameState) applyCorridorExploration() {
-	// in corridor = always dark, light the corridor/doors while walking
-	corridorTiles := g.gridMap.GetFilteredNeighbors(g.Player.Position(), func(pos geometry.Point) bool {
-		return g.gridMap.Contains(pos) && (g.dungeonLayout.IsCorridor(pos) || g.dungeonLayout.IsDoorAt(pos))
-	})
-	corridorTiles = append(corridorTiles, g.Player.Position())
-	for _, pos := range corridorTiles {
-		g.gridMap.SetExplored(pos)
-		g.gridMap.SetLit(pos, true)
-	}
-}
 
 func (g *GameState) applyLightRoomExploration(playerRoom *dungen.DungeonRoom) {
 	allTiles := playerRoom.GetAbsoluteRoomTiles()
 	g.gridMap.SetListExplored(allTiles, true)
 }
 
-func (g *GameState) applyDarkRoomExploration() {
-	g.gridMap.SetSelfAndAllNeighborsExplored(g.Player.Position())
-	wallTiles := g.gridMap.GetFilteredNeighbors(g.Player.Position(), func(pos geometry.Point) bool {
-		return g.dungeonLayout.IsWallAt(pos) || g.dungeonLayout.IsDoorAt(pos)
-	})
-	for _, pos := range wallTiles {
-		g.gridMap.SetLit(pos, true)
+// applyLightExploration explores what the player's own light reaches, see canPlayerSee
+func (g *GameState) applyLightExploration() {
+	g.gridMap.SetExplored(g.Player.Position())
+	if radius := g.playerLightRadius(); radius > 0 {
+		g.gridMap.UpdateFieldOfView(g.playerFoV, g.Player.Position(), radius)
+		for _, pos := range g.playerFoV.Visibles {
+			g.gridMap.SetExplored(pos)
+		}
 	}
 }

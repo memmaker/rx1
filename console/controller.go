@@ -973,6 +973,13 @@ func (u *UI) Print(message foundation.HiLiteString) {
 	})
 }
 func (u *UI) StartGameLoop() {
+	if !u.isMonochrome { // redraw regularly so the light flickers
+		go func() {
+			for range time.Tick(100 * time.Millisecond) {
+				u.application.QueueUpdateDraw(func() {})
+			}
+		}()
+	}
 	u.application.SetAfterResizeFunc(u.onTerminalResized)
 	if err := u.application.Run(); err != nil {
 		panic(err)
@@ -2185,12 +2192,46 @@ func directionToRune(dir geometry.CompassDirection) rune {
 
 func (u *UI) mapLookup(loc geometry.Point) (foundation.TextIcon, bool) {
 	if u.game.IsVisibleToPlayer(loc) {
-		return u.visibleLookup(loc)
-	} else if u.game.IsExplored(loc) && u.game.IsLit(loc) {
-		icon := u.getIconForMap(u.game.MapAt(loc))
-		return icon, true
+		icon, ok := u.visibleLookup(loc)
+		return u.applyLight(icon, loc), ok
+	} else if u.game.IsExplored(loc) {
+		// remembered: lit rooms stay brighter than what we only saw by torchlight
+		factor := 0.16
+		if u.game.IsLit(loc) {
+			factor = 0.5
+		}
+		return scaleIcon(u.getIconForMap(u.game.MapAt(loc)), factor, color.RGBA{255, 255, 255, 255}), true
 	}
 	return foundation.TextIcon{}, false
+}
+
+// applyLight dims and tints a visible tile by the player's light, lit rooms are left alone
+func (u *UI) applyLight(icon foundation.TextIcon, loc geometry.Point) foundation.TextIcon {
+	light, active := u.game.GetPlayerLight()
+	if !active || u.game.IsLit(loc) {
+		return icon
+	}
+	d := geometry.Distance(u.game.GetPlayerPosition(), loc)
+	factor := foundation.LightFalloff(float64(d), float64(light.Radius)) * light.LightFlicker(time.Now().UnixMilli(), loc.X, loc.Y)
+	tint := light.Color
+	if light.Radius == 0 {
+		tint = color.RGBA{255, 255, 255, 255}
+	}
+	return scaleIcon(icon, factor, tint)
+}
+
+func scaleIcon(icon foundation.TextIcon, factor float64, tint color.RGBA) foundation.TextIcon {
+	scale := func(c color.RGBA) color.RGBA {
+		return color.RGBA{
+			R: uint8(float64(c.R) * factor * float64(tint.R) / 255),
+			G: uint8(float64(c.G) * factor * float64(tint.G) / 255),
+			B: uint8(float64(c.B) * factor * float64(tint.B) / 255),
+			A: c.A,
+		}
+	}
+	icon.Fg = scale(icon.Fg)
+	icon.Bg = scale(icon.Bg)
+	return icon
 }
 
 func (u *UI) visibleLookup(loc geometry.Point) (foundation.TextIcon, bool) {

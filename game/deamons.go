@@ -60,6 +60,8 @@ func (g *GameState) removeDeadAndApplyRegeneration() {
 		}
 	}
 
+	g.burnPlayerLight()
+
 	for i := len(g.gridMap.Actors()) - 1; i >= 0; i-- {
 		actor := g.gridMap.Actors()[i]
 		if !actor.IsAlive() {

@@ -1,6 +1,8 @@
 package game
 
 import (
+	"fmt"
+	"image/color"
 	"rx1/foundation"
 	"rx1/recfile"
 	"rx1/rpg"
@@ -75,6 +77,12 @@ type ItemDef struct {
 	SkillBonus rpg.Dice
 
 	Text string // documents only
+
+	MinLevel          int // earliest dungeon level it is generated on
+	LightRadius       int
+	LightColor        color.RGBA
+	LightPattern      string
+	LightFrameDelayMs int
 }
 
 func (i ItemDef) IsValidArmor() bool {
@@ -155,6 +163,18 @@ func NewItemDefFromRecord(record recfile.Record) ItemDef {
 			itemDef.Skill = rpg.SkillNameFromString(field.Value)
 		case "skill_bonus":
 			itemDef.SkillBonus = rpg.ParseDice(field.Value)
+		case "min_level":
+			itemDef.MinLevel = field.AsInt()
+		case "light_radius":
+			itemDef.LightRadius = field.AsInt()
+		case "light_color":
+			var r, g, b uint8
+			fmt.Sscan(field.Value, &r, &g, &b)
+			itemDef.LightColor = color.RGBA{R: r, G: g, B: b, A: 255}
+		case "light_flicker_pattern":
+			itemDef.LightPattern = field.Value
+		case "light_flicker_frame_delay":
+			itemDef.LightFrameDelayMs = field.AsInt()
 		case "equip_flag":
 			itemDef.EquipFlag = foundation.ActorFlagFromString(field.Value)
 		}

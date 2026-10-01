@@ -55,6 +55,10 @@ func GetDataDefinitions(rootDir string) DataDefinitions {
 	foodRecords := recfile.Read(readCloser)
 	readCloser.Close()
 
+	readCloser = util.MustOpen(path.Join(dataDir, "lights.rec"))
+	lightRecords := recfile.Read(readCloser)
+	readCloser.Close()
+
 	items := make(map[foundation.ItemCategory][]ItemDef)
 
 	if len(weaponRecords) > 0 {
@@ -77,6 +81,9 @@ func GetDataDefinitions(rootDir string) DataDefinitions {
 	}
 	if len(amuletRecords) > 0 {
 		items[foundation.ItemCategoryAmulets] = ItemDefsFromRecords(amuletRecords)
+	}
+	if len(lightRecords) > 0 {
+		items[foundation.ItemCategoryOther] = ItemDefsFromRecords(lightRecords)
 	}
 	if len(foodRecords) > 0 {
 		items[foundation.ItemCategoryFood] = ItemDefsFromRecords(foodRecords)
