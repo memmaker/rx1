@@ -54,7 +54,7 @@ func (i *TextInventory) drawInside(screen tcell.Screen, x int, y int, width int,
 		}
 		dropRunes = append(dropRunes, shortcut)
 	}
-	infoLines := []string{"[Up/Down] Move  [Enter] Select"}
+	infoLines := []string{"[Up/Down] Move", "[Enter] Select"}
 	if !i.selectionOnly {
 		infoLines = append(infoLines, "[Space] Actions")
 		if len(unequipRunes) > 0 {
@@ -70,25 +70,12 @@ func (i *TextInventory) drawInside(screen tcell.Screen, x int, y int, width int,
 			infoLines = append(infoLines, fmt.Sprintf("[%s] Drop", strings.ToUpper(string(dropRunes))))
 		}
 	}
-	innerWidth := i.listWidth + 2
-	for _, line := range infoLines {
-		innerWidth = max(innerWidth, len(line)+2)
-	}
-
-	// align top right; list, a separator, then the key help, all inside one box
-	boxWidth := innerWidth + 2
-	boxHeight := i.listHeight + 3 + len(infoLines)
-	startX := x + width - boxWidth
+	// align top right, so the names sit exactly where the closed inventory shows them
+	startX := x + width - i.listWidth - 2
 	startY := y
 	fg, _, _ := i.style.Decompose()
 	runes := []rune{cview.Borders.Horizontal, cview.Borders.Vertical, cview.Borders.TopLeft, cview.Borders.TopRight, cview.Borders.BottomRight, cview.Borders.BottomLeft}
-	drawBackgroundAndBorderWithTitle(screen, startX, startY, boxWidth, boxHeight, i.ourTitle, i.style, runes)
-	separatorY := startY + 1 + i.listHeight
-	screen.SetContent(startX, separatorY, cview.Borders.LeftT, nil, i.style)
-	screen.SetContent(startX+boxWidth-1, separatorY, cview.Borders.RightT, nil, i.style)
-	for sx := startX + 1; sx < startX+boxWidth-1; sx++ {
-		screen.SetContent(sx, separatorY, cview.Borders.Horizontal, nil, i.style)
-	}
+	drawBackgroundAndBorderWithTitleForInventory(screen, startX, startY, i.listWidth+2, i.listHeight+2, i.ourTitle, i.style, runes)
 
 	i.cursor = min(max(i.cursor, 0), max(len(i.items)-1, 0))
 	for lineIndex, item := range i.items {
@@ -97,18 +84,18 @@ func (i *TextInventory) drawInside(screen tcell.Screen, x int, y int, width int,
 			line = line[:2] + "+" + line[3:]
 		}
 		drawY := startY + 1 + lineIndex
-		cview.Print(screen, []byte(line), startX+2, drawY, innerWidth-2, cview.AlignLeft, fg)
-		if lineIndex == i.cursor { // the cursor line is drawn inverted, across the whole inner width
-			for cx := startX + 1; cx < startX+boxWidth-1; cx++ {
-				mainc, combc, style, _ := screen.GetContent(cx, drawY)
-				cfg, cbg, _ := style.Decompose()
-				screen.SetContent(cx, drawY, mainc, combc, style.Foreground(cbg).Background(cfg))
-			}
+		cview.Print(screen, []byte(line), startX+2, drawY, width, cview.AlignLeft, fg)
+		if lineIndex == i.cursor {
+			screen.SetContent(startX+1, drawY, '>', nil, i.style)
 		}
 	}
 
+	lineAfterList := startY + i.listHeight + 2
 	for idx, line := range infoLines {
-		cview.Print(screen, []byte(cview.Escape(line)), startX+2, separatorY+1+idx, innerWidth-2, cview.AlignLeft, fg)
+		for lineX := 0; lineX < i.listWidth+2; lineX++ {
+			screen.SetContent(startX+lineX, lineAfterList+idx, ' ', nil, i.style)
+		}
+		cview.Print(screen, []byte(cview.Escape(line)), startX, lineAfterList+idx, width, cview.AlignLeft, fg)
 	}
 	return x, y, width, height
 }
