@@ -41,7 +41,7 @@ type GameState struct {
 	currentDungeonLevel              int
 	maximumDungeonLevel              int
 	deepestDungeonLevelPlayerReached int
-	levelsWithoutFood                int                           // Rogue's no_food
+	levelsWithoutFood                int                             // Rogue's no_food
 	secrets                          map[geometry.Point]gridmap.Tile // secret doors/passages: the real tile until found
 
 	tileStyle         int
