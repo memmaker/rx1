@@ -175,6 +175,9 @@ a place to hide.
   but their own tile (no free "adjacent tiles" rule). Lit rooms are seen as before.
 - **With a light:** the player sees every tile within the light radius that is
   in line of sight.
+  A light of radius 1 also reaches the four diagonal neighbours, at 30%
+  brightness. A wall right next to the player is always seen, so the corner of
+  a dark room shows from the floor tile in it.
 - **Memory:** seen tiles are remembered and drawn dim. Lit rooms out of view at
   ×0.5 brightness, dark tiles at ×0.16.
 - **Visuals:** brightness falls off as `1 − EaseInExpo(d / (r + 1))`, between

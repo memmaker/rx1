@@ -4,6 +4,7 @@ import (
 	"rx1/dungen"
 	"rx1/foundation"
 	"rx1/geometry"
+	"slices"
 	"testing"
 )
 
@@ -41,7 +42,7 @@ func TestLightOnlyLightsLineOfSight(t *testing.T) {
 						if !g.canPlayerSee(q) || q == p || g.IsLit(q) {
 							continue
 						}
-						if geometry.DistanceSquared(p, q) > r*r {
+						if !foundation.LightReaches(geometry.DistanceSquared(p, q), r) {
 							t.Fatalf("%s sees %s beyond radius %d", p, q, r)
 						}
 						if !m.IsLineOfSightClear(p, q) && geometry.DistanceChebyshev(p, q) > 1 {
@@ -94,6 +95,34 @@ func TestSwitchingLightUpdatesTheMap(t *testing.T) {
 				g.actorEquipItem(g.Player, g.NewItemFromName("lantern"))
 				if !g.canPlayerSee(far) || !g.gridMap.IsExplored(far) {
 					t.Fatalf("the lantern does not light %v from %v right away", far, here)
+				}
+				return
+			}
+		}
+	}
+}
+
+// A light of radius 1 reaches the diagonal neighbours weakly, so the corner of a dark room is seen from inside it.
+func TestTorchShowsTheRoomCorner(t *testing.T) {
+	cfg := foundation.NewDefaultConfiguration()
+	cfg.DataRootDir = "../data_rx1"
+	g := NewGameState(stubUI{}, cfg)
+	if falloff := foundation.LightFalloff(geometry.Distance(geometry.Point{}, geometry.Point{X: 1, Y: 1}), 1); falloff != 0.3 {
+		t.Fatalf("brightness on the diagonal is %v", falloff)
+	}
+	for {
+		g.GotoDungeonLevel(10, StairsBoth, true) // deep enough for dark rooms
+		for _, room := range g.dungeonLayout.AllRooms() {
+			for _, here := range room.GetAbsoluteRoomTiles() {
+				corner := here.Add(geometry.Point{X: -1, Y: -1})
+				if room.IsLit() || !room.FloorContains(here) || !slices.Contains(room.GetWalls(), corner) ||
+					room.FloorContains(here.Add(geometry.Point{X: -1})) || room.FloorContains(here.Add(geometry.Point{Y: -1})) {
+					continue
+				}
+				g.Player.SetPosition(here)
+				g.exploreMap()
+				if r := g.playerLightRadius(); r != 1 || !g.canPlayerSee(corner) || !g.gridMap.IsExplored(corner) {
+					t.Fatalf("radius %d: the corner %v is not seen from %v", r, corner, here)
 				}
 				return
 			}

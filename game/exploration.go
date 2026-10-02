@@ -15,11 +15,12 @@ func (g *GameState) applyLightExploration() {
 	g.gridMap.SetExplored(g.Player.Position())
 	if radius := g.playerLightRadius(); radius > 0 {
 		g.gridMap.UpdateFieldOfView(g.playerFoV, g.Player.Position(), radius)
-		for _, pos := range g.playerFoV.Visibles {
-			if geometry.DistanceSquared(g.Player.Position(), pos) > radius*radius {
-				continue
+		for y := -radius; y <= radius; y++ {
+			for x := -radius; x <= radius; x++ {
+				if pos := g.Player.Position().Add(geometry.Point{X: x, Y: y}); g.gridMap.Contains(pos) && g.seenByOwnLight(pos) {
+					g.gridMap.SetExplored(pos)
+				}
 			}
-			g.gridMap.SetExplored(pos)
 		}
 	}
 }
