@@ -657,6 +657,8 @@ func (g *GameState) endPlayerTurn() {
 
 	g.removeDeadAndApplyRegeneration()
 
+	g.ui.AnimatePending() // ..then the dead leave the map
+
 	for _, action := range g.afterAnimationActions {
 		g.ui.AfterAnimations(action)
 	}
@@ -730,18 +732,15 @@ func (g *GameState) MapAt(mapPos geometry.Point) foundation.TileType {
 	mapCell := g.gridMap.GetCell(mapPos)
 	return mapCell.TileType.Icon()
 }
-func (g *GameState) TopEntityAt(mapPos geometry.Point) foundation.EntityType {
+func (g *GameState) TopEntityAt(mapPos geometry.Point, actor foundation.ActorForUI) foundation.EntityType {
 	if !g.gridMap.Contains(mapPos) {
 		return foundation.EntityTypeOther
 	}
 
 	mapCell := g.gridMap.GetCell(mapPos)
 
-	if mapCell.Actor != nil {
-		actor := *mapCell.Actor
-		if actor.IsDrawn(g.Player.HasFlag(foundation.FlagSeeInvisible)) {
-			return foundation.EntityTypeActor
-		}
+	if actor != nil && (!actor.HasFlag(foundation.FlagInvisible) || g.Player.HasFlag(foundation.FlagSeeInvisible)) {
+		return foundation.EntityTypeActor
 	}
 
 	if mapCell.Item != nil {

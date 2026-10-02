@@ -72,10 +72,10 @@ type UI struct {
 	commandTable    map[string]func()
 	keyTable        map[KeyLayer]map[UIKey]string
 
-	lastFrameIcons   map[geometry.Point]rune
-	lastFrameStyle   map[geometry.Point]tcell.Style
-	isAnimationFrame bool        // the map shows the frozen last frame plus animations
-	animWake         atomic.Bool // the animation ticker has work: playback or afterAnimations
+	drawnPos         map[foundation.ActorForUI]geometry.Point // where the animations played so far have put each actor
+	drawnAt          map[geometry.Point]foundation.ActorForUI // drawnPos by position, nil: rebuild
+	isAnimationFrame bool                                     // animations play: actors are drawn from drawnPos, not from the map
+	animWake         atomic.Bool                              // the animation ticker has work: playback or afterAnimations
 	afterAnimations  []func()
 	lastHudStats     map[foundation.HudValue]int
 	lastHP           int       // as last shown in the status bar
@@ -289,26 +289,51 @@ func (u *UI) AddAnimations(animations []foundation.Animation) {
 func (u *UI) EndAnimatedAction(lastOfActor bool) { u.animator.EndAction(lastOfActor) }
 
 func (u *UI) AnimatePending() {
-	if u.animator.HasPending() {
-		// each batch plays over the map as it is right now, after the actions it shows
-		icons, styles := u.snapshotMap()
-		u.animator.Flush(func() { u.lastFrameIcons, u.lastFrameStyle = icons, styles })
+	u.animator.Flush()
+	if u.isAnimationFrame {
+		return
 	}
-	if !u.animator.IsBusy() || u.isAnimationFrame {
+	u.animator.Tick() // what needs no animation shows at once, and the first frame is filled now, not after a blank delay
+	if !u.animator.IsBusy() {
 		return
 	}
 	u.isAnimationFrame = true
-	u.animator.Tick() // fill the first frame now, not after a blank delay
 	u.animWake.Store(true)
 }
 
-func (u *UI) snapshotMap() (map[geometry.Point]rune, map[geometry.Point]tcell.Style) {
-	oldIcons, oldStyles := u.lastFrameIcons, u.lastFrameStyle
-	u.lastFrameIcons, u.lastFrameStyle = make(map[geometry.Point]rune, len(oldIcons)), make(map[geometry.Point]tcell.Style, len(oldStyles))
-	u.updateLastFrame()
-	icons, styles := u.lastFrameIcons, u.lastFrameStyle
-	u.lastFrameIcons, u.lastFrameStyle = oldIcons, oldStyles
-	return icons, styles
+// ActorMoved follows the map: the actor is drawn at pos (or no more) once the animations of the action
+// that put it there have played.
+func (u *UI) ActorMoved(actor foundation.ActorForUI, pos geometry.Point, onMap bool) {
+	u.animator.AddEvent(actor, func() {
+		if onMap {
+			u.drawnPos[actor] = pos
+		} else {
+			delete(u.drawnPos, actor)
+		}
+		u.drawnAt = nil
+	})
+}
+
+// ForgetActors starts over on a new map.
+func (u *UI) ForgetActors() {
+	u.animator.AddEvent(nil, func() {
+		clear(u.drawnPos)
+		u.drawnAt = nil
+	})
+}
+
+// actorAt is the actor to draw at loc: while animations play, actors are where the actions played so far have put them.
+func (u *UI) actorAt(loc geometry.Point) foundation.ActorForUI {
+	if !u.isAnimationFrame {
+		return u.game.ActorAt(loc)
+	}
+	if u.drawnAt == nil {
+		u.drawnAt = make(map[geometry.Point]foundation.ActorForUI, len(u.drawnPos))
+		for actor, pos := range u.drawnPos {
+			u.drawnAt[pos] = actor
+		}
+	}
+	return u.drawnAt[loc]
 }
 
 func (u *UI) AfterAnimations(f func()) {
@@ -322,15 +347,10 @@ func (u *UI) AfterAnimations(f func()) {
 // animationStep advances playback by one frame on the UI goroutine; when it is over the map unfreezes
 // and the afterAnimations callbacks run.
 func (u *UI) animationStep() {
-	if u.animator.IsBusy() {
-		if u.animator.Tick() && !u.animator.HasQueued() { // later batches bring their own map
-			u.updateLastFrame()
-		}
-		if u.animator.IsBusy() {
-			return
-		}
+	u.animator.Tick()
+	if !u.animator.IsBusy() {
+		u.finishAnimations()
 	}
-	u.finishAnimations()
 }
 
 // skipAnimations jumps to the end of everything queued, e.g. because the player pressed a key.
@@ -1152,9 +1172,7 @@ func (u *UI) handleMainInput(ev *tcell.EventKey) *tcell.EventKey {
 		return nil
 	}
 	u.autoStep = nil
-	if u.isAnimationFrame { // a key press skips to the end of what is playing
-		u.skipAnimations()
-	}
+	u.skipAnimations() // a key press skips to the end of what is playing
 
 	uiKey := toUIKey(ev)
 	playerCommand := u.getCommandForKey(uiKey)
@@ -1257,7 +1275,7 @@ func (u *UI) drawMap(screen tcell.Screen, x int, y int, width int, height int) (
 
 			mapPos := geometry.Point{X: mapPosX, Y: mapPosY}
 
-			ch, style := u.renderMapPosition(mapPos, u.isAnimationFrame)
+			ch, style := u.renderMapPosition(mapPos)
 
 			screen.SetContent(col, row, ch, nil, style)
 		}
@@ -1269,16 +1287,12 @@ func (u *UI) drawMap(screen tcell.Screen, x int, y int, width int, height int) (
 	return x, y, width, height
 }
 
-func (u *UI) renderMapPosition(mapPos geometry.Point, isAnimationFrame bool) (rune, tcell.Style) {
+func (u *UI) renderMapPosition(mapPos geometry.Point) (rune, tcell.Style) {
 	var ch rune
 	var textIcon foundation.TextIcon
 	foundIcon := false
 
-	animIcon, exists := u.animator.animationState[mapPos]
-	if isAnimationFrame && !exists { // static tile: reuse the last frame, skip the lookup
-		return u.withTargeting(mapPos, u.lastFrameIcons[mapPos], u.lastFrameStyle[mapPos])
-	}
-	if isAnimationFrame {
+	if animIcon, exists := u.animator.animationState[mapPos]; exists && u.isAnimationFrame {
 		textIcon = animIcon
 		foundIcon = true
 	} else if u.mapOverlay.IsSet(mapPos.X, mapPos.Y) {
@@ -1305,10 +1319,6 @@ func (u *UI) renderMapPosition(mapPos geometry.Point, isAnimationFrame bool) (ru
 		style = style.Background(tcell.NewRGBColor(int32(applyGamma(bg.R, u.gamma)), int32(applyGamma(bg.G, u.gamma)), int32(applyGamma(bg.B, u.gamma))))
 	}
 
-	if !isAnimationFrame {
-		u.lastFrameStyle[mapPos] = style
-		u.lastFrameIcons[mapPos] = ch
-	}
 	return u.withTargeting(mapPos, ch, style)
 }
 
@@ -2192,8 +2202,7 @@ func NewTextUI(settings *foundation.Configuration) *UI {
 		gamma:          1.0,
 		settings:       settings,
 		keyTable:       make(map[KeyLayer]map[UIKey]string),
-		lastFrameIcons: make(map[geometry.Point]rune),
-		lastFrameStyle: make(map[geometry.Point]tcell.Style),
+		drawnPos:       make(map[foundation.ActorForUI]geometry.Point),
 	}
 
 	u.initCoreUI()
@@ -2274,7 +2283,7 @@ func (u *UI) mapLookup(loc geometry.Point) (foundation.TextIcon, bool) {
 			icon.Bg = u.getIconForMap(u.game.MapAt(loc)).Bg
 		}
 		icon = u.applyLight(icon, loc)
-		if u.phosphor.tint != nil && isEntity(u.game.TopEntityAt(loc)) { // actors, items and objects at full phosphor brightness
+		if u.phosphor.tint != nil && isEntity(u.game.TopEntityAt(loc, u.actorAt(loc))) { // actors, items and objects at full phosphor brightness
 			icon.Fg = color.RGBA{255, 255, 255, 255}
 		}
 		return icon, ok
@@ -2323,10 +2332,9 @@ func isEntity(t foundation.EntityType) bool {
 }
 
 func (u *UI) visibleLookup(loc geometry.Point) (foundation.TextIcon, bool) {
-	entityType := u.game.TopEntityAt(loc)
-	switch entityType {
+	actor := u.actorAt(loc)
+	switch u.game.TopEntityAt(loc, actor) {
 	case foundation.EntityTypeActor:
-		actor := u.game.ActorAt(loc)
 		return u.getIconForActor(actor), true
 	case foundation.EntityTypeItem:
 		item := u.game.ItemAt(loc)
@@ -2633,16 +2641,6 @@ func (u *UI) getAdvancedTargetingCommandForKey(key UIKey) string {
 	}
 	//println("No command found for key %s", key.String())
 	return ""
-}
-
-func (u *UI) updateLastFrame() {
-	// iterate the map and force and update of the last frame
-	for y := 0; y < u.settings.MapHeight; y++ {
-		for x := 0; x < u.settings.MapWidth; x++ {
-			pos := geometry.Point{X: x, Y: y}
-			u.renderMapPosition(pos, false)
-		}
-	}
 }
 
 func (u *UI) Queue(f func()) {

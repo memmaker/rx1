@@ -88,7 +88,8 @@ type GameForUI interface {
 	IsLit(pos geometry.Point) bool
 	IsVisibleToPlayer(loc geometry.Point) bool
 
-	TopEntityAt(loc geometry.Point) EntityType
+	// TopEntityAt is what to draw at loc if actor stands there (nil: nobody)
+	TopEntityAt(loc geometry.Point, actor ActorForUI) EntityType
 
 	MapAt(loc geometry.Point) TileType
 	ItemAt(loc geometry.Point) ItemForUI
@@ -157,6 +158,11 @@ type GameUI interface {
 	// AnimatePending starts playing what was added since the last call, after anything still playing. It returns at once.
 	// With movesFirst the step moves play before the rest.
 	AnimatePending()
+	// ActorMoved tells where the map has put an actor, or with !onMap that it is gone.
+	// The UI draws it there once the animations of the current action have played.
+	ActorMoved(actor ActorForUI, pos geometry.Point, onMap bool)
+	// ForgetActors drops all actors the UI has heard of: a new map follows.
+	ForgetActors()
 	// EndAnimatedAction separates the animations of one action from the next: actions of one actor play in order,
 	// after lastOfActor the next actor's play alongside.
 	EndAnimatedAction(lastOfActor bool)

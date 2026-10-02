@@ -125,6 +125,7 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 		}
 	}
 	newMap := gridmap.NewMapFromString[*Actor, *Item, *Object](g.config.MapWidth, g.config.MapHeight, mapData, simpleMapper)
+	g.watchActors(newMap)
 	newMap.SetCardinalMovementOnly(!g.config.DiagonalMovementEnabled)
 
 	if g.gridMap != nil {
@@ -189,6 +190,7 @@ func (g *GameState) GotoDungeonLevel(level int, stairs StairsInLevel, placePlaye
 	g.dungeonLayout = dungeon
 
 	newMap := gridmap.NewEmptyMap[*Actor, *Item, *Object](mapWidth, mapHeight)
+	g.watchActors(newMap)
 	newMap.SetCardinalMovementOnly(!g.config.DiagonalMovementEnabled)
 
 	stairsUp, stairsDown := g.decorateMapWithTiles(newMap, dungeon, stairs)
@@ -393,4 +395,10 @@ func ReadFileAsOneStringWithoutNewLines(filename string) string {
 		result += scanner.Text()
 	}
 	return result
+}
+
+// watchActors makes the UI follow the actors of a new map.
+func (g *GameState) watchActors(newMap *gridmap.GridMap[*Actor, *Item, *Object]) {
+	g.ui.ForgetActors()
+	newMap.SetActorListener(func(actor *Actor, onMap bool) { g.ui.ActorMoved(actor, actor.Position(), onMap) })
 }
