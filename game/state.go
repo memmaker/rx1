@@ -46,6 +46,7 @@ type GameState struct {
 	exploreVisitedMap                *gridmap.GridMap[*Actor, *Item, *Object]
 	starGlassSpawned                 bool
 	morningStarSpawned               bool
+	genocided                        map[string]bool // internal names wiped out by the scroll
 	secrets                          map[geometry.Point]gridmap.Tile // secret doors/passages/stairs: the real tile until found
 	secretLevelDepth                 int                             // the dungeon level that hides the stairs to the secret level
 	secretStairs                     geometry.Point                  // where they are on the current level
@@ -54,6 +55,7 @@ type GameState struct {
 	wizardLevelStyle                 *dungen.LevelStyle  // makes the next level of that style, set by the wizard menu
 	levelStyle                       dungen.LevelStyle   // of the current level: picks the lighting rules, see canPlayerSee
 	inSecretLevel                    bool
+	stash                            *Inventory                 // the player's home in town
 	levels                           map[levelKey]*visitedLevel // every dungeon level stays as it was left: no new loot by taking the stairs twice
 
 	tileStyle int
@@ -353,17 +355,24 @@ func (g *GameState) giveAndTryEquipItem(actor *Actor, item *Item) {
 }
 func (g *GameState) init() {
 	g.Player = NewPlayer(g.playerName, g.playerIcon, g.playerColor)
+	g.stash = nil
 
-	g.giveAndTryEquipItem(g.Player, g.NewItemFromName("main_gauche"))
-	g.giveAndTryEquipItem(g.Player, g.NewItemFromName("leather_armor"))
-	for i := 0; i < 20; i++ {
+	// Rogue's init_player, plus rx1's torch
+	mace, armor, bow := g.NewItemFromName("mace"), g.NewItemFromName("ring_mail"), g.NewItemFromName("short_bow")
+	mace.weapon.hitPlus, mace.weapon.damagePlus = 1, 1
+	armor.armor.plus = 1
+	bow.weapon.hitPlus = 1
+	g.giveAndTryEquipItem(g.Player, mace)
+	g.giveAndTryEquipItem(g.Player, armor)
+	for i := rand.Intn(15) + 25; i > 0; i-- {
 		g.giveAndTryEquipItem(g.Player, g.NewItemFromName("arrow"))
 	}
-	for i := 0; i < 2; i++ {
-		g.giveAndTryEquipItem(g.Player, g.NewItemFromName("food_ration"))
-	}
-	g.giveAndTryEquipItem(g.Player, g.NewItemFromName("short_bow"))
+	g.giveAndTryEquipItem(g.Player, g.NewItemFromName("food_ration"))
+	g.giveAndTryEquipItem(g.Player, bow)
 	g.giveAndTryEquipItem(g.Player, g.NewItemFromName("torch"))
+	for _, item := range g.Player.GetInventory().Items() { // you know your own gear
+		item.isKnown = true
+	}
 
 	equipment := g.Player.GetEquipment()
 	g.Player.GetFlags().SetOnChangeHandler(func(flag foundation.ActorFlag, value int) {
@@ -383,12 +392,13 @@ func (g *GameState) init() {
 	})
 
 	g.identification = NewIdentificationKnowledge()
-	g.identification.SetOnIdChanged(g.ui.UpdateInventory)
 
 	g.identification.MixScrolls(g.dataDefinitions.GetScrollInternalNames())
 	g.identification.MixPotions(g.dataDefinitions.GetPotionInternalNames())
+	g.identification.IdentifyItem("potion_life") // bought in town, never a mystery
 	g.identification.MixWands(g.dataDefinitions.GetWandInternalNames())
 	g.identification.MixRings(g.dataDefinitions.GetRingInternalNames())
+	g.identification.SetOnIdChanged(g.ui.UpdateInventory) // after the setup: the UI has no game yet
 
 	g.identification.SetAlwaysIDOnUse(g.dataDefinitions.AlwaysIDOnUseInternalNames())
 
@@ -399,6 +409,7 @@ func (g *GameState) init() {
 	g.lightsRolledUpTo = 0
 	g.starGlassSpawned = false
 	g.morningStarSpawned = false
+	g.genocided = map[string]bool{}
 	g.secretLevelDepth = 7 + rand.Intn(6)
 	g.secretLevelVisited = false
 	g.levelStyles = dungen.PlanLevelStyles(rand.New(rand.NewSource(time.Now().UnixNano())), g.maximumDungeonLevel)
@@ -900,16 +911,17 @@ func (g *GameState) NewEnemyFromDef(def MonsterDef) *Actor {
 	actor.SetInternalName(def.InternalName)
 
 	// Rogue's new_monster: level d8 hit points, worth its base experience plus a bit for each hit point
-	hp := max(1, rpg.NewDice(def.Level, 8, 0).Roll())
-	actor.stats = Stats{Str: 10, MaxStr: 10, Lvl: def.Level, HP: hp, MaxHP: hp, Arm: def.Armor, Dmg: def.Damage,
-		Exp: def.Exp + rpg.ExpAdd(def.Level, hp)}
+	// past the Amulet's level (26) every monster gains a level and a point of armor per level deeper
+	levAdd := max(0, g.currentDungeonLevel-26)
+	lvl := def.Level + levAdd
+	hp := max(1, rpg.NewDice(lvl, 8, 0).Roll())
+	actor.stats = Stats{Str: 10, MaxStr: 10, Lvl: lvl, HP: hp, MaxHP: hp, Arm: def.Armor - levAdd, Dmg: def.Damage,
+		Exp: def.Exp + levAdd*10 + rpg.ExpAdd(lvl, hp)}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	if random.Intn(100) < def.CarryChance {
 		if random.Intn(100) < def.CarryChance {
-			itemDef := g.dataDefinitions.PickItemForLevel(random, def.DungeonLevel)
-			item := NewItem(itemDef, g.identification)
-			actor.GetInventory().Add(item)
+			actor.GetInventory().Add(g.rogueNewThing(random, max(1, g.currentDungeonLevel)))
 		} else {
 			actor.AddGold(def.Gold.Roll())
 		}
@@ -1085,7 +1097,7 @@ func (g *GameState) wanderingMonster() {
 	for tries := 0; tries < 10; tries++ {
 		p := spawnRoom.GetRandomAbsoluteFloorPosition(random)
 		if g.gridMap.IsTileWalkable(p) && !g.gridMap.IsActorAt(p) && !g.gridMap.IsTileSpecial(p) {
-			monster := g.NewEnemyFromDef(g.rogueRandMonster(random, g.currentDungeonLevel))
+			monster := g.NewEnemyFromDef(g.rogueRandMonster(random, g.currentDungeonLevel, true))
 			// Rogue wanderers wake up and immediately chase the player
 			monster.SetAware()
 			g.gridMap.AddActor(monster, p)
@@ -1249,12 +1261,7 @@ func (g *GameState) triggerTileEffectsAfterMovement(actor *Actor, oldPos, newPos
 	isPlayer := actor == g.Player
 	cell := g.gridMap.GetCell(newPos)
 	if cell.TileType.IsVendor() && isPlayer {
-		itemsForVendor := []util.Tuple[foundation.ItemForUI, int]{
-			{Item1: g.NewItemFromName("mace"), Item2: 100},
-			{Item1: g.NewItemFromName("torch"), Item2: 15},
-			{Item1: g.NewItemFromName("brass_lantern"), Item2: 80},
-		}
-		g.ui.OpenVendorMenu(itemsForVendor, g.buyItemFromVendor)
+		g.openVendor(cell.TileType.Feature)
 	}
 	if g.gridMap.IsObjectAt(newPos) {
 		objectAt := g.gridMap.ObjectAt(newPos)
@@ -1269,21 +1276,6 @@ func (g *GameState) triggerTileEffectsAfterMovement(actor *Actor, oldPos, newPos
 		return animations
 	}
 	return nil
-}
-
-func (g *GameState) buyItemFromVendor(item foundation.ItemForUI, price int) {
-	player := g.Player
-	if !player.HasGold(price) {
-		g.msg(foundation.Msg("You cannot afford that"))
-		return
-	}
-	if player.GetInventory().IsFull() {
-		g.msg(foundation.Msg("You cannot carry more items"))
-		return
-	}
-	player.RemoveGold(price)
-	i := item.(*Item)
-	player.GetInventory().Add(i)
 }
 
 func (g *GameState) checkTilesForHiddenObjects(tiles []geometry.Point) {
@@ -1330,14 +1322,16 @@ func (g *GameState) AddCurseToEquippable(item *Item) {
 	if item.IsMissile() { // don't curse missiles
 		return
 	}
-	if item.equipFlag == foundation.FlagNone && (item.charges == 0 || item.charges == 1) {
-		item.equipFlag = foundation.FlagCurseStuck
-		item.charges = rand.Intn(300) + 100
-	}
+	makeStuck(item)
 	if item.statBonus == 0 {
 		item.stat = rpg.GetRandomStat()
 		item.statBonus = -(rand.Intn(4) + 1)
 	}
+}
+
+// makeStuck: the item cannot be taken off for 100-399 equipped turns
+func makeStuck(item *Item) {
+	item.stuckTurns = rand.Intn(300) + 100
 }
 
 func saveHighScoreTable(scoresFile string, scoreTable []foundation.ScoreInfo) {

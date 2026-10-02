@@ -198,14 +198,14 @@ TileFungus: "
 TileFungus_Colors: LightGreen | FungusBg
 TileFungusForest: ♠
 TileFungusForest_Colors: LightGreen | ForestBg
-TileVendorGeneral: 1
-TileVendorGeneral_Colors: Black | Yellow
-TileVendorWeapons: 2
-TileVendorWeapons_Colors: Black | LightGray
-TileVendorArmor: 3
-TileVendorArmor_Colors: Black | LightBrown
-TileVendorAlchemist: 4
-TileVendorAlchemist_Colors: Black | Blue
+TileVendorCurator: 1
+TileVendorCurator_Colors: Black | Yellow
+TileVendorBlacksmith: 2
+TileVendorBlacksmith_Colors: Black | LightGray
+TileVendorGeneral: 3
+TileVendorGeneral_Colors: Black | LightBrown
+TileVendorHome: 4
+TileVendorHome_Colors: Black | Blue
 
 %rec: items
 

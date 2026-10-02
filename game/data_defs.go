@@ -5,7 +5,6 @@ import (
 	"path"
 	"rx1/foundation"
 	"rx1/recfile"
-	"rx1/rpg"
 	"rx1/util"
 )
 
@@ -99,33 +98,6 @@ func GetDataDefinitions(rootDir string) DataDefinitions {
 		Items:    items,
 		Monsters: monsters,
 	}
-}
-
-func (d DataDefinitions) PickItemForLevel(random *rand.Rand, level int) ItemDef {
-	allCategories := []foundation.ItemCategory{
-		foundation.ItemCategoryGold,
-		foundation.ItemCategoryFood,
-		foundation.ItemCategoryWeapons,
-		foundation.ItemCategoryArmor,
-		foundation.ItemCategoryScrolls,
-		foundation.ItemCategoryPotions,
-		foundation.ItemCategoryWands,
-		foundation.ItemCategoryRings,
-	}
-
-	randomCategory := allCategories[random.Intn(len(allCategories))]
-
-	if randomCategory == foundation.ItemCategoryGold {
-		return ItemDef{
-			Name:         "gold",
-			InternalName: "gold",
-			Category:     foundation.ItemCategoryGold,
-			Charges:      rpg.NewDice(min(10, level+1), 10, 0),
-		}
-	}
-	items := d.Items[randomCategory]
-
-	return items[random.Intn(len(items))]
 }
 
 func (d DataDefinitions) RandomMonsterDef() MonsterDef {

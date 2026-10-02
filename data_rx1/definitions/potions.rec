@@ -9,7 +9,7 @@ internal_name: potion_confusion
 use_effect: confuse
 category: potions
 charges: 1
-probability: 8
+chance: 7
 worth: 140
 
 name: potion of monster detection
@@ -17,7 +17,7 @@ internal_name: potion_monster_detection
 use_effect: detect_monsters
 category: potions
 charges: 1
-probability: 8
+chance: 6
 worth: 140
 
 name: potion of magic detection
@@ -25,7 +25,7 @@ internal_name: potion_magic_detection
 use_effect: detect_magic
 category: potions
 charges: 1
-probability: 8
+chance: 6
 worth: 140
 
 name: potion of haste
@@ -33,7 +33,7 @@ internal_name: potion_haste
 use_effect: haste
 category: potions
 charges: 1
-probability: 8
+chance: 5
 worth: 140
 always_id_on_use: true
 
@@ -42,7 +42,7 @@ internal_name: potion_blindness
 use_effect: blindness
 category: potions
 charges: 1
-probability: 8
+chance: 5
 worth: 140
 always_id_on_use: true
 
@@ -51,7 +51,7 @@ internal_name: potion_levitation
 use_effect: levitation
 category: potions
 charges: 1
-probability: 8
+chance: 6
 worth: 140
 
 name: potion of see invisible
@@ -59,7 +59,7 @@ internal_name: potion_see_invisible
 use_effect: see_invisible
 category: potions
 charges: 1
-probability: 8
+chance: 3
 worth: 140
 
 name: potion of healing
@@ -67,7 +67,7 @@ internal_name: potion_healing
 use_effect: heal
 category: potions
 charges: 1
-probability: 8
+chance: 13
 worth: 140
 always_id_on_use: true
 
@@ -76,7 +76,7 @@ internal_name: potion_extra_healing
 use_effect: extra_heal
 category: potions
 charges: 1
-probability: 8
+chance: 5
 worth: 140
 always_id_on_use: true
 
@@ -85,7 +85,7 @@ internal_name: potion_raise_level
 use_effect: raise_level
 category: potions
 charges: 1
-probability: 8
+chance: 2
 worth: 140
 always_id_on_use: true
 
@@ -94,7 +94,15 @@ internal_name: potion_hallucination
 use_effect: hallucination
 category: potions
 charges: 1
-probability: 8
+chance: 8
 worth: 140
 always_id_on_use: true
 
+
+# never found in the dungeon: sold by the general store
+name: potion of life
+internal_name: potion_life
+use_effect: gain_max_hp
+category: potions
+charges: 1
+chance: 0

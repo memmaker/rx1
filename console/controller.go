@@ -11,6 +11,7 @@ import (
 	"rx1/geometry"
 	"rx1/util"
 	"slices"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -85,19 +86,63 @@ type UI struct {
 	paneRestore      []func() // panes a modal took over, put back when the map is in front again
 }
 
-func (u *UI) OpenVendorMenu(itemsForSale []util.Tuple[foundation.ItemForUI, int], buyItem func(ui foundation.ItemForUI, price int)) {
-	var menuItems []foundation.MenuItem
-	for _, i := range itemsForSale {
-		item := i.Item1
-		price := i.Item2
-		menuItems = append(menuItems, foundation.MenuItem{
-			Name: fmt.Sprintf("%s (%d)", item.InventoryNameWithColors(RGBAToFgColorCode(u.currentTheme.GetInventoryItemColor(item.GetCategory()))), price),
-			Action: func() {
-				buyItem(item, price)
-			},
-		})
+// OpenVendorMenu: ←/→ or typed digits set how many of the selected ware to buy, Enter buys them,
+// + buys 10 and * as many as the gold allows (count 0)
+func (u *UI) OpenVendorMenu(itemsForSale []util.Tuple[foundation.ItemForUI, int], buyItem func(ui foundation.ItemForUI, price int, count int)) {
+	list := cview.NewList()
+	u.applyListStyle(list)
+	list.SetTitle("←→ 0-9 count  + buy 10  * buy max")
+	counts := make([]int, len(itemsForSale))
+	typed := ""
+	label := func(index int) string {
+		i := itemsForSale[index]
+		return fmt.Sprintf("%s < %d > (%d each)", i.Item1.InventoryNameWithColors(RGBAToFgColorCode(u.currentTheme.GetInventoryItemColor(i.Item1.GetCategory()))), counts[index], i.Item2)
 	}
-	u.OpenMenu(menuItems)
+	setCount := func(index, count int) {
+		counts[index] = min(max(count, 1), 999)
+		list.GetItem(index).SetMainText(label(index))
+	}
+	buy := func(index, count int) {
+		buyItem(itemsForSale[index].Item1, itemsForSale[index].Item2, count)
+	}
+	longestItem := len(list.GetTitle()) + 2
+	for index := range itemsForSale {
+		counts[index] = 1
+		listItem := cview.NewListItem(label(index))
+		listItem.SetShortcut(foundation.ShortCutFromIndex(index))
+		list.AddItem(listItem)
+		longestItem = max(longestItem, cview.TaggedStringWidth(label(index))+8)
+	}
+	list.SetSelectedFunc(func(index int, _ *cview.ListItem) {
+		typed = ""
+		buy(index, counts[index])
+	})
+	u.makeCenteredModal("contextMenu", list, len(itemsForSale), longestItem)
+	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		index, key := list.GetCurrentItemIndex(), event.Str()
+		switch {
+		case event.Key() == tcell.KeyLeft:
+			typed = ""
+			setCount(index, counts[index]-1)
+		case event.Key() == tcell.KeyRight:
+			typed = ""
+			setCount(index, counts[index]+1)
+		case len(key) == 1 && key[0] >= '0' && key[0] <= '9':
+			typed += key
+			n, _ := strconv.Atoi(typed)
+			setCount(index, n)
+		case key == "+":
+			buy(index, 10)
+		case key == "*":
+			buy(index, 0)
+		default:
+			if event.Key() == tcell.KeyUp || event.Key() == tcell.KeyDown {
+				typed = ""
+			}
+			return u.popOnEscape(event)
+		}
+		return nil
+	})
 }
 
 func (u *UI) GetAnimBackgroundColor(position geometry.Point, colorName string, frameCount int, done func()) foundation.Animation {

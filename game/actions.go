@@ -518,6 +518,9 @@ func (g *GameState) EquipToggle(uiItem foundation.ItemForUI) {
 }
 
 func (g *GameState) actorEquipItem(wearer *Actor, item *Item) {
+	if item.IsArmor() { // Rogue: wearing armor tells its plus
+		item.isKnown = true
+	}
 	if item.IsRing() && !g.identification.IsItemIdentified(item.GetInternalName()) && g.identification.CanBeIdentifiedByUsing(item.GetInternalName()) {
 		g.identification.IdentifyItem(item.GetInternalName())
 	}

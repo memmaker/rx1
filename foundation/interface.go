@@ -142,7 +142,7 @@ type GameUI interface {
 	OpenTextWindow(description []string)
 	ShowTextFileFullscreen(filename string, onClose func())
 	OpenMenu(actions []MenuItem)
-	OpenVendorMenu(itemsForSale []util.Tuple[ItemForUI, int], buyItem func(ui ItemForUI, price int))
+	OpenVendorMenu(itemsForSale []util.Tuple[ItemForUI, int], buyItem func(ui ItemForUI, price int, count int)) // count 0 = as many as affordable
 	ShowGameOver(score ScoreInfo, highScores []ScoreInfo)
 
 	// Auto Move Callback
@@ -284,8 +284,8 @@ const (
 	TileBridge                                 = "TileBridge"
 	TileFungus                                 = "TileFungus"
 	TileFungusForest                           = "TileFungusForest"
+	TileVendorCurator                          = "TileVendorCurator"
+	TileVendorBlacksmith                       = "TileVendorBlacksmith"
 	TileVendorGeneral                          = "TileVendorGeneral"
-	TileVendorWeapons                          = "TileVendorWeapons"
-	TileVendorArmor                            = "TileVendorArmor"
-	TileVendorAlchemist                        = "TileVendorAlchemist"
+	TileVendorHome                             = "TileVendorHome"
 )

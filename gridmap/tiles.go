@@ -64,7 +64,7 @@ func (t Tile) IsDoor() bool {
 }
 
 func (t Tile) IsVendor() bool {
-	return t.Feature == foundation.TileVendorGeneral || t.Feature == foundation.TileVendorWeapons || t.Feature == foundation.TileVendorArmor || t.Feature == foundation.TileVendorAlchemist
+	return t.Feature == foundation.TileVendorCurator || t.Feature == foundation.TileVendorBlacksmith || t.Feature == foundation.TileVendorGeneral || t.Feature == foundation.TileVendorHome
 }
 
 type MapCell[ActorType interface {

@@ -98,31 +98,11 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 				IsTransparent:      true,
 			})
 			stairsDown = pos
-		case '1':
+		case '1', '2', '3', '4':
+			vendor := townVendors[icon-'1']
 			gridMap.SetTile(pos, gridmap.Tile{
-				Feature:            foundation.TileVendorGeneral,
-				DefinedDescription: "a general store",
-				IsWalkable:         true,
-				IsTransparent:      true,
-			})
-		case '2':
-			gridMap.SetTile(pos, gridmap.Tile{
-				Feature:            foundation.TileVendorArmor,
-				DefinedDescription: "an armor store",
-				IsWalkable:         true,
-				IsTransparent:      true,
-			})
-		case '3':
-			gridMap.SetTile(pos, gridmap.Tile{
-				Feature:            foundation.TileVendorWeapons,
-				DefinedDescription: "a weapon store",
-				IsWalkable:         true,
-				IsTransparent:      true,
-			})
-		case '4':
-			gridMap.SetTile(pos, gridmap.Tile{
-				Feature:            foundation.TileVendorAlchemist,
-				DefinedDescription: "an alchemist outlet",
+				Feature:            vendor.tile,
+				DefinedDescription: vendor.description,
 				IsWalkable:         true,
 				IsTransparent:      true,
 			})
