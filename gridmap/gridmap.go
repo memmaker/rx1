@@ -207,7 +207,7 @@ func (m *GridMap[ActorType, ItemType, ObjectType]) getDijkstraMapperWithActorsNo
 	return DijkstraMapper{
 		neighbors: func(point geometry.Point) []geometry.Point {
 			return m.GetFilteredNeighbors(point, func(p geometry.Point) bool {
-				return m.Contains(p) && m.IsWalkable(p)
+				return m.Contains(p) && m.IsWalkable(p) && m.DiagonalOK(point, p)
 			})
 		},
 		cost: func(point geometry.Point, point2 geometry.Point) int {
@@ -220,7 +220,7 @@ func (m *GridMap[ActorType, ItemType, ObjectType]) getDijkstraMapper(passable fu
 	return DijkstraMapper{
 		neighbors: func(point geometry.Point) []geometry.Point {
 			return m.GetFilteredNeighbors(point, func(p geometry.Point) bool {
-				return m.Contains(p) && passable(p)
+				return m.Contains(p) && passable(p) && m.DiagonalOK(point, p)
 			})
 		},
 		cost: func(point geometry.Point, point2 geometry.Point) int {
@@ -417,9 +417,20 @@ func (m *GridMap[ActorType, ItemType, ObjectType]) GetFilteredNeighborsForMoveme
 	if m.cardinalMovementOnly {
 		result = neighbors.Cardinal(pos, filter)
 	} else {
-		result = neighbors.All(pos, filter)
+		result = neighbors.All(pos, func(p geometry.Point) bool { return filter(p) && m.DiagonalOK(pos, p) })
 	}
 	return result
+}
+
+// DiagonalOK is Rogue's diag_ok: no diagonal step or attack around a corner or through a doorway.
+func (m *GridMap[ActorType, ItemType, ObjectType]) DiagonalOK(from, to geometry.Point) bool {
+	if from.X == to.X || from.Y == to.Y {
+		return true
+	}
+	if !m.IsTileWalkable(geometry.Point{X: from.X, Y: to.Y}) || !m.IsTileWalkable(geometry.Point{X: to.X, Y: from.Y}) {
+		return false
+	}
+	return !m.GetCell(from).TileType.IsDoor() && !m.GetCell(to).TileType.IsDoor()
 }
 
 func (m *GridMap[ActorType, ItemType, ObjectType]) displaceActor(a ActorType, position geometry.Point) {

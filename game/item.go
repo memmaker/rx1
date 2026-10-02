@@ -37,9 +37,6 @@ func (i *WeaponInfo) GetVorpalBonus(enemyName string) (int, int) {
 	}
 	return 0, 0
 }
-func (i *WeaponInfo) IsEnchantable() bool {
-	return max(i.hitPlus, i.damagePlus) <= 7
-}
 
 // Corrode lowers the damage bonus, down to -3.
 func (i *WeaponInfo) Corrode() bool {
@@ -83,10 +80,6 @@ type ArmorInfo struct {
 
 func (i *ArmorInfo) GetProtection() int {
 	return i.protection + i.plus
-}
-
-func (i *ArmorInfo) IsEnchantable() bool {
-	return i.plus <= 7
 }
 
 func (i *ArmorInfo) AddEnchantment() {
@@ -270,7 +263,7 @@ func (i *Item) CanStackWith(other *Item) bool {
 		return false
 	}
 
-	if (i.IsWeapon() && !i.IsMissile()) || i.IsArmor() || i.IsRing() || (other.IsWeapon() && !other.IsMissile()) || other.IsArmor() || other.IsRing() {
+	if (i.IsWeapon() && !i.IsGroupWeapon()) || i.IsArmor() || i.IsRing() || (other.IsWeapon() && !other.IsGroupWeapon()) || other.IsArmor() || other.IsRing() {
 		return false
 	}
 
@@ -278,7 +271,7 @@ func (i *Item) CanStackWith(other *Item) bool {
 		return false
 	}
 
-	if i.charges != other.charges || i.found != other.found || i.IsMissile() && (i.weapon.hitPlus != other.weapon.hitPlus || i.weapon.damagePlus != other.weapon.damagePlus) {
+	if i.charges != other.charges || i.found != other.found || i.IsGroupWeapon() && (i.weapon.hitPlus != other.weapon.hitPlus || i.weapon.damagePlus != other.weapon.damagePlus) {
 		return false
 	}
 
@@ -386,6 +379,11 @@ func (i *Item) GetEquipFlag() foundation.ActorFlag {
 		return foundation.FlagNone
 	}
 	return i.equipFlag
+}
+
+// IsGroupWeapon: missiles and daggers come in stacking groups (Rogue's ISMANY and dagger o_count)
+func (i *Item) IsGroupWeapon() bool {
+	return i.IsMissile() || i.IsWeapon() && i.GetWeapon().GetWeaponType() == ItemTypeDagger
 }
 
 func (i *Item) IsMissile() bool {

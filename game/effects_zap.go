@@ -109,19 +109,39 @@ func charge(g *GameState, zapper *Actor, pos geometry.Point, isHeroic bool, getP
 	return moveAnim, targetPos
 }
 
+// rollBoltDamage is 5.4 fire_bolt: 6d6 for fire, lightning and cold.
+func rollBoltDamage() int {
+	return rpg.ParseDice("6d6").Roll()
+}
+
+// boltSaves: a victim that saves vs magic is missed (5.4 fire_bolt).
+func (g *GameState) boltSaves(victim *Actor) bool {
+	if rpg.Save(victim.GetLevel(), rpg.VsMagic) {
+		g.msg(foundation.Msg("The bolt misses " + victim.Name()))
+		return true
+	}
+	return false
+}
+
+func (g *GameState) boltDamageLocation(source string, pos geometry.Point) []foundation.Animation {
+	if g.gridMap.IsActorAt(pos) && g.boltSaves(g.gridMap.ActorAt(pos)) {
+		return nil
+	}
+	return g.damageLocation(source, pos, rollBoltDamage())
+}
+
 func coldRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.Animation {
-	damage := max(1, rpg.Spread(8, 0.35))
 	trailLead := '☼'
 	trailColors := []string{"White", "White", "LightCyan", "LightBlue", "Blue"}
 	hitEntityHandler := func(hitPos geometry.Point) []foundation.Animation {
 		if g.gridMap.IsActorAt(hitPos) {
 			actor := g.gridMap.ActorAt(hitPos)
-			if actor.IsAlive() {
+			if actor.IsAlive() && !g.boltSaves(actor) {
 				freeze := func() {
 					g.msg(foundation.HiLite("%s is frozen", actor.Name()))
 					actor.GetFlags().Set(foundation.FlagHeld)
 				}
-				damageAnim := g.damageActorWithFollowUp(zapper.Name(), actor, damage, freeze, nil)
+				damageAnim := g.damageActorWithFollowUp(zapper.Name(), actor, rollBoltDamage(), freeze, nil)
 				return damageAnim
 			}
 		}
@@ -189,12 +209,10 @@ func (g *GameState) singleRay(origin, target geometry.Point, leadIcon rune, trai
 
 func fireRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.Animation {
 
-	damage := max(1, rpg.Spread(10, 0.8))
-
 	trailColors := []string{"White", "Yellow", "LightRed", "Red"}
 
 	hitEntityHandler := func(hitPos geometry.Point) []foundation.Animation {
-		return g.damageLocation(zapper.Name(), hitPos, damage)
+		return g.boltDamageLocation(zapper.Name(), hitPos)
 	}
 	if rand.Intn(20) == 0 { // 1 in 20 chance to just bounce off
 		bounceCount := rand.Intn(30) + 3
@@ -204,7 +222,6 @@ func fireRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.An
 }
 
 func lightningRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.Animation {
-	damage := max(1, rpg.Spread(7, 0.5))
 
 	trailColors := []string{
 		"White",
@@ -216,7 +233,7 @@ func lightningRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundati
 	dontHitThese[zapper] = true
 
 	hitEntityHandler := func(hitPos geometry.Point) []foundation.Animation {
-		damageAnims := g.damageLocation(zapper.Name(), hitPos, damage)
+		damageAnims := g.boltDamageLocation(zapper.Name(), hitPos)
 		if g.gridMap.IsActorAt(hitPos) {
 			dontHitThese[g.gridMap.ActorAt(hitPos)] = true
 		}
@@ -550,8 +567,9 @@ func (g *GameState) damageActorWithFollowUp(damageSource string, victim *Actor, 
 	victim.TakeDamage(damage)
 	damageAnim := g.ui.GetAnimDamage(victim.Position(), damage, done)
 
-	if victim.HasFlag(foundation.FlagSleep) && rand.Intn(10) != 0 {
+	if victim.HasFlag(foundation.FlagSleep) { // Rogue's runto: a hit always wakes and sets it after the hero
 		victim.GetFlags().Unset(foundation.FlagSleep)
+		victim.GetFlags().Set(foundation.FlagAwareOfPlayer)
 	}
 
 	if victim.GetHitPoints() <= 0 {
@@ -603,38 +621,48 @@ func (g *GameState) getLine(origin geometry.Point, targetPos geometry.Point) []g
 	}
 	return pathOfFlight
 }
+
+// fireBreath is Rogue 5.4's fire_bolt: 6d6 flame up to 6 steps in a straight line, bouncing off
+// walls; everyone it passes may save vs magic to avoid it, the zapper is never hurt.
 func fireBreath(g *GameState, zapper *Actor, pos geometry.Point) []foundation.Animation {
 	origin := zapper.Position()
-	pathOfFlight := geometry.BresenhamLine(origin, pos, func(x, y int) bool {
-		if origin.X == x && origin.Y == y {
-			return true
+	dir := geometry.Point{X: sign(pos.X - origin.X), Y: sign(pos.Y - origin.Y)}
+	var path []geometry.Point
+	var hits []*Actor
+	cur := origin
+	for steps := 0; steps < breathLength && dir != (geometry.Point{}); {
+		cur = cur.Add(dir)
+		if !g.canFlyThrough(cur) {
+			dir = geometry.Point{X: -dir.X, Y: -dir.Y}
+			g.msg(foundation.Msg("The flame bounces"))
+			steps++ // Rogue does not count the bounce step; counting it keeps corners finite
+			continue
 		}
-		return g.canFlyThrough(geometry.Point{X: x, Y: y})
-	})
-	if len(pathOfFlight) > 1 {
-		// remove start
-		pathOfFlight = pathOfFlight[1:]
+		path = append(path, cur)
+		steps++
+		if victim, ok := g.gridMap.TryGetActorAt(cur); ok && victim != zapper && !rpg.Save(victim.GetLevel(), rpg.VsMagic) {
+			hits = append(hits, victim)
+			break
+		}
 	}
-	targetPos := pathOfFlight[len(pathOfFlight)-1]
-	if !g.gridMap.IsTileWalkable(targetPos) && len(pathOfFlight) > 1 {
-		targetPos = pathOfFlight[len(pathOfFlight)-2]
-	}
-
-	breathAnim := g.ui.GetAnimBreath(pathOfFlight, nil)
-
-	damage := 5
-
+	breathAnim := g.ui.GetAnimBreath(path, nil)
 	var onHitAnimations []foundation.Animation
-	for _, hitPos := range pathOfFlight {
-		damageAnims := g.damageLocation(zapper.Name(), hitPos, damage)
-		onHitAnimations = append(onHitAnimations, damageAnims...)
+	for _, victim := range hits {
+		onHitAnimations = append(onHitAnimations, g.damageActor(zapper.Name(), victim, rpg.ParseDice("6d6").Roll())...)
 	}
-
-	if breathAnim != nil {
-		breathAnim.SetFollowUp(onHitAnimations)
+	if breathAnim == nil {
+		return onHitAnimations
 	}
-
+	breathAnim.SetFollowUp(onHitAnimations)
 	return []foundation.Animation{breathAnim}
+}
+
+const breathLength = 6 // Rogue's BOLT_LENGTH
+
+// inBreathLine: Rogue's dragon only flames along a row, column or diagonal within BOLT_LENGTH.
+func inBreathLine(from, to geometry.Point) bool {
+	dx, dy := to.X-from.X, to.Y-from.Y
+	return (dx == 0 || dy == 0 || dx == dy || dx == -dy) && dx*dx+dy*dy <= breathLength*breathLength
 }
 func zapEffectExists(zapEffectName string) bool {
 	zapEffects := GetAllZapEffects()

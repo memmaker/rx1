@@ -16,6 +16,7 @@ func GetAllHitEffects() map[string]func(g *GameState, attacker, defender *Actor)
 		"drain_level":     drainLevel,
 		"drain_max_hp":    drainMaxHP,
 		"hold":            holdAndSqueeze,
+		"flytrap_hold":    flytrapHold,
 		"steal_gold":      stealGold,
 		"steal_item":      stealItem,
 		"eat_gold":        eatGold,
@@ -60,6 +61,10 @@ func (g *GameState) rollEffects(owner, victim *Actor, effects []HitEffect) []fou
 
 func rustArmor(g *GameState, attacker, defender *Actor) []foundation.Animation {
 	for _, armor := range defender.GetEquipment().GetArmor() {
+		// Rogue 5.4 rust_armor: not leather, not AC 9+ (protection <= 1). rx1 has no protect-armor flag.
+		if armor.GetInternalName() == "leather_armor" || armor.GetArmor().GetProtection() <= 1 {
+			continue
+		}
 		if armor.GetArmor().Rust() {
 			g.msg(foundation.HiLite("Your %s appears to be weaker now. Oh my!", armor.Name()))
 			g.ui.UpdateInventory()
@@ -115,6 +120,14 @@ func holdAndSqueeze(g *GameState, attacker, defender *Actor) []foundation.Animat
 		return nil
 	}
 	return g.damageActor(attacker.Name(), defender, defender.GetFlags().Get(foundation.FlagHeld)-1)
+}
+
+// flytrapHold is Rogue 5.4's venus flytrap: each hit holds and costs one more hp than the last
+// (vf_hit); a miss still costs the current count (see actorMeleeAttack).
+func flytrapHold(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	defender.GetFlags().Set(foundation.FlagHeld)
+	attacker.holdHits++
+	return g.damageActor(attacker.Name(), defender, attacker.holdHits)
 }
 
 func stealGold(g *GameState, attacker, defender *Actor) []foundation.Animation {

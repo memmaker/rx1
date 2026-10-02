@@ -46,7 +46,7 @@ type GameState struct {
 	exploreVisitedMap                *gridmap.GridMap[*Actor, *Item, *Object]
 	starGlassSpawned                 bool
 	morningStarSpawned               bool
-	genocided                        map[string]bool // internal names wiped out by the scroll
+	genocided                        map[string]bool                 // internal names wiped out by the scroll
 	secrets                          map[geometry.Point]gridmap.Tile // secret doors/passages/stairs: the real tile until found
 	secretLevelDepth                 int                             // the dungeon level that hides the stairs to the secret level
 	secretStairs                     geometry.Point                  // where they are on the current level
@@ -924,6 +924,7 @@ func (g *GameState) newEnemy(def MonsterDef, carry bool) *Actor {
 		actor.disguise = foundation.RandomItemCategory()
 	}
 	actor.SetInternalName(def.InternalName)
+	actor.carryChance = def.CarryChance
 
 	// Rogue's new_monster: level d8 hit points, worth its base experience plus a bit for each hit point
 	// past the Amulet's level (26) every monster gains a level and a point of armor per level deeper
@@ -938,11 +939,11 @@ func (g *GameState) newEnemy(def MonsterDef, carry bool) *Actor {
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	if carry && random.Intn(100) < def.CarryChance {
-		if random.Intn(100) < def.CarryChance {
-			actor.GetInventory().Add(g.rogueNewThing(random, max(1, g.currentDungeonLevel)))
-		} else {
-			actor.AddGold(def.Gold.Roll())
-		}
+		actor.GetInventory().Add(g.rogueNewThing(random, max(1, g.currentDungeonLevel)))
+	}
+	// rx1's original gold carry: rolling under the chance, then over it, gives c*(1-c)
+	if carry && random.Intn(100) < def.GoldChance && random.Intn(100) >= def.GoldChance {
+		actor.AddGold(def.Gold.Roll())
 	}
 
 	return actor

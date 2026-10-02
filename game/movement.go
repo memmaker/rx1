@@ -60,6 +60,10 @@ func (g *GameState) ManualMovePlayer(direction geometry.CompassDirection) {
 		}
 	}
 
+	if !g.gridMap.DiagonalOK(oldPos, newPos) { // Rogue's diag_ok, for moves and attacks alike
+		return
+	}
+
 	if actorAt, exists := g.gridMap.TryGetActorAt(newPos); exists {
 		g.playerAttack(actorAt)
 		return
@@ -103,7 +107,7 @@ func (g *GameState) afterPlayerMoved() {
 	g.exploreMap()
 	g.updateDijkstraMap()
 
-	if g.Player.HasFlag(foundation.FlagCurseTeleportitis) && rand.Intn(100) < 5 {
+	if g.Player.HasFlag(foundation.FlagCurseTeleportitis) && rand.Intn(100) < 2 {
 		g.ui.AddAnimations(OneAnimation(teleportWithAnimation(g, g.Player, g.gridMap.RandomSpawnPosition())))
 	}
 }

@@ -287,7 +287,7 @@ func seeInvisible(g *GameState, user *Actor) {
 		return
 	}
 	g.msg(foundation.Msg("You feel your sight sharpen"))
-	tunsUntilUnsee := rand.Intn(8) + 8
+	tunsUntilUnsee := rand.Intn(101) + 100
 	g.Player.GetFlags().Increase(foundation.FlagSeeInvisible, tunsUntilUnsee)
 }
 func makeInvisible(g *GameState, user *Actor) {
@@ -315,7 +315,7 @@ func haste(g *GameState, user *Actor) {
 
 	g.msg(foundation.Msg("The world around you slows down"))
 
-	tunsUntilUnhasted := rand.Intn(user.GetBasicSpeed()/2) + user.GetBasicSpeed()/2
+	tunsUntilUnhasted := rand.Intn(11) + 20
 	g.Player.GetFlags().Increase(foundation.FlagHaste, tunsUntilUnhasted)
 }
 
@@ -332,7 +332,7 @@ func slow(g *GameState, user *Actor) {
 		return
 	}
 	g.msg(foundation.Msg("The world around you speeds up"))
-	tunsUntilUnslowed := rand.Intn(8) + 8
+	tunsUntilUnslowed := rand.Intn(11) + 20
 	g.Player.GetFlags().Increase(foundation.FlagSlow, tunsUntilUnslowed)
 }
 
@@ -353,8 +353,8 @@ func blindness(g *GameState, user *Actor) {
 		return
 	}
 	g.msg(foundation.Msg("You are blinded!"))
-	tunsUntilUnhasted := rand.Intn(8) + 8
-	g.Player.GetFlags().Increase(foundation.FlagBlind, tunsUntilUnhasted)
+	tunsUntilUnblind := rand.Intn(16) + 25
+	g.Player.GetFlags().Increase(foundation.FlagBlind, tunsUntilUnblind)
 }
 
 func hallucination(g *GameState, user *Actor) {
@@ -364,7 +364,7 @@ func hallucination(g *GameState, user *Actor) {
 		return
 	}
 	g.msg(foundation.Msg("You are hallucinating!"))
-	turns := rand.Intn(8) + 8
+	turns := rand.Intn(51) + 100
 	g.Player.GetFlags().Increase(foundation.FlagHallucinating, turns)
 }
 
@@ -375,7 +375,7 @@ func levitation(g *GameState, user *Actor) {
 		return
 	}
 	g.msg(foundation.Msg("You feel lighter"))
-	turnsUntilEarthbound := rand.Intn(8) + 8
+	turnsUntilEarthbound := rand.Intn(11) + 25
 	g.Player.GetFlags().Increase(foundation.FlagFly, turnsUntilEarthbound)
 }
 
@@ -461,7 +461,7 @@ func removeCurse(g *GameState, actor *Actor) []foundation.Animation {
 
 func playerEnchantArmor(g *GameState, actor *Actor) []foundation.Animation {
 	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsArmor() && item.GetArmor().IsEnchantable()
+		return item.IsArmor()
 	})
 	if len(inventory) == 0 {
 		g.msg(foundation.Msg("You are not carrying any armor to enchant."))
@@ -472,6 +472,7 @@ func playerEnchantArmor(g *GameState, actor *Actor) []foundation.Animation {
 		armorItem := item.(*InventoryStack).First()
 
 		armorItem.GetArmor().AddEnchantment()
+		armorItem.stuckTurns = 0 // 5.4 uncurses
 		g.msg(foundation.HiLite("Your %s glows silver for a moment.", armorItem.Name()))
 
 		g.ui.UpdateInventory()
@@ -531,7 +532,7 @@ func playerVorpalizeWeapon(g *GameState, actor *Actor) []foundation.Animation {
 
 func playerEnchantWeapon(g *GameState, actor *Actor) []foundation.Animation {
 	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsWeapon() && item.GetWeapon().IsEnchantable()
+		return item.IsWeapon()
 	})
 	if len(inventory) == 0 {
 		g.msg(foundation.Msg("You are not carrying any weapons to enchant."))
@@ -542,6 +543,7 @@ func playerEnchantWeapon(g *GameState, actor *Actor) []foundation.Animation {
 		weaponItem := item.(*InventoryStack).First()
 
 		weaponItem.GetWeapon().AddEnchantment()
+		weaponItem.stuckTurns = 0 // 5.4 uncurses
 		g.msg(foundation.HiLite("Your %s glows blue for a moment.", weaponItem.Name()))
 
 		g.ui.UpdateInventory()
@@ -599,7 +601,7 @@ func confuse(g *GameState, target *Actor) []foundation.Animation {
 	if target == g.Player {
 		// Monsters have a chance to get unconfused when they take their turn
 		// So this fuse is only used for tracking the time the player is confused.
-		turnsUntilUnconfuse := rand.Intn(8) + confuseDuration()
+		turnsUntilUnconfuse := rand.Intn(8) + 20 // 3.6: 20..27
 		g.Player.GetFlags().Increase(foundation.FlagConfused, turnsUntilUnconfuse)
 	} else {
 		flags := target.GetFlags()

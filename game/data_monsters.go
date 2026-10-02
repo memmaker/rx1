@@ -31,6 +31,7 @@ type MonsterDef struct {
 	Flags         *foundation.MapFlags
 
 	CarryChance int
+	GoldChance  int // rx1's own carry chance, from before the 5.4 table
 	Gold        rpg.Dice
 }
 
@@ -81,6 +82,8 @@ func NewMonsterDefFromRecord(record recfile.Record) MonsterDef {
 			monsterDef.DungeonLevel = field.AsInt()
 		case "gold":
 			monsterDef.Gold = rpg.ParseDice(field.Value)
+		case "gold_chance":
+			monsterDef.GoldChance = field.AsInt()
 		case "carry_chance":
 			monsterDef.CarryChance = field.AsInt()
 		case "flags":
