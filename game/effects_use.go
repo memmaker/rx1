@@ -40,7 +40,28 @@ func GetAllUseEffects() map[string]func(g *GameState, user *Actor) (bool, []foun
 		"satiate_fully":                  endTurn(true, satiateFully),
 		"identify_item":                  endTurn(false, playerIdentifyItem),
 		"remove_curse":                   endTurn(false, removeCurse),
+		"fire_wall":                      endTurn(true, fireWall),
 	}
+}
+
+// fireWall sends a ring of fire outwards from the user. It follows corridors and
+// flows around corners, and burns everything it reaches but the user.
+func fireWall(g *GameState, user *Actor) []foundation.Animation {
+	g.msg(foundation.Msg("A wall of fire rolls away from you"))
+	damage := max(1, rpg.Spread(8, 0.5))
+	waves := g.gridMap.WavePropagationFrom(user.Position(), 4)
+	// each ring burns out before the next one flares up, so the chain is built from the outside in
+	var next []foundation.Animation
+	for i := len(waves) - 1; i >= 1; i-- {
+		for _, pos := range waves[i] {
+			next = append(next, g.damageLocation("fire wall", pos, damage)...)
+		}
+		if ring := g.ui.GetAnimExplosion(waves[i], nil); ring != nil {
+			ring.SetFollowUp(next)
+			next = []foundation.Animation{ring}
+		}
+	}
+	return next
 }
 
 func uncloak(g *GameState, user *Actor) []foundation.Animation {

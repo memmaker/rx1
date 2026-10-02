@@ -45,3 +45,5 @@ func (stubUI) AfterAnimations(f func()) { f() }
 func (stubUI) GetAnimMove(foundation.ActorForUI, geometry.Point, geometry.Point) foundation.Animation {
 	return nil
 }
+func (stubUI) GetAnimDamage(geometry.Point, int, func()) foundation.Animation { return nil }
+func (stubUI) GetAnimExplosion([]geometry.Point, func()) foundation.Animation { return nil }
