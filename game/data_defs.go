@@ -190,3 +190,12 @@ func mapAndFilterItemDefs(defs []ItemDef, keep func(ItemDef) bool, mapper func(I
 	}
 	return names
 }
+
+func (d DataDefinitions) FindMonsterDef(internalName string) (MonsterDef, bool) {
+	for _, def := range d.Monsters {
+		if def.InternalName == internalName {
+			return def, true
+		}
+	}
+	return MonsterDef{}, false
+}

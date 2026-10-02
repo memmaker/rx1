@@ -1,9 +1,11 @@
 package game
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"rx1/foundation"
+	"rx1/geometry"
 	"strings"
 	"testing"
 )
@@ -79,5 +81,68 @@ func TestWriteFileAtomicKeepsLastGood(t *testing.T) {
 	}
 	if _, err := os.Stat(path + ".tmp"); err == nil {
 		t.Fatal("tmp left behind")
+	}
+}
+
+func TestEveryFlagHasASaveName(t *testing.T) {
+	if len(savedFlags) != int(foundation.FlagSearching) {
+		t.Fatalf("%d names for %d flags: add the new flag to savedFlags", len(savedFlags), foundation.FlagSearching)
+	}
+}
+
+type levelDigest struct {
+	actors, items, traps, explored int
+	monsters                       string
+	pos                            [2]int
+}
+
+func digest(g *GameState) (d levelDigest) {
+	size := g.gridMap.MapSize()
+	for y := 0; y < size.Y; y++ {
+		for x := 0; x < size.X; x++ {
+			if g.gridMap.IsExplored(geometry.Point{X: x, Y: y}) {
+				d.explored++
+			}
+		}
+	}
+	for _, a := range g.gridMap.Actors() {
+		if a != g.Player {
+			d.actors++
+			d.monsters += fmt.Sprintf("%s@%v/%d;", a.internalName, a.Position(), a.stats.HP)
+		}
+	}
+	d.items, d.traps = len(g.gridMap.Items()), len(g.gridMap.Objects())
+	d.pos = [2]int{g.Player.Position().X, g.Player.Position().Y}
+	return
+}
+
+func TestSaveKeepsTheLevels(t *testing.T) {
+	t.Chdir(t.TempDir())
+	g := newSaveTestGame(t) // level 3
+	g.GotoDungeonLevel(4, StairsBoth, true)
+	g.GotoDungeonLevel(3, StairsBoth, true) // level 4 is now a visited level
+	g.gridMap.SetAllExplored()
+	want := digest(g)
+	if want.actors == 0 || want.items == 0 {
+		t.Skipf("level without monsters or items: %+v", want)
+	}
+	g.SaveGame()
+
+	h := newSaveTestGame(t)
+	h.LoadGame()
+	if got := digest(h); got != want {
+		t.Fatalf("level changed:\nwant %+v\ngot  %+v", want, got)
+	}
+	if h.levels[levelKey{4, false}] == nil || h.dungeonLayout == nil || len(h.dungeonLayout.AllRooms()) != len(g.dungeonLayout.AllRooms()) {
+		t.Fatal("visited level or layout lost")
+	}
+
+	data, _ := os.ReadFile(saveFile) // damage the current level in the file and its backup: a new level, same depth
+	os.WriteFile(saveFile, []byte(strings.ReplaceAll(string(data), "lvl.3.false ", "lvl.3.false 0 ")), 0o644)
+	os.Remove(saveFile + ".bak")
+	k := newSaveTestGame(t)
+	k.LoadGame()
+	if k.currentDungeonLevel != 3 || k.levels[levelKey{4, false}] == nil {
+		t.Fatalf("depth %d, other levels must survive", k.currentDungeonLevel)
 	}
 }
