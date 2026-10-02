@@ -647,13 +647,13 @@ func (g *GameState) endPlayerTurn() {
 
 	g.TurnsTaken++
 
-	g.ui.AnimatePending() // the player's actions play first..
+	g.ui.AnimatePending(false) // the player's actions play first..
 
 	playerTimeTakeForTurn := 100 / (g.Player.GetBasicSpeed())
 
 	g.enemyMovement(playerTimeTakeForTurn)
 
-	g.ui.AnimatePending() // ..then the enemies'
+	g.ui.AnimatePending(true) // ..then the enemies' moves, then their attacks
 
 	g.removeDeadAndApplyRegeneration()
 
