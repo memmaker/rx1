@@ -35,6 +35,9 @@ type GameForUI interface {
 	Wait()
 
 	PlayerInteractWithMap() // up/down stairs..
+	SaveGame()
+	LoadGame()
+
 	PlayerTryDescend()
 	PlayerTryAscend()
 

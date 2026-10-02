@@ -358,6 +358,7 @@ func (g *GameState) giveAndTryEquipItem(actor *Actor, item *Item) {
 func (g *GameState) init() {
 	g.Player = NewPlayer(g.playerName, g.playerIcon, g.playerColor)
 	g.stash = nil
+	g.levels = nil // a new game visits new levels
 
 	// Rogue's init_player, plus rx1's torch
 	mace, armor, bow := g.NewItemFromName("mace"), g.NewItemFromName("ring_mail"), g.NewItemFromName("short_bow")

@@ -154,14 +154,22 @@ func (d DataDefinitions) AlwaysIDOnUseInternalNames() []string {
 }
 
 func (d DataDefinitions) GetItemDefByName(name string) ItemDef {
+	def, ok := d.FindItemDef(name)
+	if !ok {
+		panic("Item not found: " + name)
+	}
+	return def
+}
+
+func (d DataDefinitions) FindItemDef(name string) (ItemDef, bool) {
 	for _, defs := range d.Items {
 		for _, def := range defs {
 			if def.InternalName == name {
-				return def
+				return def, true
 			}
 		}
 	}
-	panic("Item not found: " + name)
+	return ItemDef{}, false
 }
 
 func mapItemDefs(defs []ItemDef, mapper func(ItemDef) string) []string {

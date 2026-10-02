@@ -43,6 +43,8 @@ r -> read
 z -> zap
 s -> use
 a -> apply
+F7 -> save
+F8 -> load
 
 x -> launch
 c -> aim
