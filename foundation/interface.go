@@ -154,8 +154,10 @@ type GameUI interface {
 	// Each list contains animations that should be played in parallel.
 	// The lists are played in order.
 	AddAnimations(animations []Animation)
-	AnimatePending() (cancelled bool)
-	SkipAnimations()
+	// AnimatePending starts playing what was added since the last call, after anything still playing. It returns at once.
+	AnimatePending()
+	// AfterAnimations runs f once everything queued has played (or was skipped by a key press).
+	AfterAnimations(f func())
 	GetAnimThrow(item ItemForUI, origin geometry.Point, target geometry.Point) (Animation, int)
 	GetAnimDamage(actorPos geometry.Point, damage int, done func()) Animation
 	GetAnimMove(actor ActorForUI, old geometry.Point, new geometry.Point) Animation

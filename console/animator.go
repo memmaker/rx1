@@ -20,6 +20,8 @@ type TextAnimation interface {
 type Animator struct {
 	animationState    map[geometry.Point]foundation.TextIcon
 	runningAnimations []TextAnimation
+	pending           []TextAnimation   // added since the last Flush
+	queue             [][]TextAnimation // flushed batches, each starts when the one before has finished
 }
 
 func NewAnimator() *Animator {
@@ -29,10 +31,19 @@ func NewAnimator() *Animator {
 }
 
 func (a *Animator) AddAnimation(animation TextAnimation) {
-	a.runningAnimations = append(a.runningAnimations, animation)
-	slices.SortStableFunc(a.runningAnimations, func(i, j TextAnimation) int {
-		return cmp.Compare(i.GetPriority(), j.GetPriority())
-	})
+	a.pending = append(a.pending, animation)
+}
+
+// Flush closes the batch built by AddAnimation: it plays after everything flushed before it.
+func (a *Animator) Flush() {
+	if len(a.pending) > 0 {
+		a.queue = append(a.queue, a.pending)
+		a.pending = nil
+	}
+}
+
+func (a *Animator) IsBusy() bool {
+	return len(a.runningAnimations) > 0 || len(a.queue) > 0
 }
 
 func (a *Animator) Tick() (shouldUpdateMapState bool) {
@@ -51,6 +62,10 @@ func (a *Animator) Tick() (shouldUpdateMapState bool) {
 				}
 			}
 		}
+	}
+
+	if len(a.runningAnimations) == 0 && len(a.queue) > 0 {
+		a.runningAnimations, a.queue = a.queue[0], a.queue[1:]
 	}
 
 	slices.SortStableFunc(a.runningAnimations, func(i, j TextAnimation) int {
@@ -72,7 +87,12 @@ func (a *Animator) CancelAll() {
 	for _, animation := range a.runningAnimations {
 		cancelRecursive(animation)
 	}
-	a.runningAnimations = nil
+	for _, batch := range append(a.queue, a.pending) {
+		for _, animation := range batch {
+			cancelRecursive(animation)
+		}
+	}
+	a.runningAnimations, a.queue, a.pending = nil, nil, nil
 	clear(a.animationState)
 }
 

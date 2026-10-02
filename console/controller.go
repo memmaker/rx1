@@ -3,8 +3,6 @@ package console
 import (
 	"cmp"
 	"fmt"
-	"github.com/gdamore/tcell/v2"
-	"github.com/memmaker/go/cview"
 	"image/color"
 	"math"
 	"math/rand"
@@ -15,8 +13,12 @@ import (
 	"rx1/util"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"time"
 	"unicode"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/memmaker/go/cview"
 )
 
 type UIState int
@@ -72,7 +74,9 @@ type UI struct {
 
 	lastFrameIcons   map[geometry.Point]rune
 	lastFrameStyle   map[geometry.Point]tcell.Style
-	isAnimationFrame bool
+	isAnimationFrame bool        // the map shows the frozen last frame plus animations
+	animWake         atomic.Bool // the animation ticker has work: playback or afterAnimations
+	afterAnimations  []func()
 	lastHudStats     map[foundation.HudValue]int
 }
 
@@ -105,7 +109,7 @@ func (u *UI) HighlightStatChange(stat rpg.Stat) {
 }
 
 func (u *UI) ShowGameOver(scoreInfo foundation.ScoreInfo, highScores []foundation.ScoreInfo) {
-	u.animator.CancelAll()
+	u.skipAnimations()
 	u.gameIsOver = true
 	u.FadeToBlack()
 
@@ -280,15 +284,51 @@ func (u *UI) AddAnimations(animations []foundation.Animation) {
 	}
 }
 
-func (u *UI) AnimatePending() bool {
-	if !u.settings.AnimationsEnabled {
-		return true
+func (u *UI) AnimatePending() {
+	u.animator.Flush()
+	if !u.animator.IsBusy() || u.isAnimationFrame {
+		return
 	}
-	return u.updateUntilDone()
+	u.isAnimationFrame = true // freeze the map before the game's changes get drawn
+	if u.animator.Tick() {    // fill the first frame now, not after a blank delay
+		u.updateLastFrame()
+	}
+	u.animWake.Store(true)
 }
 
-func (u *UI) SkipAnimations() {
+func (u *UI) AfterAnimations(f func()) {
+	u.afterAnimations = append(u.afterAnimations, f)
+	u.animWake.Store(true)
+}
+
+// animationStep advances playback by one frame on the UI goroutine; when it is over the map unfreezes
+// and the afterAnimations callbacks run.
+func (u *UI) animationStep() {
+	if u.animator.IsBusy() {
+		if u.animator.Tick() {
+			u.updateLastFrame()
+		}
+		if u.animator.IsBusy() {
+			return
+		}
+	}
+	u.finishAnimations()
+}
+
+// skipAnimations jumps to the end of everything queued, e.g. because the player pressed a key.
+func (u *UI) skipAnimations() {
 	u.animator.CancelAll()
+	u.finishAnimations()
+}
+
+func (u *UI) finishAnimations() {
+	u.isAnimationFrame = false
+	u.animWake.Store(false)
+	callbacks := u.afterAnimations
+	u.afterAnimations = nil
+	for _, f := range callbacks {
+		f()
+	}
 }
 
 func (u *UI) SetShowCursor(show bool) {
@@ -306,12 +346,15 @@ func (u *UI) GetMapWindowGridSize() (int, int) {
 	return w, h
 }
 func (u *UI) AfterPlayerMoved(moveInfo foundation.MoveInfo) {
+	// the next step waits until this one has been shown
 	if moveInfo.Mode == foundation.PlayerMoveModeRun && u.autoStep != nil {
-		u.application.QueueEvent(tcell.NewEventKey(tcell.KeyRune, autoExploreRune, 64))
+		u.AfterAnimations(func() { u.application.QueueEvent(tcell.NewEventKey(tcell.KeyRune, autoExploreRune, 64)) })
 		return
 	}
 	if moveInfo.Mode == foundation.PlayerMoveModeRun && u.autoRun {
-		u.application.QueueEvent(tcell.NewEventKey(tcell.KeyRune, directionToRune(moveInfo.Direction), 64))
+		u.AfterAnimations(func() {
+			u.application.QueueEvent(tcell.NewEventKey(tcell.KeyRune, directionToRune(moveInfo.Direction), 64))
+		})
 	}
 }
 
@@ -752,50 +795,6 @@ func (u *UI) GetAnimProjectileWithTrail(leadIcon rune, colorNames []string, path
 	return animation, len(pathOfFlight)
 }
 
-func (u *UI) updateUntilDone() bool {
-	screen := u.application.GetScreen()
-	u.isAnimationFrame = true
-	var breakingKey *tcell.EventKey
-	if u.animator.Tick() { // fill the first frame now, not after a blank delay
-		u.updateLastFrame()
-	}
-outerLoop:
-	for len(u.animator.runningAnimations) > 0 {
-		u.mapWindow.Draw(screen)
-		screen.Show()
-
-		var waited time.Duration
-		for waited < u.settings.AnimationDelay {
-			if screen.HasPendingEvent() {
-				ev := screen.PollEvent()
-				if keyEvent, ok := ev.(*tcell.EventKey); ok {
-					breakingKey = keyEvent
-					u.animator.CancelAll()
-					break outerLoop
-				}
-			}
-			time.Sleep(10 * time.Millisecond)
-			waited += 10 * time.Millisecond
-		}
-
-		shouldMapFrameBeUpdated := u.animator.Tick()
-		if shouldMapFrameBeUpdated {
-			u.updateLastFrame()
-		}
-	}
-	u.isAnimationFrame = false
-
-	if breakingKey != nil {
-		u.application.QueueEvent(breakingKey)
-		return true
-	}
-
-	u.mapWindow.Draw(screen)
-	screen.Show()
-
-	return false
-}
-
 func (u *UI) FadeToBlack() {
 	screen := u.application.GetScreen()
 	var breakingKey *tcell.EventKey
@@ -977,6 +976,13 @@ func (u *UI) Print(message foundation.HiLiteString) {
 	})
 }
 func (u *UI) StartGameLoop() {
+	go func() {
+		for range time.Tick(u.settings.AnimationDelay) {
+			if u.animWake.Load() {
+				u.application.QueueUpdateDraw(u.animationStep)
+			}
+		}
+	}()
 	if !u.isMonochrome { // redraw regularly so the light flickers
 		go func() {
 			for range time.Tick(100 * time.Millisecond) {
@@ -1116,9 +1122,11 @@ func (u *UI) handleMainInput(ev *tcell.EventKey) *tcell.EventKey {
 		return nil
 	}
 	u.autoRun = false
+	if mod == 64 && strings.ContainsRune("12346789", ch) { // a leftover run continuation after running stopped
+		return nil
+	}
 	if mod == 64 && ch == autoExploreRune { // a leftover continuation after exploring stopped is dropped
 		if step := u.autoStep; step != nil {
-			time.Sleep(64 * time.Millisecond)
 			if !step() {
 				u.autoStep = nil
 			}
@@ -1126,6 +1134,9 @@ func (u *UI) handleMainInput(ev *tcell.EventKey) *tcell.EventKey {
 		return nil
 	}
 	u.autoStep = nil
+	if u.isAnimationFrame { // a key press skips to the end of what is playing
+		u.skipAnimations()
+	}
 
 	uiKey := toUIKey(ev)
 	playerCommand := u.getCommandForKey(uiKey)
@@ -1170,7 +1181,6 @@ func (u *UI) startAutoRun(direction geometry.CompassDirection) {
 }
 
 func (u *UI) continueAutoRun(direction geometry.CompassDirection) {
-	time.Sleep(64 * time.Millisecond)
 	canRun := u.game.RunPlayer(direction, false)
 	if !canRun {
 		u.autoRun = false
