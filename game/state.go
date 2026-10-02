@@ -773,14 +773,27 @@ func (g *GameState) canPlayerSee(pos geometry.Point) bool {
 
 // seenByOwnLight: in reach of the player's light and in line of sight.
 // SSC also reveals wall tiles beyond the range and the FoV may be stale, so the distance is checked here.
-// It does not look diagonally past two walls, which would hide the corner of a room from the floor tile in it,
-// so a wall right next to the player is always seen.
+// It never shows a wall with walls on both sides towards the player, which is every corner of a room seen from
+// inside, so a wall is also seen when a tile diagonally next to it is.
 func (g *GameState) seenByOwnLight(pos geometry.Point) bool {
-	distSquared := geometry.DistanceSquared(g.Player.Position(), pos)
-	if !foundation.LightReaches(distSquared, g.playerLightRadius()) {
+	reached := func(p geometry.Point) bool {
+		return foundation.LightReaches(geometry.DistanceSquared(g.Player.Position(), p), g.playerLightRadius())
+	}
+	if !reached(pos) {
 		return false
 	}
-	return g.playerFoV.Visible(pos) || distSquared == 2 && !g.gridMap.IsTransparent(pos)
+	if g.playerFoV.Visible(pos) {
+		return true
+	}
+	if g.gridMap.IsTransparent(pos) {
+		return false
+	}
+	for _, step := range []geometry.Point{{X: -1, Y: -1}, {X: 1, Y: -1}, {X: -1, Y: 1}, {X: 1, Y: 1}} {
+		if n := pos.Add(step); g.gridMap.Contains(n) && g.gridMap.IsTransparent(n) && reached(n) && g.playerFoV.Visible(n) {
+			return true
+		}
+	}
+	return false
 }
 
 // playerLightRadius is the radius of the equipped light, 0 if none or burnt out

@@ -176,8 +176,9 @@ a place to hide.
 - **With a light:** the player sees every tile within the light radius that is
   in line of sight.
   A light of radius 1 also reaches the four diagonal neighbours, at 30%
-  brightness. A wall right next to the player is always seen, so the corner of
-  a dark room shows from the floor tile in it.
+  brightness. A wall in reach of the light is also seen when a tile diagonally
+  next to it is, so the corners of a dark room show (the field of view alone
+  never shows them from inside).
 - **Memory:** seen tiles are remembered and drawn dim. Lit rooms out of view at
   ×0.5 brightness, dark tiles at ×0.16.
 - **Visuals:** brightness falls off as `1 − EaseInExpo(d / (r + 1))`, between
