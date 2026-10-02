@@ -20,9 +20,9 @@ type TextAnimation interface {
 type Animator struct {
 	animationState    map[geometry.Point]foundation.TextIcon
 	runningAnimations []TextAnimation
-	pending           []TextAnimation   // added since the last Flush
-	queue             [][]TextAnimation // flushed batches, each starts when the one before has finished
-	moves             map[foundation.ActorForUI]*MovementAnimation // step moves, play alongside the batches
+	pending           []TextAnimation                              // added since the last Flush
+	queue             [][]TextAnimation                            // flushed batches, each starts when the one before has finished
+	moves             map[foundation.ActorForUI]*MovementAnimation // each actor's latest unfinished step move
 }
 
 func NewAnimator() *Animator {
@@ -37,11 +37,10 @@ func (a *Animator) AddAnimation(animation TextAnimation) {
 			a.moves = map[foundation.ActorForUI]*MovementAnimation{}
 		}
 		if running, ok := a.moves[move.actor]; ok && !running.IsDone() {
-			running.Merge(move)
-		} else {
-			a.moves[move.actor] = move
+			running.Merge(move) // one longer move instead of a second one later
+			return
 		}
-		return
+		a.moves[move.actor] = move
 	}
 	a.pending = append(a.pending, animation)
 }
@@ -55,7 +54,7 @@ func (a *Animator) Flush() {
 }
 
 func (a *Animator) IsBusy() bool {
-	return len(a.runningAnimations) > 0 || len(a.queue) > 0 || len(a.moves) > 0
+	return len(a.runningAnimations) > 0 || len(a.queue) > 0
 }
 
 func (a *Animator) Tick() (shouldUpdateMapState bool) {
@@ -86,23 +85,14 @@ func (a *Animator) Tick() (shouldUpdateMapState bool) {
 
 	clear(a.animationState)
 
-	for actor, move := range a.moves {
-		if move.IsDone() {
-			mapStateNeedsUpdate = mapStateNeedsUpdate || move.IsRequestingMapStateUpdate()
-			delete(a.moves, actor)
-		}
-	}
-	for _, move := range a.moves {
-		for pos, icon := range move.GetDrawables() {
-			a.animationState[pos] = icon
-		}
-		move.NextFrame()
-	}
 	for _, animation := range a.runningAnimations {
 		for pos, icon := range animation.GetDrawables() {
 			a.animationState[pos] = icon
 		}
 		animation.NextFrame()
+	}
+	if !a.IsBusy() {
+		clear(a.moves)
 	}
 	return mapStateNeedsUpdate
 }
@@ -115,9 +105,6 @@ func (a *Animator) CancelAll() {
 		for _, animation := range batch {
 			cancelRecursive(animation)
 		}
-	}
-	for _, move := range a.moves {
-		move.Cancel()
 	}
 	a.runningAnimations, a.queue, a.pending, a.moves = nil, nil, nil, nil
 	clear(a.animationState)
