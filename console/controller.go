@@ -2539,7 +2539,8 @@ var roomWalls = map[foundation.TileType]bool{
 }
 
 // mapIconAt is the icon of the map tile at loc. A theme with TileWallFull and TileWallHalf draws a room wall
-// by what is below it: full over more wall (or rock) and over a door, which looks better; half over anything else.
+// by what is below it: full over a real (drawn) wall and over a door, which looks better; half over anything else.
+// So the bottom wall of a room is half too, though only black rock or nothing lies below it.
 func (u *UI) mapIconAt(loc geometry.Point) foundation.TextIcon {
 	tile := u.game.MapAt(loc)
 	full, hasFull := u.currentTheme.iconsForMap[foundation.TileWallFull]
@@ -2547,7 +2548,7 @@ func (u *UI) mapIconAt(loc geometry.Point) foundation.TextIcon {
 	if !roomWalls[tile] || !hasFull || !hasHalf {
 		return u.getIconForMap(tile)
 	}
-	if below := u.game.MapAt(loc.Add(geometry.Point{Y: 1})); below == foundation.TileEmpty || roomWalls[below] || isRock(below) || isDoor(below) {
+	if below := u.game.MapAt(loc.Add(geometry.Point{Y: 1})); roomWalls[below] || below == foundation.TileWall || isDoor(below) {
 		return full
 	}
 	return half
@@ -2556,16 +2557,6 @@ func (u *UI) mapIconAt(loc geometry.Point) foundation.TextIcon {
 func isDoor(tile foundation.TileType) bool {
 	switch tile {
 	case foundation.TileDoorOpen, foundation.TileDoorClosed, foundation.TileDoorBroken, foundation.TileDoorLocked:
-		return true
-	}
-	return false
-}
-
-func isRock(tile foundation.TileType) bool {
-	switch tile {
-	case foundation.TileWall, foundation.TileCorridorWall, foundation.TileCorridorWallHorizontal, foundation.TileCorridorWallVertical,
-		foundation.TileCorridorWallCornerTopLeft, foundation.TileCorridorWallCornerTopRight,
-		foundation.TileCorridorWallCornerBottomLeft, foundation.TileCorridorWallCornerBottomRight:
 		return true
 	}
 	return false
