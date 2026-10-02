@@ -1021,7 +1021,6 @@ func (g *GameState) openWizardCreateTrapMenu() {
 				random := rand.New(rand.NewSource(time.Now().UnixNano()))
 				trapPos := g.gridMap.GetRandomFreeAndSafeNeighbor(random, g.Player.Position())
 				newTrap := g.NewTrap(trapType)
-				newTrap.SetHidden(false)
 				g.gridMap.AddObject(newTrap, trapPos)
 			},
 			CloseMenus: true,
