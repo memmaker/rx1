@@ -201,6 +201,7 @@ func (g *GameState) actorInvokeUseEffect(user *Actor, useEffectName string) (end
 	}
 	return false, nil
 }
+
 // scareMonsterAt: monsters will not step onto a scare monster scroll (Rogue 5.4 chase.c)
 func (g *GameState) scareMonsterAt(pos geometry.Point) bool {
 	item, exists := g.gridMap.TryGetItemAt(pos)
@@ -396,6 +397,9 @@ func (g *GameState) actorMeleeAttackMult(attacker *Actor, hitMod int, defender *
 	} else {
 		animMiss := g.ui.GetAnimDamage(defender.Position(), 0, nil)
 		afterAttackAnimations = append(afterAttackAnimations, animMiss)
+		if attacker.holdHits > 0 { // Rogue: a missing flytrap still squeezes
+			afterAttackAnimations = append(afterAttackAnimations, g.damageActor(attacker.Name(), defender, attacker.holdHits)...)
+		}
 	}
 
 	return afterAttackAnimations

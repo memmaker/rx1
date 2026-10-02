@@ -40,18 +40,11 @@ func (g *GameState) aiAct(enemy *Actor) {
 	}
 
 	if enemy.IsSleeping() {
-		if sameRoom {
-			if enemy.HasFlag(foundation.FlagMean) && g.noticesPlayerAsleep(enemy) {
-				enemy.WakeUp()
-				g.ui.AddAnimations(OneAnimation(g.ui.GetAnimWakeUp(enemy.Position(), nil)))
-				g.msg(foundation.HiLite("%s wakes up", enemy.Name()))
-			} else if !enemy.HasFlag(foundation.FlagMean) && g.noticesPlayerAsleep(enemy) && rand.Intn(10) == 0 {
-				enemy.WakeUp()
-				g.ui.AddAnimations(OneAnimation(g.ui.GetAnimWakeUp(enemy.Position(), nil)))
-				g.msg(foundation.HiLite("%s wakes up", enemy.Name()))
-			} else {
-				return
-			}
+		// Rogue's wake_monster: only mean monsters wake on seeing the hero
+		if sameRoom && enemy.HasFlag(foundation.FlagMean) && g.noticesPlayerAsleep(enemy) {
+			enemy.WakeUp()
+			g.ui.AddAnimations(OneAnimation(g.ui.GetAnimWakeUp(enemy.Position(), nil)))
+			g.msg(foundation.HiLite("%s wakes up", enemy.Name()))
 		} else {
 			return
 		}
@@ -86,6 +79,10 @@ func (g *GameState) aiAct(enemy *Actor) {
 		g.msg(foundation.HiLite("%s notices you", enemy.Name()))
 	}
 
+	if !sameRoom && g.aiGoForCarriedItem(enemy) {
+		return
+	}
+
 	if !enemy.HasFlag(foundation.FlagAwareOfPlayer) {
 		if enemy.HasFlag(foundation.FlagGreedy) {
 			g.aiGoForGold(enemy)
@@ -97,11 +94,7 @@ func (g *GameState) aiAct(enemy *Actor) {
 		return
 	}
 
-	wantToChase := sameRoom || enemy.HasFlag(foundation.FlagChase)
-	if !wantToChase {
-		return
-	}
-
+	// Rogue: every awake monster hunts the hero across the whole level
 	if customBehaviour, exists := g.customBehaviours(enemy.GetInternalName()); exists {
 		customBehaviour(enemy)
 	} else {
@@ -114,7 +107,7 @@ func (g *GameState) defaultBehaviour(enemy *Actor) {
 
 	sameRoom := g.isInPlayerRoom(enemy.Position()) || distanceToPlayer <= 1
 
-	if distanceToPlayer <= 1 {
+	if distanceToPlayer <= 1 && g.gridMap.DiagonalOK(enemy.Position(), g.Player.Position()) {
 		consequencesOfMonsterAttack := g.actorMeleeAttack(enemy, 0, g.Player)
 		g.ui.AddAnimations(consequencesOfMonsterAttack)
 		return
@@ -123,7 +116,7 @@ func (g *GameState) defaultBehaviour(enemy *Actor) {
 	// has skills?
 	zaps := enemy.GetIntrinsicZapEffects()
 	canZap := len(zaps) > 0 && !enemy.HasFlag(foundation.FlagCancel)
-	if canZap && sameRoom && rand.Intn(5) == 0 { // Rogue 5.4: DRAGONSHOT
+	if canZap && sameRoom && rand.Intn(5) == 0 && (enemy.GetInternalName() != "dragon" || inBreathLine(enemy.Position(), g.Player.Position())) { // Rogue 5.4: DRAGONSHOT
 		// zap
 		zap := zaps[rand.Intn(len(zaps))]
 		targetPos := g.Player.Position()
@@ -181,4 +174,14 @@ func (g *GameState) noticesPlayerAsleep(enemy *Actor) bool {
 		return false
 	}
 	return enemy.CanPerceivePlayer()
+}
+
+// aiGoForCarriedItem is Rogue 5.4 find_dest: a monster with a carry chance heads for an item in its room.
+func (g *GameState) aiGoForCarriedItem(enemy *Actor) bool {
+	if enemy.carryChance <= 0 {
+		return false
+	}
+	return g.aiGoToItem(enemy, func(item *Item) bool {
+		return !item.IsScareMonster() && rand.Intn(100) < enemy.carryChance
+	})
 }

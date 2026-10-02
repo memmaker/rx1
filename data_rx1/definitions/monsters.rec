@@ -38,6 +38,7 @@ dlvl: 5
 color: Green
 gold: 5d4
 carry_chance: 0
+gold_chance: 35
 flags: mean | group
 
 name: kestrel
@@ -78,8 +79,7 @@ dlvl: 6
 color: Red
 gold: 0
 carry_chance: 0
-struck_effect: freeze | 100
-flags: stationary
+hit_effect: freeze | 100
 
 name: ice monster
 level: 1
@@ -92,6 +92,7 @@ dlvl: 6
 color: LightBlue
 gold: 1d6
 carry_chance: 0
+gold_chance: 20
 hit_effect: freeze | 100
 
 name: slime
@@ -105,6 +106,7 @@ dlvl: 6
 color: LightCyan
 gold: 3d6
 carry_chance: 20
+gold_chance: 20
 struck_effect: split | 50
 struck_effect: rust_weapon | 30
 
@@ -133,6 +135,7 @@ dlvl: 10
 color: White
 gold: 5d5
 carry_chance: 10
+gold_chance: 35
 flags: tunnel
 
 name: orc
@@ -146,6 +149,7 @@ dlvl: 8
 color: LightGreen
 gold: 1d6
 carry_chance: 15
+gold_chance: 35
 zap_effect: charge_attack
 flags: greedy
 
@@ -174,6 +178,7 @@ dlvl: 20
 color: White
 gold: 1d8
 carry_chance: 0
+gold_chance: 25
 flags: chase | invisible | erratic
 
 name: rust monster
@@ -187,6 +192,7 @@ dlvl: 13
 color: Orange
 gold: 2d20
 carry_chance: 0
+gold_chance: 65
 flags: mean
 hit_effect: rust_armor | 100
 
@@ -201,6 +207,7 @@ dlvl: 9
 color: Orange
 gold: 1d100
 carry_chance: 0
+gold_chance: 85
 flags: mean | chase | slow
 hit_effect: hunger | 20
 
@@ -215,6 +222,7 @@ dlvl: 7
 color: Red
 gold: 2d4
 carry_chance: 0
+gold_chance: 10
 flags: mean
 hit_effect: poison_strength | 100
 
@@ -229,6 +237,7 @@ dlvl: 10
 color: Cyan
 gold: 5d10
 carry_chance: 0
+gold_chance: 50
 flags: chase
 hit_effect: steal_gold | 100
 
@@ -243,6 +252,7 @@ dlvl: 11
 color: Orange
 gold: 1d10
 carry_chance: 15
+gold_chance: 15
 zap_effect: magic_arrow
 
 name: kobold
@@ -256,6 +266,7 @@ dlvl: 1
 color: Red
 gold: 2d8
 carry_chance: 0
+gold_chance: 55
 flags: mean
 zap_effect: magic_dart
 
@@ -270,6 +281,7 @@ dlvl: 13
 color: Blue
 gold: 2d12
 carry_chance: 0
+gold_chance: 50
 flags: mean
 hit_effect: rust_armor | 100
 
@@ -284,6 +296,7 @@ dlvl: 12
 color: Gray
 gold: 1d1000
 carry_chance: 0
+gold_chance: 90
 flags: mean
 zap_effect: charge_attack
 use_effect: phase_door
@@ -313,6 +326,7 @@ dlvl: 14
 color: LightMagenta
 gold: 2d20
 carry_chance: 100
+gold_chance: 60
 flags: chase
 hit_effect: steal_item | 100
 
@@ -327,6 +341,7 @@ dlvl: 23
 color: White
 gold: 4d4
 carry_chance: 30
+gold_chance: 25
 flags: disguised
 
 name: yeti
@@ -340,6 +355,7 @@ dlvl: 15
 color: White
 gold: 4d20
 carry_chance: 30
+gold_chance: 35
 flags: haste
 hit_effect: hold | 30
 hit_effect: slow | 50
@@ -368,6 +384,7 @@ dlvl: 19
 color: Magenta
 gold: 3d10
 carry_chance: 0
+gold_chance: 55
 hit_effect: hold | 100
 flags: mean | stationary
 
@@ -396,8 +413,9 @@ dlvl: 16
 color: Green
 gold: 2d20
 carry_chance: 0
+gold_chance: 60
 flags: mean | stationary
-hit_effect: hold | 100
+hit_effect: flytrap_hold | 100
 
 name: phantom
 level: 8
@@ -423,6 +441,7 @@ dlvl: 26
 color: LightMagenta
 gold: 2d80
 carry_chance: 70
+gold_chance: 90
 hit_effect: poison_strength | 30
 flags: tunnel
 
@@ -451,6 +470,7 @@ dlvl: 22
 color: Green
 gold: 2d10
 carry_chance: 40
+gold_chance: 65
 flags: mean | tunnel
 gaze_effect: confuse
 
@@ -465,6 +485,7 @@ dlvl: 24
 color: Yellow
 gold: 3d10
 carry_chance: 20
+gold_chance: 45
 flags: mean | flying | regenerating
 zap_effect: lightning_ray
 hit_effect: knockback | 30
@@ -480,6 +501,7 @@ dlvl: 22
 color: LightMagenta
 gold: 1d20
 carry_chance: 40
+gold_chance: 40
 flags: mean
 gaze_effect: confuse
 
@@ -494,6 +516,7 @@ dlvl: 14
 color: Green
 gold: 2d60
 carry_chance: 30
+gold_chance: 75
 flags: mean
 use_effect: phase_door
 hit_effect: poison_strength | 30
@@ -509,6 +532,7 @@ dlvl: 20
 color: White
 gold: 2d8
 carry_chance: 30
+gold_chance: 25
 flags: disguised
 
 name: xeroc mk ii
@@ -522,6 +546,7 @@ dlvl: 20
 color: White
 gold: 2d8
 carry_chance: 20
+gold_chance: 20
 flags: invisible | wall_crawler
 
 name: xorn
@@ -563,6 +588,7 @@ dlvl: 25
 color: Yellow
 gold: 2d100
 carry_chance: 70
+gold_chance: 75
 flags: chase
 gaze_effect: scare
 
@@ -577,6 +603,7 @@ dlvl: 26
 color: Green
 gold: 3d100
 carry_chance: 100
+gold_chance: 95
 flags: mean | flying | regenerating | greedy
 zap_effect: fire_breath
 

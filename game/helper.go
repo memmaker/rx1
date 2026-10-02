@@ -25,7 +25,3 @@ func actorsForUI(stack []*Actor) []foundation.ActorForUI {
 func spread(nm int) int {
 	return nm - nm/10 + rand.Intn(nm/5)
 }
-
-func confuseDuration() int {
-	return spread(20)
-}

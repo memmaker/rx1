@@ -233,8 +233,12 @@ func (g *GameState) rogueNewThing(random *rand.Rand, level int) *Item {
 	// Rogue's curses and blessings; cursed means stuck, as rx1 has it
 	r := rnd(random, 100)
 	switch {
-	case item.IsMissile(): // a cursed bundle is only worse, a quiver cannot get stuck
-		item.bundle = rnd(random, 8) + 7 // Rogue's ISMANY group: rnd(8)+8 in all
+	case item.IsGroupWeapon(): // a cursed bundle is only worse, a quiver cannot get stuck
+		if item.IsMissile() {
+			item.bundle = rnd(random, 8) + 7 // Rogue's ISMANY group: rnd(8)+8 in all
+		} else {
+			item.bundle = rnd(random, 4) + 1 // 5.4 dagger: rnd(4)+2 in all
+		}
 		if r < 10 {
 			item.weapon.hitPlus -= rnd(random, 3) + 1
 		} else if r < 15 {

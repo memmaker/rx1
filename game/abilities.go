@@ -74,6 +74,11 @@ func (g *GameState) phaseTowards(enemy *Actor, target geometry.Point) []foundati
 
 // aiGoForGold: greedy monsters (Rogue: orcs, dragons) walk to gold in their room and pick it up.
 func (g *GameState) aiGoForGold(enemy *Actor) bool {
+	return g.aiGoToItem(enemy, (*Item).IsGold)
+}
+
+// aiGoToItem walks to the first wanted item in the monster's room and picks it up.
+func (g *GameState) aiGoToItem(enemy *Actor, wanted func(*Item) bool) bool {
 	if g.dungeonLayout == nil {
 		return false
 	}
@@ -83,7 +88,7 @@ func (g *GameState) aiGoForGold(enemy *Actor) bool {
 	}
 	var gold *Item
 	for _, item := range g.gridMap.Items() {
-		if item.IsGold() && room.Contains(item.Position()) {
+		if wanted(item) && room.Contains(item.Position()) {
 			gold = item
 			break
 		}
@@ -92,7 +97,13 @@ func (g *GameState) aiGoForGold(enemy *Actor) bool {
 		return false
 	}
 	if gold.Position() == enemy.Position() {
-		enemy.AddGold(gold.GetCharges())
+		if gold.IsGold() {
+			enemy.AddGold(gold.GetCharges())
+		} else if enemy.GetInventory().CanAdd(gold) {
+			enemy.GetInventory().Add(gold)
+		} else {
+			return false
+		}
 		g.gridMap.RemoveItem(gold)
 		return true
 	}

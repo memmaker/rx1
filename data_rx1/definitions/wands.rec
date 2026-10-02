@@ -10,7 +10,7 @@ zap_effect: magic_missile
 category: wands
 charges: 3-7
 chance: 10
-worth: 140
+worth: 170
 always_id_on_use: true
 
 name: wand of light
@@ -19,7 +19,7 @@ use_effect: light
 category: wands
 charges: 10-19
 chance: 12
-worth: 100
+worth: 250
 always_id_on_use: true
 
 name: wand of polymorph
@@ -28,7 +28,7 @@ zap_effect: polymorph
 category: wands
 charges: 3-7
 chance: 15
-worth: 140
+worth: 310
 
 name: wand of slow
 internal_name: wand_slow
@@ -36,7 +36,7 @@ zap_effect: slow_target
 category: wands
 charges: 3-7
 chance: 11
-worth: 140
+worth: 350
 
 name: wand of haste
 internal_name: wand_haste
@@ -44,7 +44,7 @@ zap_effect: haste_target
 category: wands
 charges: 3-7
 chance: 10
-worth: 140
+worth: 5
 
 name: wand of teleport away
 internal_name: wand_teleportation_away
@@ -52,7 +52,7 @@ zap_effect: teleport_target_away
 category: wands
 charges: 3-7
 chance: 6
-worth: 140
+worth: 340
 
 name: wand of teleport to
 internal_name: wand_teleportation_to
@@ -60,7 +60,7 @@ zap_effect: teleport_target_to
 category: wands
 charges: 3-7
 chance: 6
-worth: 140
+worth: 50
 
 name: wand of invisibility
 internal_name: wand_invisibility
@@ -68,7 +68,7 @@ zap_effect: invisibility_target
 category: wands
 charges: 3-7
 chance: 6
-worth: 140
+worth: 5
 
 name: wand of drain life
 internal_name: wand_drain_life
@@ -76,7 +76,7 @@ use_effect: drain_life
 category: wands
 charges: 3-7
 chance: 9
-worth: 140
+worth: 300
 
 name: wand of cancellation
 internal_name: wand_cancellation
@@ -84,7 +84,7 @@ zap_effect: cancel_target
 category: wands
 charges: 3-7
 chance: 5
-worth: 140
+worth: 280
 
 name: wand of cold
 internal_name: wand_cold
@@ -92,7 +92,7 @@ zap_effect: cold_ray
 category: wands
 charges: 3-7
 chance: 3
-worth: 140
+worth: 330
 always_id_on_use: true
 
 name: wand of fire
@@ -101,7 +101,7 @@ zap_effect: fire_ray
 category: wands
 charges: 3-7
 chance: 3
-worth: 140
+worth: 330
 always_id_on_use: true
 
 name: wand of lightning
@@ -110,6 +110,6 @@ zap_effect: lightning_ray
 category: wands
 charges: 3-7
 chance: 3
-worth: 140
+worth: 330
 always_id_on_use: true
 

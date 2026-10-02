@@ -3,6 +3,7 @@ package game
 import (
 	"math/rand"
 	"rx1/foundation"
+	"rx1/geometry"
 	"rx1/rpg"
 )
 
@@ -12,7 +13,8 @@ func (g *GameState) enemyMovement(playerTimeSpent int) {
 	}
 	gridMap := g.gridMap
 	allEnemies := gridMap.Actors()
-	for _, enemy := range allEnemies {
+	for i := len(allEnemies) - 1; i >= 0; i-- { // Rogue: the newest monster acts first
+		enemy := allEnemies[i]
 		if enemy == g.Player {
 			continue
 		}
@@ -26,6 +28,10 @@ func (g *GameState) enemyMovement(playerTimeSpent int) {
 		for enemy.IsAlive() && enemy.HasEnergyForActions() { // a trap may kill it between its actions
 			enemy.SpendTimeEnergy()
 			g.aiAct(enemy)
+			if enemy.IsAlive() && enemy.HasFlag(foundation.FlagFly) && !enemy.IsSleeping() && // Rogue's ISFLY: a second move to close in
+				geometry.DistanceSquared(enemy.Position(), g.Player.Position()) >= 3 {
+				g.aiAct(enemy)
+			}
 			g.ui.EndAnimatedAction(false)
 		}
 		g.ui.EndAnimatedAction(true)

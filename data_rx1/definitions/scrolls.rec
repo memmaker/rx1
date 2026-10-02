@@ -56,7 +56,7 @@ internal_name: food_detection
 category: scrolls
 charges: 1
 chance: 4
-worth: 50
+worth: 60
 use_effect: detect_food
 
 name: trap detection
