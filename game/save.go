@@ -12,6 +12,7 @@ import (
 	"rx1/dungen"
 	"rx1/foundation"
 	"rx1/geometry"
+	"rx1/gridmap"
 	"rx1/rpg"
 	"strings"
 )
@@ -361,6 +362,17 @@ func (g *GameState) restore(sections map[string][]byte) error {
 		}
 	}
 
+	var explored []geometry.Point // arriving on the stairs explores around them, the saved hero stood elsewhere
+	allTiles := func(m *gridmap.GridMap[*Actor, *Item, *Object], only func(geometry.Point) bool) (out []geometry.Point) {
+		for y := 0; y < m.GetHeight(); y++ {
+			for x := 0; x < m.GetWidth(); x++ {
+				if p := (geometry.Point{X: x, Y: y}); only(p) {
+					out = append(out, p)
+				}
+			}
+		}
+		return
+	}
 	g.gridMap = nil // nothing to leave: the saved levels come from the file
 	g.ui.InitDungeonUI()
 	depth := min(max(w.Depth, 0), g.maximumDungeonLevel)
@@ -372,11 +384,16 @@ func (g *GameState) restore(sections map[string][]byte) error {
 			w.InSecret = false
 			g.levelsWithoutFood--
 		}
+		if v := g.levels[levelKey{depth, w.InSecret}]; v != nil {
+			explored = allTiles(v.gridMap, v.gridMap.IsExplored)
+		}
 		g.gotoLevel(depth, StairsBoth, false, w.InSecret)
 	}
 	if p := w.PlayerPos; g.gridMap.Contains(p) && p != g.Player.Position() && g.gridMap.IsWalkable(p) && !g.gridMap.IsActorAt(p) &&
 		(g.levels[levelKey{depth, w.InSecret}] != nil || depth == 0) {
 		g.gridMap.MoveActor(g.Player, p) // back where the hero stood
+		g.gridMap.SetListExplored(allTiles(g.gridMap, g.gridMap.IsExplored), false)
+		g.gridMap.SetListExplored(explored, true)
 		g.afterPlayerMoved()
 		g.ui.AfterPlayerMoved(foundation.MoveInfo{Direction: geometry.North, OldPos: p, NewPos: p, Mode: foundation.PlayerMoveModeManual})
 	}

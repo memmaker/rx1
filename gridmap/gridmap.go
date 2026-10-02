@@ -778,7 +778,9 @@ func (m *GridMap[ActorType, ItemType, ObjectType]) IsEmptyNonSpecialFloor(pos ge
 
 func (m *GridMap[ActorType, ItemType, ObjectType]) SetListExplored(tiles []geometry.Point, value bool) {
 	for _, tile := range tiles {
-		m.SetExplored(tile)
+		if m.Contains(tile) {
+			m.cells[tile.X+tile.Y*m.mapWidth].IsExplored = value
+		}
 	}
 }
 
