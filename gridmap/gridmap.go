@@ -167,6 +167,7 @@ type GridMap[ActorType interface {
 	allActors       []ActorType
 	allDownedActors []ActorType
 	removedActors   []ActorType
+	actorListener   func(actor ActorType, onMap bool) // told about every actor placed, moved or removed
 	allItems        []ItemType
 	allObjects      []ObjectType
 
@@ -326,6 +327,19 @@ func (m *GridMap[ActorType, ItemType, ObjectType]) SetActorToNormal(person Actor
 		return
 	}
 	m.cells[person.Position().Y*m.mapWidth+person.Position().X] = m.cells[person.Position().Y*m.mapWidth+person.Position().X].WithActor(person)
+	m.actorChanged(person, true)
+}
+
+// SetActorListener sets the one function that hears about every actor placed, moved (onMap) or removed (!onMap),
+// after the map has changed. The display follows actors with it.
+func (m *GridMap[ActorType, ItemType, ObjectType]) SetActorListener(listener func(actor ActorType, onMap bool)) {
+	m.actorListener = listener
+}
+
+func (m *GridMap[ActorType, ItemType, ObjectType]) actorChanged(actor ActorType, onMap bool) {
+	if m.actorListener != nil {
+		m.actorListener(actor, onMap)
+	}
 }
 
 func (m *GridMap[ActorType, ItemType, ObjectType]) MoveItem(item ItemType, to geometry.Point) {
@@ -634,6 +648,7 @@ func (m *GridMap[ActorType, ItemType, ObjectType]) GetActor(p geometry.Point) Ac
 
 func (m *GridMap[ActorType, ItemType, ObjectType]) RemoveActor(actor ActorType) bool {
 	m.cells[actor.Position().X+actor.Position().Y*m.mapWidth] = m.cells[actor.Position().X+actor.Position().Y*m.mapWidth].WithActorHereRemoved(actor)
+	m.actorChanged(actor, false)
 	for i := len(m.allActors) - 1; i >= 0; i-- {
 		if m.allActors[i] == actor {
 			m.allActors = append(m.allActors[:i], m.allActors[i+1:]...)
@@ -660,6 +675,7 @@ func (m *GridMap[ActorType, ItemType, ObjectType]) MoveActorFrom(actor ActorType
 	}
 	actor.SetPosition(to)
 	m.cells[to.X+to.Y*m.mapWidth] = m.cells[to.X+to.Y*m.mapWidth].WithActor(actor)
+	m.actorChanged(actor, true)
 }
 
 func (m *GridMap[ActorType, ItemType, ObjectType]) MoveObject(obj ObjectType, newPos geometry.Point) {
@@ -1016,6 +1032,8 @@ func (m *GridMap[ActorType, ItemType, ObjectType]) SwapPositions(actorOne ActorT
 	actorTwo.SetPosition(posOne)
 	m.cells[posOne.X+posOne.Y*m.mapWidth] = m.cells[posOne.X+posOne.Y*m.mapWidth].WithActor(actorTwo)
 	m.cells[posTwo.X+posTwo.Y*m.mapWidth] = m.cells[posTwo.X+posTwo.Y*m.mapWidth].WithActor(actorOne)
+	m.actorChanged(actorOne, true)
+	m.actorChanged(actorTwo, true)
 }
 
 func NewZoneMap(zone *ZoneInfo, width int, height int) []*ZoneInfo {
@@ -1948,12 +1966,14 @@ func (m *GridMap[ActorType, ItemType, ObjectType]) ForceMoveActor(actor ActorTyp
 	m.cells[from.X+from.Y*m.mapWidth] = m.cells[from.X+from.Y*m.mapWidth].WithActorHereRemoved(actor)
 	actor.SetPosition(to)
 	m.cells[to.X+to.Y*m.mapWidth] = m.cells[to.X+to.Y*m.mapWidth].WithActor(actor)
+	m.actorChanged(actor, true)
 }
 
 func (m *GridMap[ActorType, ItemType, ObjectType]) ForceSpawnActorInWall(actor ActorType, to geometry.Point) {
 	m.allActors = append(m.allActors, actor)
 	actor.SetPosition(to)
 	m.cells[to.X+to.Y*m.mapWidth] = m.cells[to.X+to.Y*m.mapWidth].WithActor(actor)
+	m.actorChanged(actor, true)
 }
 
 func (m *GridMap[ActorType, ItemType, ObjectType]) IsTileSpecial(pos geometry.Point) bool {
