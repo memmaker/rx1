@@ -19,7 +19,8 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 	if mapData == "" {
 		return
 	}
-	var spawnPos geometry.Point
+	var spawnPos, stairsDown geometry.Point
+	fromDungeon := g.currentDungeonLevel > 0 // up the stairs of level 1: arrive on the stairs down
 	mapRunes := []rune(mapData)
 	at := func(p geometry.Point) rune {
 		i := p.Y*g.config.MapWidth + p.X
@@ -96,6 +97,7 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 				IsWalkable:         true,
 				IsTransparent:      true,
 			})
+			stairsDown = pos
 		case '1':
 			gridMap.SetTile(pos, gridmap.Tile{
 				Feature:            foundation.TileVendorGeneral,
@@ -129,6 +131,9 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 	newMap := gridmap.NewMapFromString[*Actor, *Item, *Object](g.config.MapWidth, g.config.MapHeight, mapData, simpleMapper)
 	g.watchActors(newMap)
 	newMap.SetCardinalMovementOnly(!g.config.DiagonalMovementEnabled)
+	if fromDungeon && stairsDown != (geometry.Point{}) {
+		spawnPos = stairsDown
+	}
 
 	if g.gridMap != nil {
 		g.gridMap.RemoveActor(g.Player)

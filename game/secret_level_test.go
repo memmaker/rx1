@@ -56,3 +56,21 @@ func TestSecretLevelFromTownIsExplored(t *testing.T) {
 		t.Fatalf("secret=%v level=%d explored=%v", g.inSecretLevel, g.currentDungeonLevel, g.gridMap.IsExplored(g.Player.Position()))
 	}
 }
+
+// Up the stairs of level 1 leads to town, onto its stairs down.
+func TestAscendFromLevelOneArrivesOnTownStairs(t *testing.T) {
+	cfg := foundation.NewDefaultConfiguration()
+	cfg.DataRootDir = "../data_rx1"
+	g := NewGameState(stubUI{}, cfg)
+	g.GotoNamedLevel("town")
+	start := g.Player.Position()
+	g.GotoDungeonLevel(1, StairsBoth, true)
+	if !g.gridMap.GetCell(g.Player.Position()).TileType.IsStairsUp() {
+		t.Fatal("not on the stairs up of level 1")
+	}
+	g.PlayerTryAscend()
+	pos := g.Player.Position()
+	if g.currentDungeonLevel != 0 || !g.gridMap.GetCell(pos).TileType.IsStairsDown() || pos == start {
+		t.Fatalf("level=%d pos=%v start=%v", g.currentDungeonLevel, pos, start)
+	}
+}
