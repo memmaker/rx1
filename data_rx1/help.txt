@@ -43,14 +43,14 @@ Information
 ===========
 c              character sheet
 l              message log
-? or F1         this help
-=              key bindings
+? or F2        this manual
+= or F1        key bindings
 Tab            command menu (every action with its key)
 o              auto explore (any key stops it)
 
 Screen
 ======
-F2 / F3        darker / brighter
+F3 / F4        darker / brighter
 Ctrl+T         switch the colour theme
 Q              quit
 
@@ -59,3 +59,33 @@ Targeting
 While aiming or looking: move the cursor with wasd or the numpad,
 Space switches between direction and free targeting,
 Tab / Shift+Tab cycle through targets, Enter selects, Esc cancels.
+
+
+Weapon patterns
+===============
+sword          a plain, honest attack on the monster you walk into
+spear          also hits whatever stands directly behind your target
+axe            hits every monster around you at once
+club, mace     hit hard but slowly: every attack takes two turns
+rapier         lunge: walk toward a monster two steps away across a
+               free tile and you leap in and strike - never misses,
+               triple damage
+whip           walk toward a monster you can see up to 5 tiles away in a
+               straight line with nothing in between and you lash it
+               from where you stand
+dagger         the assassin's blade: sneak attacks deal 5x instead of 3x
+
+Sneak attacks
+=============
+A monster that is asleep, held, or has not noticed you yet is open to a
+sneak attack. A sneak attack never misses and deals triple damage
+(five times with a dagger). Every monster you strike notices you, unless
+you are invisible.
+
+Tips
+====
+- Sneak up on sleeping monsters with a dagger for a quick kill.
+- Let a crowd surround you only when you hold an axe.
+- Line monsters up in a corridor for the spear.
+- Keep your distance with a whip; close it in a single step with a rapier.
+- Swing a mace only when you can afford to give the monster a free turn.

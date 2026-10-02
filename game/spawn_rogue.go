@@ -55,43 +55,12 @@ func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.
 		}
 		return geometry.Point{}, false
 	}
-	addMonster := func(def MonsterDef, pos geometry.Point, room *dungen.DungeonRoom) *Actor {
-		monster := g.NewEnemyFromDef(def)
-		monster.GetFlags().Set(foundation.FlagSleep) // Rogue monsters start out not running
-		if monster.HasFlag(foundation.FlagWallCrawl) && len(room.GetWalls()) > 0 {
-			walls := room.GetWalls()
-			newMap.ForceSpawnActorInWall(monster, walls[random.Intn(len(walls))])
-			return monster
-		}
-		newMap.AddActor(monster, pos)
-		if monster.HasFlag(foundation.FlagGroup) {
-			for j := 1 + random.Intn(3); j > 0; j-- {
-				if packPos, ok := findFloor(room, rogueMaxTries, canHoldMonster); ok {
-					packMember := g.NewEnemyFromDef(def)
-					packMember.GetFlags().Init(monster.GetFlags().UnderlyingCopy())
-					newMap.AddActor(packMember, packPos)
-				}
-			}
-		}
-		return monster
-	}
 
-	// do_rooms: gold, and a monster that is more likely where there is gold
+	// do_rooms: gold only; monsters spawn via wandering daemon during play
 	for _, room := range rooms {
-		hasGold := false
 		if rnd(random, 2) == 0 && (!hasAmulet || level >= g.deepestDungeonLevelPlayerReached) {
 			if pos, ok := findFloor(room, 0, isFree); ok {
 				newMap.AddItem(g.NewGold(rnd(random, 50+10*level)+2), pos) // GOLDCALC
-				hasGold = true
-			}
-		}
-		chance := 25
-		if hasGold {
-			chance = 80
-		}
-		if rnd(random, 100) < chance {
-			if pos, ok := findFloor(room, 0, canHoldMonster); ok {
-				addMonster(g.rogueRandMonster(random, level), pos, room)
 			}
 		}
 	}
@@ -175,28 +144,42 @@ func (g *GameState) rogueTreasureRoom(random *rand.Rand, level int, room *dungen
 	}
 }
 
-// rogueRandMonster is randmonster(): aim around level-6..level+3, retry on gaps.
-// Rogue's table index d maps to rx1 monsters with dlvl d+1; all of them are eligible.
+// rogueRandMonster: Rogue's difficulty curve (level ± rnd(10) - 5) applied to rx1's full roster.
+// Picks target dlvl, finds all monsters at that level, returns a random one.
 func (g *GameState) rogueRandMonster(random *rand.Rand, level int) MonsterDef {
+	if len(g.dataDefinitions.Monsters) == 0 {
+		return MonsterDef{}
+	}
+
+	// Index monsters by dlvl for fast lookup
 	byLevel := make(map[int][]MonsterDef)
 	for _, def := range g.dataDefinitions.Monsters {
-		if def.InternalName == "xeroc_2" { // wizard-only test monster
-			continue
+		if def.InternalName == "xeroc_2" {
+			continue // wizard-only test monster
 		}
-		byLevel[def.DungeonLevel-1] = append(byLevel[def.DungeonLevel-1], def)
+		byLevel[def.DungeonLevel] = append(byLevel[def.DungeonLevel], def)
 	}
-	for {
-		d := level + rnd(random, 10) - 6
-		if d < 0 {
-			d = rnd(random, 5)
+
+	// Rogue's algorithm: aim for level ± bias, clamp to [1,26], retry on gaps
+	for tries := 0; tries < 100; tries++ {
+		d := level + rnd(random, 10) - 5 // Rogue: ± 0-5 around level
+		if d < 1 {
+			d = rnd(random, 5) + 1
 		}
-		if d > 25 {
-			d = rnd(random, 5) + 21
+		if d > 26 {
+			d = rnd(random, 5) + 22
 		}
 		if candidates := byLevel[d]; len(candidates) > 0 {
 			return candidates[random.Intn(len(candidates))]
 		}
 	}
+	// Fallback: return first non-xeroc monster
+	for _, def := range g.dataDefinitions.Monsters {
+		if def.InternalName != "xeroc_2" {
+			return def
+		}
+	}
+	return g.dataDefinitions.Monsters[0]
 }
 
 // rogueNewThing is new_thing(): Rogue's item type weights, and forced food after

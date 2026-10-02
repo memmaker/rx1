@@ -9,8 +9,8 @@ import (
 	"rx1/util"
 	"strings"
 
-	"github.com/gdamore/tcell/v2"
-	"github.com/memmaker/go/cview"
+	"codeberg.org/tslocum/cview"
+	"github.com/gdamore/tcell/v3"
 )
 
 type ColorTheme map[string]color.RGBA
@@ -53,8 +53,17 @@ func (t Theme) GetIconForItem(category foundation.ItemCategory) foundation.TextI
 	return t.iconsForItems[category]
 }
 
+var caveFallback = map[foundation.TileType]foundation.TileType{
+	foundation.TileCaveFloor:      foundation.TileRoomFloor,
+	foundation.TileCaveStairsUp:   foundation.TileStairsUp,
+	foundation.TileCaveStairsDown: foundation.TileStairsDown,
+}
+
 func (t Theme) GetIconForMap(tileType foundation.TileType) foundation.TextIcon {
-	return t.iconsForMap[tileType]
+	if icon, ok := t.iconsForMap[tileType]; ok {
+		return icon
+	}
+	return t.iconsForMap[caveFallback[tileType]] // only some themes give caves their own ground
 }
 
 func (t Theme) GetIconForObject(object foundation.ObjectCategory) foundation.TextIcon {
@@ -356,7 +365,8 @@ func BorderCaseFromString(s string) BorderCases {
 	return BorderHorizontal
 }
 
-func (t Theme) SetBorders(s *cview.BorderDef) {
+func (t Theme) SetBorders() {
+	s := &cview.Borders
 	s.Horizontal = t.uiBorder[BorderHorizontal]
 	s.Vertical = t.uiBorder[BorderVertical]
 	s.TopLeft = t.uiBorder[BorderTopLeft]

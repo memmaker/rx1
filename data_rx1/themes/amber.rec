@@ -8,6 +8,7 @@ Player_Color: White
 
 Black: 0 | 0 | 0
 DarkGray: 85 | 85 | 85
+ChasmEdge: 16 | 16 | 57
 VeryDarkGray: 40 | 40 | 40
 Blue: 0 | 64 | 255
 LightBlue: 85 | 85 | 255
@@ -159,6 +160,16 @@ TileLava: ~
 TileLava_Colors: Red | Black
 TileChasm: .
 TileChasm_Colors: DarkGray | Black
+TileShallowWater: ~
+TileShallowWater_Colors: Cyan | Black
+TileChasmEdge: .
+TileChasmEdge_Colors: White | ChasmEdge
+TileBridge: =
+TileBridge_Colors: Brown | Black
+TileFungus: "
+TileFungus_Colors: LightGreen | Black
+TileFungusForest: &
+TileFungusForest_Colors: Green | Black
 TileVendorGeneral: 1
 TileVendorGeneral_Colors: Yellow | Black
 TileVendorWeapons: 2

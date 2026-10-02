@@ -246,23 +246,6 @@ func (e *Equipment) GetStatModifier(stat rpg.Stat) int {
 	}
 	return modifier
 }
-func (e *Equipment) GetSkillModifier(skill rpg.SkillName) int {
-	modifier := 0
-	for _, item := range e.slots {
-		modifier += item.GetSkillBonus(skill)
-	}
-	return modifier
-}
-
-func (e *Equipment) GetEncumbranceFromArmor() rpg.Encumbrance {
-	armor := e.GetBySlot(foundation.SlotNameArmorTorso)
-	encumbrance := rpg.EncumbranceNone
-	if armor != nil {
-		encumbrance = armor.GetArmor().GetEncumbrance()
-	}
-	return encumbrance
-}
-
 func (e *Equipment) GetMissileLauncher() *Item {
 	return e.GetBySlot(foundation.SlotNameMissileLauncher)
 }

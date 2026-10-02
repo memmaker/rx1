@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"rx1/foundation"
 	"rx1/geometry"
+	"rx1/gridmap"
 )
 
 func (g *GameState) ManualMovePlayer(direction geometry.CompassDirection) {
@@ -64,6 +65,10 @@ func (g *GameState) ManualMovePlayer(direction geometry.CompassDirection) {
 		return
 	}
 
+	if g.tryReachAttack(newPos.Sub(oldPos)) {
+		return
+	}
+
 	if objectAt, exists := g.gridMap.TryGetObjectAt(newPos); exists && !objectAt.IsWalkable(g.Player) {
 		g.msg(foundation.Msg("You bump into something"))
 		return
@@ -88,6 +93,13 @@ func (g *GameState) afterPlayerMoved() {
 		g.revealSecret(g.Player.Position())
 	}
 	g.msg(g.GetMapInfoForMovement(g.Player.Position()))
+	switch g.gridMap.GetCell(g.Player.Position()).TileType.Feature {
+	case foundation.TileChasm: // Brogue's chasms lead to the level below
+		g.msg(foundation.HiLite("You plunge downward into the chasm!"))
+		g.QueueActionAfterAnimation(g.descendToRandomLocation)
+	case foundation.TileFungusForest: // trampled, it no longer hides what is behind it
+		g.gridMap.SetTile(g.Player.Position(), gridmap.Tile{Feature: foundation.TileFungus, DefinedDescription: "trampled fungal foliage", IsWalkable: true, IsTransparent: true})
+	}
 	g.exploreMap()
 	g.updateDijkstraMap()
 
@@ -112,7 +124,6 @@ func (g *GameState) exploreMap() {
 	playerRoom := g.getPlayerRoom()
 
 	if playerRoom != nil && playerRoom.IsLit() {
-		g.applyLightRoomExploration(playerRoom)
 		if g.TurnsTaken-playerRoom.LastSeenTurn > 50 {
 			g.checkTilesForHiddenObjects(playerRoom.GetAbsoluteFloorTiles())
 			playerRoom.LastSeenTurn = g.TurnsTaken

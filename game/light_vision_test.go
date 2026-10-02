@@ -1,6 +1,7 @@
 package game
 
 import (
+	"image/color"
 	"rx1/dungen"
 	"rx1/foundation"
 	"rx1/geometry"
@@ -111,7 +112,8 @@ func TestTorchShowsTheRoomCorner(t *testing.T) {
 		t.Fatalf("brightness on the diagonal is %v", falloff)
 	}
 	for {
-		g.GotoDungeonLevel(10, StairsBoth, true) // deep enough for dark rooms
+		g.wizardLevelStyle = new(dungen.LevelStyle) // walled rooms: StyleRogue
+		g.GotoDungeonLevel(10, StairsBoth, true)    // deep enough for dark rooms
 		for _, room := range g.dungeonLayout.AllRooms() {
 			for _, here := range room.GetAbsoluteRoomTiles() {
 				corner := here.Add(geometry.Point{X: -1, Y: -1})
@@ -141,5 +143,84 @@ func TestTorchShowsTheRoomCorner(t *testing.T) {
 				return
 			}
 		}
+	}
+}
+
+// Sight has no range: from the dark the player sees every lit tile in line of sight, and no dark one beyond his light.
+// Not on Rogue levels: there a lit tile is only seen from inside its room.
+func TestDarkPlayerSeesFarLitTiles(t *testing.T) {
+	for _, style := range []dungen.LevelStyle{dungen.StyleRooms, dungen.StyleRogue} {
+		testDarkPlayerSeesFarLitTiles(t, style)
+	}
+}
+
+func testDarkPlayerSeesFarLitTiles(t *testing.T, style dungen.LevelStyle) {
+	cfg := foundation.NewDefaultConfiguration()
+	cfg.DataRootDir = "../data_rx1"
+	g := NewGameState(stubUI{}, cfg)
+	g.wizardLevelStyle = &style
+	g.GotoDungeonLevel(5, StairsBoth, true)
+	g.glowing = nil
+	for _, room := range g.dungeonLayout.AllRooms() {
+		room.SetLit(false)
+	}
+	for y := 0; y < g.gridMap.GetHeight(); y++ {
+		for x := 0; x < g.gridMap.GetWidth(); x++ {
+			g.gridMap.SetLit(geometry.Point{X: x, Y: y}, false)
+		}
+	}
+	g.exploreMap()
+	far := g.Player.Position()
+	for _, p := range g.playerFoV.Visibles {
+		if g.gridMap.IsTransparent(p) && geometry.DistanceSquared(p, g.Player.Position()) > geometry.DistanceSquared(far, g.Player.Position()) {
+			far = p
+		}
+	}
+	if geometry.DistanceSquared(far, g.Player.Position()) <= 25 {
+		t.Skip("no long line of sight on this level")
+	}
+	if g.canPlayerSee(far) {
+		t.Fatalf("the dark tile %v is seen", far)
+	}
+	g.gridMap.SetLit(far, true)
+	if style == dungen.StyleRogue {
+		if room := g.getPlayerRoom(); g.canPlayerSee(far) && (room == nil || !room.ContainsIncludingWalls(far)) {
+			t.Fatalf("rogue: the lit tile %v outside the player's room is seen", far)
+		}
+		return
+	}
+	if !g.canPlayerSee(far) {
+		t.Fatalf("the lit tile %v is not seen from %v", far, g.Player.Position())
+	}
+}
+
+// Brogue's lights are coloured and add up: lava glows red, and two lavas are brighter than one.
+func TestGlowIsColouredAndAddsUp(t *testing.T) {
+	g := &GameState{glowing: map[geometry.Point]color.RGBA{}}
+	lava := glowColors[dungen.Lava]
+	g.lightUpAround(geometry.Point{X: 5, Y: 5}, lava, 20, 20)
+	near, _ := g.GlowAt(geometry.Point{X: 6, Y: 5})
+	if near.R <= near.B {
+		t.Fatalf("lava light is not red: %v", near)
+	}
+	g.lightUpAround(geometry.Point{X: 7, Y: 5}, lava, 20, 20)
+	if both, _ := g.GlowAt(geometry.Point{X: 6, Y: 5}); both.G <= near.G {
+		t.Fatalf("lights do not add up: %v then %v", near, both)
+	}
+	if _, ok := g.GlowAt(geometry.Point{X: 15, Y: 15}); ok {
+		t.Fatal("glow far from any light")
+	}
+}
+
+// The faint edge of a lone fungus's light is below Brogue's visibility threshold, its middle is above.
+func TestFaintGlowIsBelowTheThreshold(t *testing.T) {
+	g := &GameState{glowing: map[geometry.Point]color.RGBA{}}
+	g.lightUpAround(geometry.Point{X: 5, Y: 5}, glowColors[dungen.Fungus], 20, 20)
+	bright := func(p geometry.Point) bool {
+		c, _ := g.GlowAt(p)
+		return int(c.R)+int(c.G)+int(c.B) >= visibilityThreshold
+	}
+	if !bright(geometry.Point{X: 6, Y: 5}) || bright(geometry.Point{X: 8, Y: 5}) {
+		t.Fatal("the threshold does not cut off the edge of the light")
 	}
 }

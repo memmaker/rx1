@@ -245,7 +245,12 @@ func (c *MegaDungeonGenerator) connectRegions() []geometry.Point {
 	var junctions []geometry.Point
 	addJunction := func(pos geometry.Point) {
 		// the reference places closed doors, open doors and bare openings; this game knows one kind of door
-		if c.randomSource.Intn(4) == 0 && c.randomSource.Intn(3) != 0 {
+		// extra connectors are never cleared from around a junction, so one can land next to a door: open it bare
+		nextToDoor := slices.ContainsFunc(junctions, func(j geometry.Point) bool {
+			d := j.Sub(pos)
+			return d.X*d.X+d.Y*d.Y < 4 && c.m.IsDoorAt(j)
+		})
+		if nextToDoor || c.randomSource.Intn(4) == 0 && c.randomSource.Intn(3) != 0 {
 			c.m.SetCorridor(pos.X, pos.Y)
 		} else {
 			c.m.SetDoor(pos.X, pos.Y)

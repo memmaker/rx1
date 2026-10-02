@@ -61,7 +61,8 @@ func (g *GameState) decrementStatusEffects() {
 }
 
 func (g *GameState) removeDeadAndApplyRegeneration() {
-	healInterval := 2 + (100 / g.Player.GetHealth())
+	// ponytail: Rogue's doctor() heals faster per level; approximated by a shorter interval.
+	healInterval := max(3, 20-2*g.Player.GetLevel())
 	hungerInterval := 300
 
 	g.decrementStatusEffects()

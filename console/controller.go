@@ -9,7 +9,6 @@ import (
 	"path"
 	"rx1/foundation"
 	"rx1/geometry"
-	"rx1/rpg"
 	"rx1/util"
 	"slices"
 	"strings"
@@ -17,8 +16,8 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/gdamore/tcell/v2"
-	"github.com/memmaker/go/cview"
+	"codeberg.org/tslocum/cview"
+	"github.com/gdamore/tcell/v3"
 )
 
 type UIState int
@@ -81,6 +80,9 @@ type UI struct {
 	lastHudStats     map[foundation.HudValue]int
 	lastHP           int       // as last shown in the status bar
 	hpFlashUntil     time.Time // the status bar is drawn inverted until then
+	panes            Panes     // nil: side windows are drawn in the terminal grid
+	paneSent         map[string]string
+	paneRestore      []func() // panes a modal took over, put back when the map is in front again
 }
 
 func (u *UI) OpenVendorMenu(itemsForSale []util.Tuple[foundation.ItemForUI, int], buyItem func(ui foundation.ItemForUI, price int)) {
@@ -383,12 +385,14 @@ func (u *UI) GetMapWindowGridSize() (int, int) {
 func (u *UI) AfterPlayerMoved(moveInfo foundation.MoveInfo) {
 	// the next step waits until this one has been shown
 	if moveInfo.Mode == foundation.PlayerMoveModeRun && u.autoStep != nil {
-		u.AfterAnimations(func() { u.application.QueueEvent(tcell.NewEventKey(tcell.KeyRune, autoExploreRune, 64)) })
+		u.AfterAnimations(func() {
+			time.AfterFunc(autoStepPause, func() { u.application.QueueEvent(tcell.NewEventKey(tcell.KeyRune, string(autoExploreRune), 64)) })
+		})
 		return
 	}
 	if moveInfo.Mode == foundation.PlayerMoveModeRun && u.autoRun {
 		u.AfterAnimations(func() {
-			u.application.QueueEvent(tcell.NewEventKey(tcell.KeyRune, directionToRune(moveInfo.Direction), 64))
+			u.application.QueueEvent(tcell.NewEventKey(tcell.KeyRune, string(directionToRune(moveInfo.Direction)), 64))
 		})
 	}
 }
@@ -830,13 +834,14 @@ outerLoop:
 		screen.Show()
 		var waited time.Duration
 		for waited < u.settings.AnimationDelay {
-			if screen.HasPendingEvent() {
-				ev := screen.PollEvent()
+			select {
+			case ev := <-screen.EventQ():
 				if keyEvent, ok := ev.(*tcell.EventKey); ok {
 					breakingKey = keyEvent
 					u.animator.CancelAll()
 					break outerLoop
 				}
+			default:
 			}
 			time.Sleep(10 * time.Millisecond)
 			waited += 10 * time.Millisecond
@@ -867,14 +872,14 @@ func darkenScreen(screen tcell.Screen) bool {
 }
 
 func darkenScreenLocation(screen tcell.Screen, x int, y int, darkenAmount int32) bool {
-	icon, _, style, _ := screen.GetContent(x, y)
-	fg, bg, _ := style.Decompose()
+	icon, style, _ := screen.Get(x, y)
+	fg, bg := style.GetForeground(), style.GetBackground()
 	fR, fG, fB := fg.RGB()
 	bR, bG, bB := bg.RGB()
 	hadWorkLeft := fR > 0 || fG > 0 || fB > 0 || bR > 0 || bG > 0 || bB > 0
 	newFG := tcell.NewRGBColor(max(0, fR-darkenAmount), max(0, fG-darkenAmount), max(0, fB-darkenAmount))
 	newBG := tcell.NewRGBColor(max(0, bR-darkenAmount), max(0, bG-darkenAmount), max(0, bB-darkenAmount))
-	screen.SetContent(x, y, icon, nil, style.Background(newBG).Foreground(newFG))
+	screen.Put(x, y, icon, style.Background(newBG).Foreground(newFG))
 	return hadWorkLeft
 }
 
@@ -946,7 +951,7 @@ func (u *UI) UpdateLogWindow() {
 		asColoredStrings = append(asColoredStrings, u.ToColoredText(message, fadePercent))
 	}
 
-	u.setColoredText(u.messageLabel, strings.Join(asColoredStrings, "\n"))
+	u.setPane(u.messageLabel, "messages", strings.Join(asColoredStrings, "\n"))
 }
 
 func (u *UI) ToColoredText(h foundation.HiLiteString, intensity float64) string {
@@ -984,7 +989,7 @@ func (u *UI) Print(message foundation.HiLiteString) {
 		return
 	}
 	u.application.QueueUpdateDraw(func() {
-		u.setColoredText(u.messageLabel, u.ToColoredText(message, 1))
+		u.setPane(u.messageLabel, "prompt", u.ToColoredText(message, 1))
 	})
 }
 func (u *UI) StartGameLoop() {
@@ -1042,6 +1047,7 @@ func (u *UI) initCoreUI() {
 	})
 
 	u.pages = cview.NewPanels()
+	u.pages.SetChangedFunc(u.restorePanes)
 
 	u.application.SetRoot(u.pages, true)
 }
@@ -1089,7 +1095,26 @@ func (u *UI) InitDungeonUI() {
 	u.lowerRightPanel.SetWordWrap(true)
 
 	grid := cview.NewGrid()
+	if u.panes != nil { // the side windows live outside the terminal: the map gets all of it
+		grid.SetRows(0)
+		grid.SetColumns(0)
+		grid.AddItem(u.mapWindow, 0, 0, 1, 1, 0, 0, true)
+	} else {
+		u.addClassicPanels(grid)
+	}
 
+	u.mainGrid = grid
+
+	u.pages.AddPanel("main", grid, true, true)
+
+	u.application.SetFocus(grid)
+
+	u.mapOverlay = NewOverlay()
+
+	u.setTheme(u.settings.ThemeFullPath())
+}
+
+func (u *UI) addClassicPanels(grid *cview.Grid) {
 	grid.SetRows(1, 0, 1)
 	grid.SetColumns(u.settings.MapWidth, 0)
 	//SetColumns(30, 0, 30).
@@ -1106,19 +1131,9 @@ func (u *UI) InitDungeonUI() {
 	grid.AddItem(u.rightPanel, 0, 1, 1, 1, logThreshold, panelThreshold, false)
 	grid.AddItem(u.lowerRightPanel, 1, 1, 1, 1, logThreshold, panelThreshold, false)
 	grid.AddItem(u.statusBar, 2, 0, 1, 2, 0, 0, false)
-
-	u.mainGrid = grid
-
-	u.pages.AddPanel("main", grid, true, true)
-
-	u.application.SetFocus(grid)
-
-	u.mapOverlay = NewOverlay()
-
-	u.setTheme(u.settings.ThemeFullPath())
 }
 func (u *UI) handleMainInput(ev *tcell.EventKey) *tcell.EventKey {
-	mod, _, ch := ev.Modifiers(), ev.Key(), ev.Rune()
+	mod, _, ch := ev.Modifiers(), ev.Key(), keyRune(ev)
 	if ev.Key() == tcell.KeyCtrlC {
 		return ev
 	}
@@ -1163,6 +1178,9 @@ func (u *UI) ChooseDirectionForRun() {
 
 // autoExploreRune is the synthetic key event that continues auto-explore
 const autoExploreRune = '0'
+
+// autoStepPause is added between auto-explore steps so the walk is easy to follow
+const autoStepPause = 25 * time.Millisecond
 
 func (u *UI) startAutoExplore() { u.startAutoStep(u.game.AutoExploreStep) }
 
@@ -1228,7 +1246,7 @@ func (u *UI) applyStylingToUI() {
 }
 func (u *UI) setTheme(fileName string) {
 	u.currentTheme = NewThemeFromFile(fileName)
-	u.currentTheme.SetBorders(&cview.Borders)
+	u.currentTheme.SetBorders()
 	u.applyStylingToUI()
 	u.UpdateInventory()
 	u.UpdateVisibleEnemies()
@@ -1329,6 +1347,9 @@ func tcellColorToRGBA(tColor tcell.Color) color.RGBA {
 }
 
 func (u *UI) isRightPanelWidthAtLeast(width int) bool {
+	if u.panes != nil {
+		return true
+	}
 	panelWidth := u.getRightPanelWidth()
 	return panelWidth >= width
 }
@@ -1343,7 +1364,7 @@ func (u *UI) getRightPanelWidth() int {
 func (u *UI) UpdateInventory() {
 	items := u.game.GetInventory()
 	if len(items) == 0 {
-		u.rightPanel.Clear()
+		u.setPane(u.rightPanel, "inventory", "")
 		return
 	}
 	longest := longestInventoryLineWithoutColorCodes(items)
@@ -1379,7 +1400,7 @@ func (u *UI) UpdateInventory() {
 		appendString := getItemName(item, isEquipped)
 		asString = append(asString, appendString)
 	}
-	u.rightPanel.SetText("\n" + strings.Join(asString, "\n"))
+	u.setPane(u.rightPanel, "inventory", "\n"+strings.Join(asString, "\n"))
 }
 
 func IconAsString(icon foundation.TextIcon) string {
@@ -1418,7 +1439,7 @@ func (u *UI) UpdateVisibleEnemies() {
 		enemyLine := fmt.Sprintf(" %s %s %s", iconString, hpBarString, name)
 		asString = append(asString, enemyLine)
 	}
-	u.lowerRightPanel.SetText(strings.Join(asString, "\n"))
+	u.setPane(u.lowerRightPanel, "visible", strings.Join(asString, "\n"))
 }
 
 func (u *UI) FullColorBarFromPercent(currentVal, maxVal, width int) string {
@@ -1439,6 +1460,7 @@ func (u *UI) FullColorBarFromPercent(currentVal, maxVal, width int) string {
 	suffix := strings.Repeat(" ", width-len(valString)-xForCenter)
 	barString := fmt.Sprintf("%s%s%s", prefix, valString, suffix)
 
+	colorChangeIndex = min(max(colorChangeIndex, 0), len(barString)) // HP below zero on death, or a value wider than the bar
 	barString = colorCode + barString[:colorChangeIndex] + darkGrayCode + barString[colorChangeIndex:] + "[-:-]"
 	return barString
 }
@@ -1460,6 +1482,9 @@ func (u *UI) RuneBarFromPercent(icon rune, percent float64, width int) string {
 	return colorCode + strings.Repeat(string(icon), repeats) + "[-]" + strings.Repeat(" ", width-repeats)
 }
 func (u *UI) isStatusBarMultiLine() bool {
+	if u.panes != nil {
+		return true
+	}
 	_, h := u.application.GetScreenSize()
 	_, hNeeded := u.settings.GetMinTerminalSize()
 	return h >= hNeeded+1
@@ -1519,7 +1544,7 @@ func (u *UI) UpdateStats() {
 	if time.Now().Before(u.hpFlashUntil) {
 		attributes = ""
 	}
-	u.statusBar.SetText(fmt.Sprintf("%s%s[-:-:-]", attributes, statusStr))
+	u.setPane(u.statusBar, "status", fmt.Sprintf("%s%s[-:-:-]", attributes, statusStr))
 
 	if !u.isAnimationFrame {
 		u.lastHudStats = statusValues
@@ -1579,19 +1604,17 @@ func (u *UI) getSingleLineStatus(statusValues map[foundation.HudValue]int, flags
 	goldStr := fmt.Sprintf("Gold: %-5d", gold)
 	goldStr = u.colorIfDiff(goldStr, foundation.HudGold, gold)
 
-	melee := statusValues[foundation.HudMeleeSkill]
-	meleeVal := fmt.Sprintf("%d", melee)
-	meleeStr := fmt.Sprintf("M: %-2s", meleeVal)
-	meleeStr = u.colorIfDiff(meleeStr, foundation.HudMeleeSkill, melee)
+	level := statusValues[foundation.HudLevel]
+	levelStr := u.colorIfDiff(fmt.Sprintf("Lvl: %-2d", level), foundation.HudLevel, level)
 
-	ranged := statusValues[foundation.HudRangedSkill]
-	rangedValStr := fmt.Sprintf("%d", ranged)
-	rangedStr := fmt.Sprintf("R: %-2s", rangedValStr)
-	rangedStr = u.colorIfDiff(rangedStr, foundation.HudRangedSkill, ranged)
+	str := statusValues[foundation.HudStrength]
+	strStr := u.colorIfDiff(fmt.Sprintf("Str: %-2d", str), foundation.HudStrength, str)
 
-	damageResistance := statusValues[foundation.HudDamageResistance]
-	armorStr := fmt.Sprintf("DR: %-3d", damageResistance)
-	armorStr = u.colorIfDiff(armorStr, foundation.HudDamageResistance, damageResistance)
+	ac := statusValues[foundation.HudArmorClass]
+	armorStr := u.colorIfDiff(fmt.Sprintf("AC: %-2d", ac), foundation.HudArmorClass, ac)
+
+	exp := statusValues[foundation.HudExperience]
+	expStr := u.colorIfDiff(fmt.Sprintf("Exp: %-5d", exp), foundation.HudExperience, exp)
 
 	dLevel := statusValues[foundation.HudDungeonLevel]
 	dLevelStr := fmt.Sprintf("DL: %-2d", dLevel)
@@ -1616,9 +1639,9 @@ func (u *UI) getSingleLineStatus(statusValues map[foundation.HudValue]int, flags
 
 		flagString := FlagStringShort(flags)
 
-		statusStr = fmt.Sprintf("%s %s %s %s %s %s %s %s %s", goldStr, hpStr, fpStr, meleeStr, rangedStr, armorStr, dLevelStr, turnsStr, flagString)
+		statusStr = fmt.Sprintf("%s %s %s %s %s %s %s %s %s %s", dLevelStr, goldStr, hpStr, fpStr, strStr, armorStr, levelStr, expStr, turnsStr, flagString)
 	} else {
-		statusStr = fmt.Sprintf("%s %s %s %s %s %s", goldStr, meleeStr, rangedStr, armorStr, dLevelStr, turnsStr)
+		statusStr = fmt.Sprintf("%s %s %s %s %s %s %s", dLevelStr, goldStr, strStr, armorStr, levelStr, expStr, turnsStr)
 	}
 
 	width, _ := u.application.GetScreenSize()
@@ -1647,6 +1670,9 @@ func (u *UI) openInventory(items []foundation.ItemForUI) *TextInventory {
 	list.SetCloseHandler(func() {
 		u.pages.HidePanel(panelName)
 	})
+	if u.panes != nil { // the menu takes over the Inventory window instead of covering the map
+		u.drawToPane(list.Box, "inventory", func() int { return list.listWidth + 2 }, list.menuHeight, list.drawInside, u.UpdateInventory)
+	}
 	u.pages.AddPanel(panelName, list, true, true)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(list)
@@ -1824,11 +1850,11 @@ func (u *UI) closeModal() {
 
 func (u *UI) yesNoReceiver(yes, no func()) func(event *tcell.EventKey) *tcell.EventKey {
 	return func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Rune() == 'y' || event.Rune() == 'Y' {
+		if keyRune(event) == 'y' || keyRune(event) == 'Y' {
 			yes()
 			return nil
 		}
-		if event.Rune() == 'n' || event.Rune() == 'N' {
+		if keyRune(event) == 'n' || keyRune(event) == 'N' {
 			no()
 			return nil
 		}
@@ -1846,7 +1872,7 @@ func (u *UI) popOnAnyKeyWithNotification(currentPage string, onClose func()) fun
 
 func (u *UI) popOnSpaceWithNotification(currentPage string, onClose func()) func(event *tcell.EventKey) *tcell.EventKey {
 	return func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Rune() == ' ' {
+		if keyRune(event) == ' ' {
 			u.pages.HidePanel(currentPage)
 			onClose()
 			return nil
@@ -2105,7 +2131,9 @@ func (u *UI) onTerminalResized(width int, height int) {
 	}
 	tSizeX, tSizeY := u.settings.GetMinTerminalSize()
 	u.application.QueueUpdateDraw(func() {
-		if height <= tSizeY {
+		if u.panes != nil {
+			// map-only grid: nothing to rearrange
+		} else if height <= tSizeY {
 			u.mainGrid.SetRows(1, 0, 1)
 			u.messageLabel.SetScrollable(false)
 			u.messageLabel.SetScrollBarVisibility(cview.ScrollBarNever)
@@ -2120,7 +2148,7 @@ func (u *UI) onTerminalResized(width int, height int) {
 			u.messageLabel.SetScrollBarVisibility(cview.ScrollBarAuto)
 		}
 		u.pages.SetRect(0, 0, width, height)
-		if width < tSizeX || height < tSizeY {
+		if u.panes == nil && (width < tSizeX || height < tSizeY) { // panes: the map window scrolls at any size
 			u.tooSmall = true
 			view := cview.NewTextView()
 			view.SetText(fmt.Sprintf("Min. terminal size is %dx%d", tSizeX, tSizeY))
@@ -2231,7 +2259,7 @@ func (u *UI) mapLookup(loc geometry.Point) (foundation.TextIcon, bool) {
 		if u.game.IsLit(loc) {
 			factor = 0.5
 		}
-		return scaleIcon(u.getIconForMap(u.game.MapAt(loc)), factor, color.RGBA{255, 255, 255, 255}), true
+		return scaleIcon(u.mapIconAt(loc), factor, color.RGBA{255, 255, 255, 255}), true
 	}
 	return foundation.TextIcon{}, false
 }
@@ -2239,7 +2267,8 @@ func (u *UI) mapLookup(loc geometry.Point) (foundation.TextIcon, bool) {
 // applyLight dims and tints a visible tile by the player's light, lit rooms are left alone
 func (u *UI) applyLight(icon foundation.TextIcon, loc geometry.Point) foundation.TextIcon {
 	light, active := u.game.GetPlayerLight()
-	if !active || u.game.IsLit(loc) {
+	glow, glows := u.game.GlowAt(loc)
+	if !active || (u.game.IsLit(loc) && !glows) {
 		return icon
 	}
 	d := geometry.Distance(u.game.GetPlayerPosition(), loc)
@@ -2247,6 +2276,13 @@ func (u *UI) applyLight(icon foundation.TextIcon, loc geometry.Point) foundation
 	tint := light.Color
 	if light.Radius == 0 {
 		tint = color.RGBA{255, 255, 255, 255}
+	}
+	if glows { // Brogue: the glow of lava and fungus, plus the player's light where it reaches
+		if !foundation.LightReaches(geometry.DistanceSquared(u.game.GetPlayerPosition(), loc), light.Radius) {
+			factor = 0
+		}
+		add := func(g, t uint8) uint8 { return uint8(min(float64(g)+float64(t)*factor, 255)) }
+		return scaleIcon(icon, 1, color.RGBA{add(glow.R, tint.R), add(glow.G, tint.G), add(glow.B, tint.B), 255})
 	}
 	return scaleIcon(icon, factor, tint)
 }
@@ -2281,133 +2317,13 @@ func (u *UI) visibleLookup(loc geometry.Point) (foundation.TextIcon, bool) {
 		object := u.game.ObjectAt(loc)
 		return u.getIconForObject(object), true
 	}
-	icon := u.getIconForMap(u.game.MapAt(loc))
+	icon := u.mapIconAt(loc)
 	if u.game.ObjectAt(loc) != -1 { // a trap not found yet: the foreground of its floor is darker
 		bg := icon.Bg
 		icon = scaleIcon(icon, u.currentTheme.hiddenTrapBrightness, color.RGBA{255, 255, 255, 255})
 		icon.Bg = bg
 	}
 	return icon, true
-}
-
-func (u *UI) ShowCharacterSheet() {
-	var attributeActions []foundation.MenuItem
-
-	statList := []rpg.Stat{
-		rpg.Strength,
-		rpg.Dexterity,
-		rpg.Intelligence,
-		rpg.Health,
-		rpg.BasicSpeed,
-		rpg.HitPoints,
-		rpg.FatiguePoints,
-		rpg.Perception,
-		rpg.Will,
-	}
-	for _, s := range statList {
-		statInList := s
-		attributeActions = append(attributeActions, foundation.MenuItem{
-			Name: fmt.Sprintf("+ %s", s.ToString()),
-			Action: func() {
-				u.game.IncreaseAttributeLevel(statInList)
-				u.showCharacterActions(attributeActions)
-			},
-		})
-	}
-
-	var skillActions []foundation.MenuItem
-
-	skillList := []rpg.SkillName{
-		rpg.SkillNameBrawling,
-		rpg.SkillNameMeleeWeapons,
-		rpg.SkillNameShield,
-		rpg.SkillNameThrowing,
-		rpg.SkillNameMissileWeapons,
-	}
-
-	for _, s := range skillList {
-		skillInList := s
-		skillActions = append(skillActions, foundation.MenuItem{
-			Name: fmt.Sprintf("+ %s", skillInList),
-			Action: func() {
-				u.game.IncreaseSkillLevel(skillInList)
-				u.showCharacterActions(skillActions)
-			},
-		})
-
-	}
-
-	baseActions := []foundation.MenuItem{
-		{
-			Name:       "Close",
-			Action:     func() {},
-			CloseMenus: true,
-		},
-		{
-			Name: "Change base Attributes",
-			Action: func() {
-				u.showCharacterActions(attributeActions)
-			},
-			CloseMenus: true,
-		},
-
-		{
-			Name: "Change Skills",
-			Action: func() {
-				u.showCharacterActions(skillActions)
-			},
-			CloseMenus: true,
-		},
-	}
-
-	u.showCharacterActions(baseActions)
-}
-
-func (u *UI) showCharacterActions(actions []foundation.MenuItem) {
-	list := cview.NewList()
-	u.applyListStyle(list)
-
-	list.SetSelectedFunc(func(index int, listItem *cview.ListItem) {
-		action := actions[index]
-		list.HideContextMenu(func(primitive cview.Primitive) {
-			u.application.SetFocus(primitive)
-		})
-		if action.CloseMenus {
-			u.pages.SetCurrentPanel("main")
-		}
-		action.Action()
-	})
-
-	longestItem := 0
-	for index, a := range actions {
-		action := a
-		shortcut := foundation.ShortCutFromIndex(index)
-		listItem := cview.NewListItem(action.Name)
-		listItem.SetShortcut(shortcut)
-		list.AddItem(listItem)
-		itemLength := len(action.Name) + 4
-		longestItem = max(longestItem, itemLength)
-	}
-
-	textView, playerInfo := u.charSheetView()
-	u.makeSideBySideModal("textModal", textView, list, len(playerInfo), longestLineWithoutColorCodes(playerInfo))
-}
-
-func (u *UI) charSheetView() (*cview.TextView, []string) {
-	playerInfo := u.game.GetCharacterSheet()
-	textView := cview.NewTextView()
-	textView.SetBorder(true)
-
-	fg := u.currentTheme.GetUIColorForTcell(UIColorUIForeground)
-	bg := u.currentTheme.GetUIColorForTcell(UIColorUIBackground)
-
-	textView.SetTextColor(fg)
-	textView.SetBorderColor(fg)
-	textView.SetBackgroundColor(bg)
-	textView.SetBorderColorFocused(fg)
-	textView.SetBorderColor(fg) // TODO: darker style here..
-	u.setColoredText(textView, strings.Join(playerInfo, "\n"))
-	return textView, playerInfo
 }
 
 func (u *UI) onRightPanelClicked(clickPos geometry.Point) {
@@ -2607,4 +2523,50 @@ func (u *UI) GetKeysForCommandAsString(layer KeyLayer, command string) string {
 func (u *UI) SetScreen(s tcell.Screen) {
 	u.phosphor.Screen = s
 	u.application.SetScreen(&u.phosphor)
+}
+
+func (u *UI) ShowCharacterSheet() {
+	u.openTextModal(u.game.GetCharacterSheet())
+}
+
+// roomWalls are the walls drawn by the directions they go on (see wallByArms in game).
+var roomWalls = map[foundation.TileType]bool{
+	foundation.TileRoomWallHorizontal: true, foundation.TileRoomWallVertical: true,
+	foundation.TileRoomWallCornerTopLeft: true, foundation.TileRoomWallCornerTopRight: true,
+	foundation.TileRoomWallCornerBottomLeft: true, foundation.TileRoomWallCornerBottomRight: true,
+	foundation.TileWallTJunctionTop: true, foundation.TileWallTJunctionBottom: true,
+	foundation.TileWallTJunctionLeft: true, foundation.TileWallTJunctionRight: true, foundation.TileWallCross: true,
+}
+
+// mapIconAt is the icon of the map tile at loc. A theme with TileWallFull and TileWallHalf draws a room wall
+// by what is below it: full over more wall (or rock) and over a door, which looks better; half over anything else.
+func (u *UI) mapIconAt(loc geometry.Point) foundation.TextIcon {
+	tile := u.game.MapAt(loc)
+	full, hasFull := u.currentTheme.iconsForMap[foundation.TileWallFull]
+	half, hasHalf := u.currentTheme.iconsForMap[foundation.TileWallHalf]
+	if !roomWalls[tile] || !hasFull || !hasHalf {
+		return u.getIconForMap(tile)
+	}
+	if below := u.game.MapAt(loc.Add(geometry.Point{Y: 1})); below == foundation.TileEmpty || roomWalls[below] || isRock(below) || isDoor(below) {
+		return full
+	}
+	return half
+}
+
+func isDoor(tile foundation.TileType) bool {
+	switch tile {
+	case foundation.TileDoorOpen, foundation.TileDoorClosed, foundation.TileDoorBroken, foundation.TileDoorLocked:
+		return true
+	}
+	return false
+}
+
+func isRock(tile foundation.TileType) bool {
+	switch tile {
+	case foundation.TileWall, foundation.TileCorridorWall, foundation.TileCorridorWallHorizontal, foundation.TileCorridorWallVertical,
+		foundation.TileCorridorWallCornerTopLeft, foundation.TileCorridorWallCornerTopRight,
+		foundation.TileCorridorWallCornerBottomLeft, foundation.TileCorridorWallCornerBottomRight:
+		return true
+	}
+	return false
 }

@@ -8,7 +8,7 @@ import (
 	"rx1/geometry"
 	"slices"
 
-	"github.com/memmaker/go/cview"
+	"codeberg.org/tslocum/cview"
 )
 
 type Inventory struct {
@@ -208,7 +208,7 @@ func SortInventory(stacks []*InventoryStack) {
 			return cmp.Compare(expectedDamageI, expectedDamageJ)
 		}
 		if itemI.IsArmor() && itemJ.IsArmor() {
-			return cmp.Compare(itemI.GetArmor().GetDamageResistanceWithPlus(), itemJ.GetArmor().GetDamageResistanceWithPlus())
+			return cmp.Compare(itemI.GetArmor().GetProtection(), itemJ.GetArmor().GetProtection())
 		}
 		return cmp.Compare(itemI.Name(), itemJ.Name())
 	})

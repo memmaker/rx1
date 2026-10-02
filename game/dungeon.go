@@ -2,6 +2,8 @@ package game
 
 import (
 	"bufio"
+	"image/color"
+	"math"
 	"math/rand"
 	"os"
 	"path"
@@ -184,6 +186,19 @@ func (g *GameState) GotoSecretLevel() {
 	g.msg(foundation.Msg("You enter a vast, forgotten part of the dungeon."))
 }
 
+// styleOfLevel is the planned style of the level, or the one the wizard menu asked for, once.
+func (g *GameState) styleOfLevel(level int) dungen.LevelStyle {
+	if g.wizardLevelStyle != nil {
+		style := *g.wizardLevelStyle
+		g.wizardLevelStyle = nil
+		return style
+	}
+	if level >= 1 && level <= len(g.levelStyles) {
+		return g.levelStyles[level-1]
+	}
+	return dungen.StyleRogue
+}
+
 func (g *GameState) gotoLevel(level int, stairs StairsInLevel, placePlayerOnStairs bool, secret bool) {
 	if g.gridMap != nil {
 		g.gridMap.RemoveActor(g.Player)
@@ -195,13 +210,11 @@ func (g *GameState) gotoLevel(level int, stairs StairsInLevel, placePlayerOnStai
 	g.currentDungeonLevel = level
 	if g.deepestDungeonLevelPlayerReached < level {
 		g.deepestDungeonLevelPlayerReached = level
-		if level > 1 {
-			g.newLevelReached(level)
-		}
 	}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	var dungeon *dungen.DungeonMap
+	style := dungen.StyleRogue
 	if secret {
 		width, height := 2*g.config.MapWidth, 3*g.config.MapHeight
 		generator := dungen.NewMegaDungeonGenerator(random, width*height/40) // some 220 rooms
@@ -210,8 +223,10 @@ func (g *GameState) gotoLevel(level int, stairs StairsInLevel, placePlayerOnStai
 		rooms := dungeon.AllRooms()
 		dungeon.SetStairsUp(rooms[random.Intn(len(rooms))].GetRandomAbsoluteFloorPosition(random))
 	} else {
-		dungeon = dungen.NewRogueGenerator(random, g.config.MapWidth, g.config.MapHeight, level).Generate()
+		style = g.styleOfLevel(level)
+		dungeon = dungen.Generate(style, random, g.config.MapWidth, g.config.MapHeight, level)
 	}
+	g.levelStyle = style
 	g.levelsWithoutFood++
 
 	mapWidth, mapHeight := dungeon.GetSize()
@@ -222,7 +237,7 @@ func (g *GameState) gotoLevel(level int, stairs StairsInLevel, placePlayerOnStai
 	g.watchActors(newMap)
 	newMap.SetCardinalMovementOnly(!g.config.DiagonalMovementEnabled)
 
-	stairsUp, stairsDown := g.decorateMapWithTiles(newMap, dungeon, stairs)
+	stairsUp, stairsDown := g.decorateMapWithTiles(newMap, dungeon, stairs, style == dungen.StyleCave)
 	g.secretStairs = geometry.Point{}
 	if !secret && level == g.secretLevelDepth && !g.secretLevelVisited {
 		g.hideSecretStairs(random, newMap, dungeon)
@@ -239,6 +254,9 @@ func (g *GameState) gotoLevel(level int, stairs StairsInLevel, placePlayerOnStai
 	}
 
 	g.spawnEntities(random, level, newMap, dungeon)
+	if !secret {
+		g.makeSpecialRoom(random, level, newMap, dungeon)
+	}
 
 	spawnPos := g.Player.Position()
 
@@ -263,11 +281,16 @@ func (g *GameState) gotoLevel(level int, stairs StairsInLevel, placePlayerOnStai
 func (g *GameState) hideSecretStairs(random *rand.Rand, newMap *gridmap.GridMap[*Actor, *Item, *Object], dungeon *dungen.DungeonMap) {
 	var corridors []geometry.Point
 	mapWidth, mapHeight := dungeon.GetSize()
-	for y := 0; y < mapHeight; y++ {
-		for x := 0; x < mapWidth; x++ {
-			if pos := (geometry.Point{X: x, Y: y}); dungeon.GetTile(x, y) == dungen.Corridor && newMap.IsTileWalkable(pos) {
-				corridors = append(corridors, pos)
+	for _, hideIn := range []dungen.DungeonTile{dungen.Corridor, dungen.Room} { // a cave has no corridors
+		for y := 0; y < mapHeight; y++ {
+			for x := 0; x < mapWidth; x++ {
+				if pos := (geometry.Point{X: x, Y: y}); dungeon.GetTile(x, y) == hideIn && newMap.IsTileWalkable(pos) {
+					corridors = append(corridors, pos)
+				}
 			}
+		}
+		if len(corridors) > 0 {
+			break
 		}
 	}
 	if len(corridors) == 0 {
@@ -305,7 +328,7 @@ var wallByArms = [16]foundation.TileType{
 	armNorth | armEast | armSouth | armWest: foundation.TileWallCross,
 }
 
-func (g *GameState) decorateMapWithTiles(newMap *gridmap.GridMap[*Actor, *Item, *Object], dungeon *dungen.DungeonMap, stairs StairsInLevel) (geometry.Point, geometry.Point) {
+func (g *GameState) decorateMapWithTiles(newMap *gridmap.GridMap[*Actor, *Item, *Object], dungeon *dungen.DungeonMap, stairs StairsInLevel, cave bool) (geometry.Point, geometry.Point) {
 	mapWidth, mapHeight := dungeon.GetSize()
 
 	floorTile := gridmap.Tile{
@@ -348,6 +371,23 @@ func (g *GameState) decorateMapWithTiles(newMap *gridmap.GridMap[*Actor, *Item, 
 		IsWalkable:         true,
 		IsTransparent:      true,
 	}
+	if cave {
+		floorTile.Feature = foundation.TileCaveFloor
+		stairsUp.Feature = foundation.TileCaveStairsUp
+		stairsDown.Feature = foundation.TileCaveStairsDown
+	}
+	// Brogue's lakes and fungus
+	brogueTiles := map[dungen.DungeonTile]gridmap.Tile{
+		dungen.DeepWater:    {Feature: foundation.TileWater, DefinedDescription: "deep water", IsTransparent: true},
+		dungen.ShallowWater: {Feature: foundation.TileShallowWater, DefinedDescription: "shallow water", IsWalkable: true, IsTransparent: true},
+		dungen.Lava:         {Feature: foundation.TileLava, DefinedDescription: "lava", IsTransparent: true},
+		dungen.Chasm:        {Feature: foundation.TileChasm, DefinedDescription: "a chasm", IsWalkable: true, IsTransparent: true},
+		dungen.ChasmEdge:    {Feature: foundation.TileChasmEdge, DefinedDescription: "the brink of a chasm", IsWalkable: true, IsTransparent: true},
+		dungen.Bridge:       {Feature: foundation.TileBridge, DefinedDescription: "a rickety rope bridge", IsWalkable: true, IsTransparent: true},
+		dungen.Fungus:       {Feature: foundation.TileFungus, DefinedDescription: "luminescent fungus", IsWalkable: true, IsTransparent: true},
+		dungen.FungusForest: {Feature: foundation.TileFungusForest, DefinedDescription: "a luminescent fungal forest", IsWalkable: true},
+	}
+	g.glowing = make(map[geometry.Point]color.RGBA)
 	newMap.FillTile(corridorWall)
 
 	var stairsUpLoc geometry.Point
@@ -356,7 +396,12 @@ func (g *GameState) decorateMapWithTiles(newMap *gridmap.GridMap[*Actor, *Item, 
 		for x := 0; x < mapWidth; x++ {
 			tile := dungeon.GetTile(x, y)
 			pos := geometry.Point{X: x, Y: y}
-			if tile == dungen.Room {
+			if brogueTile, ok := brogueTiles[tile]; ok {
+				newMap.SetTile(pos, brogueTile)
+				if glow, ok := glowColors[tile]; ok {
+					g.lightUpAround(pos, glow, mapWidth, mapHeight)
+				}
+			} else if tile == dungen.Room {
 				newMap.SetTile(pos, floorTile)
 			} else if tile == dungen.Corridor {
 				newMap.SetTile(pos, corridorTile)
@@ -375,32 +420,57 @@ func (g *GameState) decorateMapWithTiles(newMap *gridmap.GridMap[*Actor, *Item, 
 	// decorate walls & light up the rooms
 	wallArms := make(map[geometry.Point]int) // per wall position: where the walls of all its rooms go on, see wallByArms
 	for _, room := range dungeon.AllRooms() {
-		for _, pos := range room.GetWalls() {
-			floorAt := func(dx, dy int) bool { return room.FloorContains(pos.Add(geometry.Point{X: dx, Y: dy})) }
-			switch {
-			case floorAt(1, 0) || floorAt(-1, 0):
-				wallArms[pos] |= armNorth | armSouth
-			case floorAt(0, 1) || floorAt(0, -1):
-				wallArms[pos] |= armEast | armWest
-			case floorAt(1, 1): // the corners
-				wallArms[pos] |= armSouth | armEast
-			case floorAt(-1, 1):
-				wallArms[pos] |= armSouth | armWest
-			case floorAt(1, -1):
-				wallArms[pos] |= armNorth | armEast
-			case floorAt(-1, -1):
-				wallArms[pos] |= armNorth | armWest
+		walls := room.GetWalls()
+		ring := make(map[geometry.Point]bool, len(walls))
+		for _, pos := range walls {
+			ring[pos] = true
+		}
+		for door := range room.Doors() {
+			ring[door] = true
+		}
+		for _, pos := range walls {
+			arms := 0
+			for arm, dir := range []geometry.Point{{Y: -1}, {X: 1}, {Y: 1}, {X: -1}} {
+				if ring[pos.Add(dir)] {
+					arms |= 1 << arm
+				}
 			}
+			switch { // the end of a wall that goes on past a door or a gap
+			case arms&(armEast|armWest) == 0:
+				arms |= armNorth | armSouth
+			case arms&(armNorth|armSouth) == 0:
+				arms |= armEast | armWest
+			}
+			wallArms[pos] |= arms
 		}
 	}
 	for pos, arms := range wallArms {
 		newMap.SetTile(pos, gridmap.Tile{Feature: wallByArms[arms], DefinedDescription: "wall"})
 	}
+	var lakeShore []geometry.Point
 	for _, room := range dungeon.AllRooms() {
 		if room.IsLit() {
 			for _, pos := range room.GetAbsoluteRoomTiles() {
 				newMap.SetLit(pos, true)
+				lakeShore = append(lakeShore, pos)
 			}
+		}
+	}
+	// a lake is not part of its room: it is lit with the lit room it touches, all of it
+	isLake := func(p geometry.Point) bool {
+		switch dungeon.GetTileAt(p) {
+		case dungen.DeepWater, dungen.ShallowWater, dungen.Chasm, dungen.ChasmEdge, dungen.Bridge:
+			return true
+		}
+		return false
+	}
+	for len(lakeShore) > 0 {
+		pos := lakeShore[len(lakeShore)-1]
+		lakeShore = lakeShore[:len(lakeShore)-1]
+		var nb geometry.Neighbors
+		for _, n := range nb.All(pos, func(n geometry.Point) bool { return dungeon.Contains(n) && isLake(n) && !newMap.IsTileLit(n) }) {
+			newMap.SetLit(n, true)
+			lakeShore = append(lakeShore, n)
 		}
 	}
 	// secrets look like wall or rock until searched for
@@ -432,5 +502,41 @@ func ReadFileAsOneStringWithoutNewLines(filename string) string {
 // watchActors makes the UI follow the actors of a new map.
 func (g *GameState) watchActors(newMap *gridmap.GridMap[*Actor, *Item, *Object]) {
 	g.ui.ForgetActors()
-	newMap.SetActorListener(func(actor *Actor, onMap bool) { g.ui.ActorMoved(actor, actor.Position(), onMap) })
+	newMap.SetActorListener(func(actor *Actor, onMap bool) {
+		g.ui.ActorMoved(actor, actor.Position(), onMap)
+		if onMap && actor != g.Player && newMap.GetCell(actor.Position()).TileType.IsChasm() && actor.IsAlive() {
+			// gone for good, as through a trap door
+			actor.TakeDamage(actor.GetHitPoints())
+			if g.canPlayerSee(actor.Position()) {
+				g.msg(foundation.HiLite("%s plunges into the chasm", actor.Name()))
+			}
+		}
+	})
+}
+
+// fungusLightRadius is Brogue's FUNGUS_LIGHT.
+const fungusLightRadius = 3
+
+// glowColors are the colours of Brogue's FUNGUS_LIGHT, FUNGUS_FOREST_LIGHT and LAVA_LIGHT, at full strength.
+var glowColors = map[dungen.DungeonTile]color.RGBA{
+	dungen.Fungus:       {60, 255, 120, 255},
+	dungen.FungusForest: {60, 255, 120, 255},
+	dungen.Lava:         {255, 110, 30, 255},
+}
+
+// lightUpAround adds the light of the glowing tile at pos to the tiles around it, fading with distance;
+// lights add up as in Brogue, up to white.
+func (g *GameState) lightUpAround(pos geometry.Point, glow color.RGBA, mapWidth, mapHeight int) {
+	for y := -fungusLightRadius; y <= fungusLightRadius; y++ {
+		for x := -fungusLightRadius; x <= fungusLightRadius; x++ {
+			p := pos.Add(geometry.Point{X: x, Y: y})
+			if x*x+y*y > fungusLightRadius*fungusLightRadius || p.X < 0 || p.Y < 0 || p.X >= mapWidth || p.Y >= mapHeight {
+				continue
+			}
+			f := 1 - math.Sqrt(float64(x*x+y*y))/(fungusLightRadius+1) // linear, as Brogue's lights fade
+			add := func(a, b uint8) uint8 { return uint8(min(float64(a)+float64(b)*f, 255)) }
+			c := g.glowing[p]
+			g.glowing[p] = color.RGBA{add(c.R, glow.R), add(c.G, glow.G), add(c.B, glow.B), 255}
+		}
+	}
 }

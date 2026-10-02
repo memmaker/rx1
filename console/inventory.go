@@ -7,8 +7,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/gdamore/tcell/v2"
-	"github.com/memmaker/go/cview"
+	"codeberg.org/tslocum/cview"
+	"github.com/gdamore/tcell/v3"
 )
 
 type TextInventory struct {
@@ -39,7 +39,11 @@ func (i *TextInventory) SetContextMenu(open func(item foundation.ItemForUI)) {
 func (i *TextInventory) SetLineColor(lineColor func(foundation.ItemCategory) color.RGBA) {
 	i.lineColor = lineColor
 }
-func (i *TextInventory) drawInside(screen tcell.Screen, x int, y int, width int, height int) (int, int, int, int) {
+
+// menuHeight is the rows the menu draws: the boxed list plus the key help below it.
+func (i *TextInventory) menuHeight() int { return i.listHeight + 2 + len(i.infoLines()) }
+
+func (i *TextInventory) infoLines() []string {
 	var equipRunes, unequipRunes, useRunes, dropRunes []rune
 	for _, item := range i.items {
 		shortcut := item.Shortcut()
@@ -71,10 +75,15 @@ func (i *TextInventory) drawInside(screen tcell.Screen, x int, y int, width int,
 			infoLines = append(infoLines, fmt.Sprintf("[%s] Drop", strings.ToUpper(string(dropRunes))))
 		}
 	}
+	return infoLines
+}
+
+func (i *TextInventory) drawInside(screen tcell.Screen, x int, y int, width int, height int) (int, int, int, int) {
+	infoLines := i.infoLines()
 	// align top right, so the names sit exactly where the closed inventory shows them
 	startX := x + width - i.listWidth - 2
 	startY := y
-	fg, _, _ := i.style.Decompose()
+	fg := i.style.GetForeground()
 	runes := []rune{cview.Borders.Horizontal, cview.Borders.Vertical, cview.Borders.TopLeft, cview.Borders.TopRight, cview.Borders.BottomRight, cview.Borders.BottomLeft}
 	drawBackgroundAndBorderWithTitleForInventory(screen, startX, startY, i.listWidth+2, i.listHeight+2, i.ourTitle, i.style, runes)
 
@@ -178,12 +187,12 @@ func (i *TextInventory) handleInput(event *tcell.EventKey) *tcell.EventKey {
 			}
 			return nil
 		}
-		if event.Key() == tcell.KeyRune && event.Rune() == ' ' && i.contextMenu != nil {
+		if event.Key() == tcell.KeyRune && keyRune(event) == ' ' && i.contextMenu != nil {
 			i.contextMenu(i.items[i.cursor])
 			return nil
 		}
 	}
-	runeReceived := event.Rune()
+	runeReceived := keyRune(event)
 	// to upper
 	modCtrl := event.Modifiers() == tcell.ModAlt || event.Modifiers() == tcell.ModCtrl || event.Modifiers() == tcell.ModMeta
 	if modCtrl { // 1 == a, 2 == b, etc

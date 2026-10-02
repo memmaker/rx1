@@ -114,7 +114,7 @@ func (g *GameState) aiGaze(enemy *Actor) bool {
 		return false
 	}
 	enemy.GetFlags().Set(foundation.FlagGazed)
-	if _, result, _ := rpg.SuccessRoll(g.Player.GetWillpower()); result.IsSuccess() {
+	if rpg.Save(g.Player.GetLevel(), rpg.VsMagic) {
 		g.msg(foundation.HiLite("You avoid the gaze of %s", enemy.Name()))
 		return true
 	}

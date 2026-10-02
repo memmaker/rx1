@@ -64,9 +64,25 @@ func NewProjectileAnimation(path []geometry.Point, icon foundation.TextIcon, loo
 		icon:   icon,
 		lookup: lookup,
 		drawables: map[geometry.Point]foundation.TextIcon{
-			path[0]: icon,
+			path[0]: withTileBg(icon, path[0], lookup),
 		},
 	}
+}
+
+// withTileBg draws the icon on the background of the map tile at loc.
+// A negative rune keeps the tile glyph and uses the icon's background instead.
+func withTileBg(icon foundation.TextIcon, loc geometry.Point, lookup func(loc geometry.Point) (foundation.TextIcon, bool)) foundation.TextIcon {
+	if lookup == nil {
+		return icon
+	}
+	tile, exists := lookup(loc)
+	if !exists {
+		return icon
+	}
+	if icon.Rune < 0 {
+		return tile.WithBg(icon.Bg)
+	}
+	return icon.WithBg(tile.Bg)
 }
 
 func (p *ProjectileAnimation) GetPriority() int {
@@ -89,27 +105,13 @@ func (p *ProjectileAnimation) NextFrame() {
 		p.onFinishedOrCancelled()
 		return
 	}
-	drawIcon := p.icon
-	if p.icon.Rune < 0 && p.lookup != nil {
-		icon, exists := p.lookup(p.path[p.currentPathIndex])
-		if exists {
-			drawIcon = icon.WithBg(p.icon.Bg)
-		}
-	}
-	p.drawables[p.path[p.currentPathIndex]] = drawIcon
+	p.drawables[p.path[p.currentPathIndex]] = withTileBg(p.icon, p.path[p.currentPathIndex], p.lookup)
 
 	if p.currentPathIndex > 0 && p.trail != nil {
 		trailLength := min(len(p.trail), p.currentPathIndex)
 		for i := 0; i < trailLength; i++ {
 			pathPos := p.path[p.currentPathIndex-i-1]
-			trailIcon := p.trail[i]
-			if trailIcon.Rune < 0 && p.lookup != nil {
-				icon, exists := p.lookup(pathPos)
-				if exists {
-					trailIcon = icon.WithBg(trailIcon.Bg)
-				}
-			}
-			p.drawables[pathPos] = trailIcon
+			p.drawables[pathPos] = withTileBg(p.trail[i], pathPos, p.lookup)
 		}
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"rx1/foundation"
 	"strings"
 
-	"github.com/memmaker/go/cview"
+	"codeberg.org/tslocum/cview"
 )
 
 // LoadDocuments turns the lore texts into readable floor items:

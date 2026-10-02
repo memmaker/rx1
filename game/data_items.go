@@ -27,13 +27,14 @@ const (
 	ItemTypeCrossbow
 	ItemTypeBolt
 	ItemTypeDart
+	ItemTypeRapier
+	ItemTypeWhip
 )
 
 type WeaponDef struct {
 	DamageDice          rpg.Dice
 	Type                WeaponType
 	LaunchedWithType    WeaponType
-	SkillUsed           rpg.SkillName
 	ShotMaxRange        int
 	ShotMinRange        int
 	ShotHalfDamageRange int
@@ -45,8 +46,7 @@ func (w WeaponDef) IsValid() bool {
 }
 
 type ArmorDef struct {
-	DamageResistance int
-	Encumbrance      rpg.Encumbrance
+	Protection int
 }
 
 type ItemDef struct {
@@ -72,9 +72,6 @@ type ItemDef struct {
 
 	AlwaysIDOnUse bool
 	EquipFlag     foundation.ActorFlag
-
-	Skill      rpg.SkillName
-	SkillBonus rpg.Dice
 
 	Text string // documents only
 
@@ -120,12 +117,10 @@ func NewItemDefFromRecord(record recfile.Record) ItemDef {
 			itemDef.WeaponDef.Type = WeaponTypeFromString(field.Value)
 		case "weapon_launched_with_type":
 			itemDef.WeaponDef.LaunchedWithType = WeaponTypeFromString(field.Value)
-		case "weapon_skill_used":
-			itemDef.WeaponDef.SkillUsed = rpg.SkillNameFromString(field.Value)
 		case "weapon_damage":
 			itemDef.WeaponDef.DamageDice = rpg.ParseDice(field.Value)
-		case "damage_resistance":
-			itemDef.ArmorDef.DamageResistance = field.AsInt()
+		case "armor":
+			itemDef.ArmorDef.Protection = field.AsInt()
 		case "thrown_damage":
 			itemDef.ThrowDamageDice = rpg.ParseDice(field.Value)
 		case "shot_max_range":
@@ -152,16 +147,10 @@ func NewItemDefFromRecord(record recfile.Record) ItemDef {
 			itemDef.Charges = rpg.ParseDice(field.Value)
 		case "always_id_on_use":
 			itemDef.AlwaysIDOnUse = field.AsBool()
-		case "encumbrance":
-			itemDef.ArmorDef.Encumbrance = rpg.EncumbranceFromString(field.Value)
 		case "stat":
 			itemDef.Stat = rpg.StatFromString(field.Value)
 		case "stat_bonus":
 			itemDef.StatBonus = rpg.ParseDice(field.Value)
-		case "skill":
-			itemDef.Skill = rpg.SkillNameFromString(field.Value)
-		case "skill_bonus":
-			itemDef.SkillBonus = rpg.ParseDice(field.Value)
 		case "light_radius":
 			itemDef.LightRadius = field.AsInt()
 		case "light_color":
@@ -203,6 +192,10 @@ func WeaponTypeFromString(value string) WeaponType {
 		return ItemTypeBolt
 	case "dart":
 		return ItemTypeDart
+	case "rapier":
+		return ItemTypeRapier
+	case "whip":
+		return ItemTypeWhip
 	}
 	panic("Invalid weapon type: " + value)
 }
