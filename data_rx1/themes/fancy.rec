@@ -107,14 +107,16 @@ TileCorridorWallCornerBottomRight: #
 TileCorridorWallCornerBottomRight_Colors: Black | Black
 TileCorridorWallCornerBottomLeft: #
 TileCorridorWallCornerBottomLeft_Colors: Black | Black
-TileWallTJunctionTop: |
-TileWallTJunctionTop_Colors: LightGray | Black
-TileWallTJunctionRight: -
-TileWallTJunctionRight_Colors: LightGray | Black
-TileWallTJunctionBottom: |
-TileWallTJunctionBottom_Colors: LightGray | Black
-TileWallTJunctionLeft: -
-TileWallTJunctionLeft_Colors: LightGray | Black
+TileWallTJunctionTop: █
+TileWallTJunctionTop_Colors: DirtyYellow | DirtyBlue
+TileWallTJunctionRight: █
+TileWallTJunctionRight_Colors: DirtyYellow | DirtyBlue
+TileWallTJunctionBottom: ▀
+TileWallTJunctionBottom_Colors: DirtyYellow | DirtyBlue
+TileWallTJunctionLeft: █
+TileWallTJunctionLeft_Colors: DirtyYellow | DirtyBlue
+TileWallCross: █
+TileWallCross_Colors: DirtyYellow | DirtyBlue
 TileDoorOpen: ╺
 TileDoorOpen_Colors: LightGray | Brown
 TileDoorClosed: ╺

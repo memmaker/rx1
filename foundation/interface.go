@@ -245,10 +245,11 @@ const (
 	TileCorridorWallCornerTopRight             = "TileCorridorWallCornerTopRight"
 	TileCorridorWallCornerBottomRight          = "TileCorridorWallCornerBottomRight"
 	TileCorridorWallCornerBottomLeft           = "TileCorridorWallCornerBottomLeft"
-	TileWallTJunctionTop                       = "TileWallTJunctionTop"
-	TileWallTJunctionRight                     = "TileWallTJunctionRight"
-	TileWallTJunctionBottom                    = "TileWallTJunctionBottom"
-	TileWallTJunctionLeft                      = "TileWallTJunctionLeft"
+	TileWallTJunctionTop                       = "TileWallTJunctionTop"    // ┬ a wall with another one going down from it
+	TileWallTJunctionRight                     = "TileWallTJunctionRight"  // ┤
+	TileWallTJunctionBottom                    = "TileWallTJunctionBottom" // ┴
+	TileWallTJunctionLeft                      = "TileWallTJunctionLeft"   // ├
+	TileWallCross                              = "TileWallCross"           // ┼
 	TileDoorOpen                               = "TileDoorOpen"
 	TileDoorClosed                             = "TileDoorClosed"
 	TileDoorBroken                             = "TileDoorBroken"

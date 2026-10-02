@@ -88,19 +88,6 @@ func (r *DungeonRoom) GetWalls() []geometry.Point {
 	return r.wallTiles
 }
 
-func (r *DungeonRoom) IsTopLeftWallCorner(pos geometry.Point) bool {
-	return pos.X == r.bounds.Min.X-1 && pos.Y == r.bounds.Min.Y-1
-}
-func (r *DungeonRoom) IsTopRightWallCorner(pos geometry.Point) bool {
-	return pos.X == r.bounds.Max.X && pos.Y == r.bounds.Min.Y-1
-}
-func (r *DungeonRoom) IsBottomLeftWallCorner(pos geometry.Point) bool {
-	return pos.X == r.bounds.Min.X-1 && pos.Y == r.bounds.Max.Y
-}
-func (r *DungeonRoom) IsBottomRightWallCorner(pos geometry.Point) bool {
-	return pos.X == r.bounds.Max.X && pos.Y == r.bounds.Max.Y
-}
-
 func (r *DungeonRoom) GetCenter() geometry.Point {
 	return r.bounds.Center()
 }
