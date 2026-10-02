@@ -773,16 +773,6 @@ func (a *Actor) AfterTurn() {
 	a.GetEquipment().AfterTurn()
 }
 
-func (a *Actor) decrementStatusEffectCounters() {
-	flags := a.GetFlags()
-	flags.Decrement(foundation.FlagHaste)
-	flags.Decrement(foundation.FlagSlow)
-	flags.Decrement(foundation.FlagConfused)
-	flags.Decrement(foundation.FlagFly)
-	flags.Decrement(foundation.FlagSeeInvisible)
-	flags.Decrement(foundation.FlagHallucinating)
-}
-
 func (a *Actor) GetWillpower() int {
 	return a.charSheet.GetStat(rpg.Will)
 }

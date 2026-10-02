@@ -29,11 +29,42 @@ func (g *GameState) enemyMovement(playerTimeSpent int) {
 		g.ui.EndAnimatedAction(true)
 	}
 }
+
+// timedEffects are the player's effects that run out, and what the player is told when they do.
+var timedEffects = []struct {
+	flag    foundation.ActorFlag
+	woreOff string
+}{
+	{foundation.FlagHaste, "The world around you speeds up"},
+	{foundation.FlagSlow, "The world around you slows down"},
+	{foundation.FlagConfused, "You feel less confused now"},
+	{foundation.FlagFly, "You feel gravity's pull"},
+	{foundation.FlagSeeInvisible, "Your sight returns to normal"},
+	{foundation.FlagSeeMonsters, "Your senses return to normal"},
+	{foundation.FlagHallucinating, "Everything looks SO boring now"},
+	{foundation.FlagInvisible, "You can see your hands again"},
+	{foundation.FlagBlind, "You can see again"},
+	{foundation.FlagCancel, "You feel your powers return"},
+}
+
+func (g *GameState) decrementStatusEffects() {
+	flags := g.Player.GetFlags()
+	for _, effect := range timedEffects {
+		if !flags.IsSet(effect.flag) {
+			continue
+		}
+		flags.Decrement(effect.flag)
+		if !flags.IsSet(effect.flag) {
+			g.msg(foundation.Msg(effect.woreOff))
+		}
+	}
+}
+
 func (g *GameState) removeDeadAndApplyRegeneration() {
 	healInterval := 2 + (100 / g.Player.GetHealth())
 	hungerInterval := 300
 
-	g.Player.decrementStatusEffectCounters()
+	g.decrementStatusEffects()
 	g.applyPoison()
 
 	if !g.Player.HasFlag(foundation.FlagSlowDigestion) || g.TurnsTaken%2 == 0 {
