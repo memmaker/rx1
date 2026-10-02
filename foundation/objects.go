@@ -1,6 +1,9 @@
 package foundation
 
-import "math/rand"
+import (
+	"math/rand"
+	"strings"
+)
 
 type ObjectCategory int
 
@@ -53,7 +56,7 @@ func (o ObjectCategory) String() string {
 }
 
 func ObjectCategoryFromString(s string) ObjectCategory {
-	switch s {
+	switch strings.TrimPrefix(s, "Object") { // themes use both spellings
 	case "ExplodingTrap":
 		return ObjectExplodingTrap
 	case "SlowTrap":

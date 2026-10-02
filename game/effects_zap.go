@@ -42,7 +42,11 @@ func forceDescendTarget(g *GameState, zapper *Actor, pos geometry.Point) []found
 	if descendingActor == g.Player {
 		g.QueueActionAfterAnimation(g.descendToRandomLocation)
 	} else {
-		g.gridMap.RemoveActor(descendingActor)
+		// gone for good, but not removed here: that would shuffle the actors while the enemies take their turns
+		descendingActor.TakeDamage(descendingActor.GetHitPoints())
+		if g.canPlayerSee(pos) {
+			g.msg(foundation.HiLite("%s falls through a trap door", descendingActor.Name()))
+		}
 	}
 	return nil
 }

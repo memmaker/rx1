@@ -69,7 +69,10 @@ func (t Theme) GetIconForMap(tileType foundation.TileType) foundation.TextIcon {
 }
 
 func (t Theme) GetIconForObject(object foundation.ObjectCategory) foundation.TextIcon {
-	return t.iconsForObjects[object]
+	if icon, ok := t.iconsForObjects[object]; ok {
+		return icon
+	}
+	return t.iconsForObjects[foundation.ObjectTeleportTrap] // a trap the theme does not know looks like any other trap
 }
 
 func (t Theme) GetInventoryItemColor(category foundation.ItemCategory) color.RGBA {
