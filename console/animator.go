@@ -21,8 +21,13 @@ type Animator struct {
 	animationState    map[geometry.Point]foundation.TextIcon
 	runningAnimations []TextAnimation
 	pending           []TextAnimation                              // added since the last Flush
-	queue             [][]TextAnimation                            // flushed batches, each starts when the one before has finished
-	moves             map[foundation.ActorForUI]*MovementAnimation // each actor's latest unfinished step move
+	queue             []animationBatch                             // flushed batches, each starts when the one before has finished
+	moves             map[foundation.ActorForUI]*MovementAnimation // each actor's step move in pending
+}
+
+type animationBatch struct {
+	animations []TextAnimation
+	onStart    func()
 }
 
 func NewAnimator() *Animator {
@@ -36,8 +41,8 @@ func (a *Animator) AddAnimation(animation TextAnimation) {
 		if a.moves == nil {
 			a.moves = map[foundation.ActorForUI]*MovementAnimation{}
 		}
-		if running, ok := a.moves[move.actor]; ok && !running.IsDone() {
-			running.Merge(move) // one longer move instead of a second one later
+		if earlier, ok := a.moves[move.actor]; ok {
+			earlier.Merge(move) // one longer move instead of two
 			return
 		}
 		a.moves[move.actor] = move
@@ -45,12 +50,30 @@ func (a *Animator) AddAnimation(animation TextAnimation) {
 	a.pending = append(a.pending, animation)
 }
 
-// Flush closes the batch built by AddAnimation: it plays after everything flushed before it.
-func (a *Animator) Flush() {
-	if len(a.pending) > 0 {
-		a.queue = append(a.queue, a.pending)
-		a.pending = nil
+func (a *Animator) HasPending() bool { return len(a.pending) > 0 }
+func (a *Animator) HasQueued() bool  { return len(a.queue) > 0 }
+
+// Flush closes the batch built by AddAnimation: it plays after everything flushed before it, and
+// onStart runs when it starts. With movesFirst its step moves play before the rest of it.
+func (a *Animator) Flush(movesFirst bool, onStart func()) {
+	clear(a.moves)
+	if len(a.pending) == 0 {
+		return
 	}
+	var first, rest []TextAnimation
+	for _, animation := range a.pending {
+		if move, isMove := animation.(*MovementAnimation); movesFirst && isMove && !move.isQuickMove {
+			first = append(first, animation)
+		} else {
+			rest = append(rest, animation)
+		}
+	}
+	for _, animations := range [][]TextAnimation{first, rest} {
+		if len(animations) > 0 {
+			a.queue = append(a.queue, animationBatch{animations, onStart})
+		}
+	}
+	a.pending = nil
 }
 
 func (a *Animator) IsBusy() bool {
@@ -76,7 +99,11 @@ func (a *Animator) Tick() (shouldUpdateMapState bool) {
 	}
 
 	if len(a.runningAnimations) == 0 && len(a.queue) > 0 {
-		a.runningAnimations, a.queue = a.queue[0], a.queue[1:]
+		next := a.queue[0]
+		a.runningAnimations, a.queue = next.animations, a.queue[1:]
+		if next.onStart != nil {
+			next.onStart()
+		}
 	}
 
 	slices.SortStableFunc(a.runningAnimations, func(i, j TextAnimation) int {
@@ -91,9 +118,6 @@ func (a *Animator) Tick() (shouldUpdateMapState bool) {
 		}
 		animation.NextFrame()
 	}
-	if !a.IsBusy() {
-		clear(a.moves)
-	}
 	return mapStateNeedsUpdate
 }
 
@@ -101,8 +125,8 @@ func (a *Animator) CancelAll() {
 	for _, animation := range a.runningAnimations {
 		cancelRecursive(animation)
 	}
-	for _, batch := range append(a.queue, a.pending) {
-		for _, animation := range batch {
+	for _, batch := range append(a.queue, animationBatch{animations: a.pending}) {
+		for _, animation := range batch.animations {
 			cancelRecursive(animation)
 		}
 	}

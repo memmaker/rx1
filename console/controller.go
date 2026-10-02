@@ -284,31 +284,42 @@ func (u *UI) AddAnimations(animations []foundation.Animation) {
 	}
 }
 
-func (u *UI) AnimatePending() {
-	u.animator.Flush()
-	if u.isAnimationFrame {
+func (u *UI) AnimatePending(movesFirst bool) {
+	if u.animator.HasPending() {
+		// each batch plays over the map as it is right now, after the actions it shows
+		icons, styles := u.snapshotMap()
+		u.animator.Flush(movesFirst, func() { u.lastFrameIcons, u.lastFrameStyle = icons, styles })
+	}
+	if !u.animator.IsBusy() || u.isAnimationFrame {
 		return
 	}
-	// The first call of a turn comes right after the player's action: snapshot that state and
-	// freeze on it, so the player's own move shows at once and the enemies animate on top of it.
-	u.updateLastFrame()
 	u.isAnimationFrame = true
-	if u.animator.IsBusy() && u.animator.Tick() { // fill the first frame now, not after a blank delay
-		u.updateLastFrame()
-	}
+	u.animator.Tick() // fill the first frame now, not after a blank delay
 	u.animWake.Store(true)
 }
 
+func (u *UI) snapshotMap() (map[geometry.Point]rune, map[geometry.Point]tcell.Style) {
+	oldIcons, oldStyles := u.lastFrameIcons, u.lastFrameStyle
+	u.lastFrameIcons, u.lastFrameStyle = make(map[geometry.Point]rune, len(oldIcons)), make(map[geometry.Point]tcell.Style, len(oldStyles))
+	u.updateLastFrame()
+	icons, styles := u.lastFrameIcons, u.lastFrameStyle
+	u.lastFrameIcons, u.lastFrameStyle = oldIcons, oldStyles
+	return icons, styles
+}
+
 func (u *UI) AfterAnimations(f func()) {
+	if !u.isAnimationFrame { // nothing is playing: no reason to wait
+		f()
+		return
+	}
 	u.afterAnimations = append(u.afterAnimations, f)
-	u.animWake.Store(true)
 }
 
 // animationStep advances playback by one frame on the UI goroutine; when it is over the map unfreezes
 // and the afterAnimations callbacks run.
 func (u *UI) animationStep() {
 	if u.animator.IsBusy() {
-		if u.animator.Tick() {
+		if u.animator.Tick() && !u.animator.HasQueued() { // later batches bring their own map
 			u.updateLastFrame()
 		}
 		if u.animator.IsBusy() {
