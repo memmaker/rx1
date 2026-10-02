@@ -32,8 +32,17 @@ func abs(i int) int {
 	return i
 }
 
+// LightReaches says if a light with radius r reaches a tile at the squared distance.
+// A light of radius 1 also reaches the diagonal neighbours, weakly (see LightFalloff).
+func LightReaches(distSquared, r int) bool {
+	return distSquared <= r*r || r == 1 && distSquared == 2
+}
+
 // LightFalloff is the brightness at distance d of a light with radius r
 func LightFalloff(d, r float64) float64 {
+	if r == 1 && d > 1 {
+		return 0.3
+	}
 	return min(max(1-util.EaseInExpo(d/(r+1)), 0.16), 1.0)
 }
 
