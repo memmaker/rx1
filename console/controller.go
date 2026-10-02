@@ -286,11 +286,14 @@ func (u *UI) AddAnimations(animations []foundation.Animation) {
 
 func (u *UI) AnimatePending() {
 	u.animator.Flush()
-	if !u.animator.IsBusy() || u.isAnimationFrame {
+	if u.isAnimationFrame {
 		return
 	}
-	u.isAnimationFrame = true // freeze the map before the game's changes get drawn
-	if u.animator.Tick() {    // fill the first frame now, not after a blank delay
+	// The first call of a turn comes right after the player's action: snapshot that state and
+	// freeze on it, so the player's own move shows at once and the enemies animate on top of it.
+	u.updateLastFrame()
+	u.isAnimationFrame = true
+	if u.animator.IsBusy() && u.animator.Tick() { // fill the first frame now, not after a blank delay
 		u.updateLastFrame()
 	}
 	u.animWake.Store(true)
