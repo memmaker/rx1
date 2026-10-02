@@ -135,7 +135,8 @@ type GameUI interface {
 	OpenTextWindow(description []string)
 	ShowTextFileFullscreen(filename string, onClose func())
 	OpenMenu(actions []MenuItem)
-	OpenVendorMenu(itemsForSale []util.Tuple[ItemForUI, int], buyItem func(ui ItemForUI, price int, count int)) // count 0 = as many as affordable
+	OpenTitledMenu(title string, actions []MenuItem)
+	OpenVendorMenu(shop string, itemsForSale []util.Tuple[ItemForUI, int], buyItem func(ui ItemForUI, price int, count int)) // count 0 = as many as affordable
 	ShowGameOver(score ScoreInfo, highScores []ScoreInfo)
 
 	// Auto Move Callback
