@@ -178,9 +178,8 @@ a place to hide.
 - **Memory:** seen tiles are remembered and drawn dim. Lit rooms out of view at
   ×0.5 brightness, dark tiles at ×0.16.
 - **Visuals:** brightness falls off as `1 − EaseInExpo(d / (r + 1))`, between
-  0.16 and 1.0, tinted by the light's color and its flicker frame. Each tile's
-  flicker frame is offset by `x·7 + y·13`, so the edge shimmers instead of
-  pulsing as one.
+  0.16 and 1.0, tinted by the light's color and its flicker frame. The whole lit
+  area flickers as one, as the hero's light does in heavenandhell.
 - **Stealth cost:** monsters notice the player within 4 tiles regardless of
   light. A player carrying a working light, or standing in a lit room, can also
   be noticed from 10 tiles with line of sight.

@@ -2248,7 +2248,7 @@ func (u *UI) applyLight(icon foundation.TextIcon, loc geometry.Point) foundation
 		return icon
 	}
 	d := geometry.Distance(u.game.GetPlayerPosition(), loc)
-	factor := foundation.LightFalloff(float64(d), float64(light.Radius)) * light.LightFlicker(time.Now().UnixMilli(), loc.X, loc.Y)
+	factor := foundation.LightFalloff(float64(d), float64(light.Radius)) * light.LightFlicker(time.Now().UnixMilli())
 	tint := light.Color
 	if light.Radius == 0 {
 		tint = color.RGBA{255, 255, 255, 255}

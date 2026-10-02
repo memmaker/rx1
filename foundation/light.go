@@ -37,8 +37,8 @@ func LightFalloff(d, r float64) float64 {
 	return min(max(1-util.EaseInExpo(d/(r+1)), 0.16), 1.0)
 }
 
-// LightFlicker is the brightness factor of tile (x,y) at time nowMs; the tile offset makes the edge shimmer.
-func (l LightInfo) LightFlicker(nowMs int64, x, y int) float64 {
+// LightFlicker is the brightness factor of the whole lit area at time nowMs.
+func (l LightInfo) LightFlicker(nowMs int64) float64 {
 	pattern := firePattern
 	switch l.Pattern {
 	case "smooth":
@@ -50,6 +50,5 @@ func (l LightInfo) LightFlicker(nowMs int64, x, y int) float64 {
 	if l.DelayMs <= 0 {
 		return 1.0
 	}
-	frame := int(nowMs/int64(l.DelayMs)) + x*7 + y*13
-	return pattern[frame%len(pattern)]
+	return pattern[int(nowMs/int64(l.DelayMs))%len(pattern)]
 }
