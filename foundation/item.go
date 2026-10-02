@@ -43,8 +43,8 @@ func (c ItemCategory) String() string {
 		return "Amulets"
 	case ItemCategoryDocuments:
 		return "Documents"
-	case ItemCategoryOther:
-		return "Other"
+	case ItemCategoryLight:
+		return "Light"
 	}
 	panic("Unknown item category")
 }
@@ -60,11 +60,11 @@ const (
 	ItemCategoryWands
 	ItemCategoryAmulets
 	ItemCategoryDocuments
-	ItemCategoryOther
+	ItemCategoryLight
 )
 
 func RandomItemCategory() ItemCategory {
-	return ItemCategory(rand.Intn(int(ItemCategoryOther) + 1))
+	return ItemCategory(rand.Intn(int(ItemCategoryLight) + 1))
 }
 func ItemCategoryFromString(s string) ItemCategory {
 	s = strings.TrimPrefix(strings.ToLower(s), "item")
@@ -89,8 +89,8 @@ func ItemCategoryFromString(s string) ItemCategory {
 		return ItemCategoryAmulets
 	case "documents":
 		return ItemCategoryDocuments
-	case "other":
-		return ItemCategoryOther
+	case "light":
+		return ItemCategoryLight
 	}
 	panic("Unknown item category: " + s)
 }
