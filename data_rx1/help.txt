@@ -51,7 +51,7 @@ o              auto explore (any key stops it)
 Screen
 ======
 F3 / F4        darker / brighter
-F7 / F8        save / load the game (hero, pack and depth; the level is made anew)
+F7 / F8        save / load the game (hero, pack and every level seen)
 Ctrl+T         switch the colour theme
 Q              quit
 

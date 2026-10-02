@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"rx1/dungen"
 	"rx1/foundation"
+	"rx1/geometry"
 	"rx1/rpg"
 	"strings"
 )
@@ -20,8 +21,7 @@ import (
 // unknown fields and sections are ignored, missing ones keep their new-game value, items and flags are stored by name
 // and dropped when the game no longer knows them. Only the hero section is required.
 //
-// ponytail: a checkpoint, not a snapshot. Levels are not stored: loading builds a fresh level at the saved depth, so
-// monsters, floor items and exploration are lost. Store the map (tiles, actors, objects' closures) if that matters.
+// Every level the hero has seen is a section of its own, see save_level.go; a level that cannot be read is made anew.
 // Bump saveHeader and migrate in the section decoders when a field changes meaning rather than shape.
 const (
 	saveFile   = "save.rx1"
@@ -53,6 +53,8 @@ type savePlayer struct {
 
 type saveWorld struct {
 	Depth             int             `json:"depth"`
+	InSecret          bool            `json:"in_secret"`
+	PlayerPos         geometry.Point  `json:"player_pos"`
 	Turns             int             `json:"turns"`
 	Deepest           int             `json:"deepest"`
 	LevelsWithoutFood int             `json:"levels_without_food"`
@@ -78,32 +80,63 @@ type saveIdent struct {
 	Wands      map[string]string `json:"wands"`
 }
 
-// savedFlags names the hero's persistent flags. The numbers are iota order, which a new flag in the middle would shift.
+// savedFlags names every flag. The numbers are iota order, which a new flag in the middle would shift.
 var savedFlags = map[string]foundation.ActorFlag{
-	"sleep": foundation.FlagSleep, "stun": foundation.FlagStun, "slow": foundation.FlagSlow, "haste": foundation.FlagHaste,
-	"held": foundation.FlagHeld, "fly": foundation.FlagFly, "gold": foundation.FlagGold, "cancel": foundation.FlagCancel,
+	"sleep": foundation.FlagSleep, "aware_of_player": foundation.FlagAwareOfPlayer, "hunger": foundation.FlagHunger,
+	"turns_since_eating": foundation.FlagTurnsSinceEating, "stun": foundation.FlagStun, "slow": foundation.FlagSlow,
+	"haste": foundation.FlagHaste, "held": foundation.FlagHeld, "fly": foundation.FlagFly,
+	"regenerating": foundation.FlagRegenerating, "wall_crawl": foundation.FlagWallCrawl, "gold": foundation.FlagGold,
+	"mean": foundation.FlagMean, "scared": foundation.FlagScared, "chase": foundation.FlagChase, "cancel": foundation.FlagCancel,
 	"blind": foundation.FlagBlind, "confused": foundation.FlagConfused, "invisible": foundation.FlagInvisible,
-	"see_monsters": foundation.FlagSeeMonsters, "see_invisible": foundation.FlagSeeInvisible,
-	"hallucinating": foundation.FlagHallucinating, "poisoned": foundation.FlagPoisoned,
-	"turns_since_eating": foundation.FlagTurnsSinceEating, "hunger": foundation.FlagHunger,
-	"slow_digestion": foundation.FlagSlowDigestion, "regenerating": foundation.FlagRegenerating,
+	"see_food": foundation.FlagSeeFood, "see_monsters": foundation.FlagSeeMonsters, "see_traps": foundation.FlagSeeTraps,
+	"see_magic": foundation.FlagSeeMagic, "see_invisible": foundation.FlagSeeInvisible, "can_confuse": foundation.FlagCanConfuse,
+	"curse_stuck": foundation.FlagCurseStuck, "curse_teleportitis": foundation.FlagCurseTeleportitis,
+	"hallucinating": foundation.FlagHallucinating, "slow_digestion": foundation.FlagSlowDigestion, "erratic": foundation.FlagErratic,
+	"stationary": foundation.FlagStationary, "greedy": foundation.FlagGreedy, "disguised": foundation.FlagDisguised,
+	"group": foundation.FlagGroup, "revive": foundation.FlagRevive, "tunnel": foundation.FlagTunnel, "gazed": foundation.FlagGazed,
+	"poisoned": foundation.FlagPoisoned, "hungry": foundation.FlagHungry, "weak": foundation.FlagWeak, "faint": foundation.FlagFaint,
+	"stealth": foundation.FlagStealth, "searching": foundation.FlagSearching,
+}
+
+func flagsToSave(f *foundation.MapFlags) map[string]int {
+	out := map[string]int{}
+	for name, flag := range savedFlags {
+		if v := f.Get(flag); v != 0 {
+			out[name] = v
+		}
+	}
+	return out
+}
+
+func flagsFromSave(saved map[string]int) map[foundation.ActorFlag]int {
+	out := map[foundation.ActorFlag]int{}
+	for name, v := range saved {
+		if flag, ok := savedFlags[name]; ok {
+			out[flag] = v
+		}
+	}
+	return out
+}
+
+func (g *GameState) toSaveItem(i *Item) saveItem {
+	s := saveItem{Name: i.internalName, Charges: i.charges, StatBonus: i.statBonus, Stat: i.stat, Stuck: i.stuckTurns,
+		Known: i.isKnown, Found: i.found, Bundle: i.bundle, Equipped: g.Player.GetEquipment().IsEquipped(i)}
+	if def, ok := g.dataDefinitions.FindItemDef(i.internalName); ok && def.Name != i.name {
+		s.Label = i.name
+	}
+	if i.weapon != nil {
+		s.HitPlus, s.DamPlus, s.Vorpal = i.weapon.hitPlus, i.weapon.damagePlus, i.weapon.vorpalEnemy
+	}
+	if i.armor != nil {
+		s.ArmorPlus = i.armor.plus
+	}
+	return s
 }
 
 func (g *GameState) toSaveItems(inv *Inventory) []json.RawMessage {
 	var out []json.RawMessage
 	for _, i := range inv.Items() {
-		s := saveItem{Name: i.internalName, Charges: i.charges, StatBonus: i.statBonus, Stat: i.stat, Stuck: i.stuckTurns,
-			Known: i.isKnown, Found: i.found, Bundle: i.bundle, Equipped: g.Player.GetEquipment().IsEquipped(i)}
-		if def, ok := g.dataDefinitions.FindItemDef(i.internalName); ok && def.Name != i.name {
-			s.Label = i.name
-		}
-		if i.weapon != nil {
-			s.HitPlus, s.DamPlus, s.Vorpal = i.weapon.hitPlus, i.weapon.damagePlus, i.weapon.vorpalEnemy
-		}
-		if i.armor != nil {
-			s.ArmorPlus = i.armor.plus
-		}
-		raw, _ := json.Marshal(s)
+		raw, _ := json.Marshal(g.toSaveItem(i))
 		out = append(out, raw)
 	}
 	return out
@@ -113,6 +146,9 @@ func (g *GameState) fromSaveItem(raw json.RawMessage) (*Item, bool, bool) {
 	var s saveItem
 	if lenientUnmarshal(raw, &s) != nil {
 		return nil, false, false
+	}
+	if s.Name == "gold" { // piles of gold are made on the spot, they have no definition
+		return g.NewGold(s.Charges), false, true
 	}
 	def, ok := g.dataDefinitions.FindItemDef(s.Name)
 	if !ok {
@@ -146,12 +182,6 @@ func lenientUnmarshal(data []byte, into any) error {
 }
 
 func (g *GameState) encodeSave() []byte {
-	flags := map[string]int{}
-	for name, flag := range savedFlags {
-		if v := g.Player.GetFlags().Get(flag); v != 0 {
-			flags[name] = v
-		}
-	}
 	styles := make([]string, len(g.levelStyles))
 	for i, s := range g.levelStyles {
 		styles[i] = s.String()
@@ -165,12 +195,18 @@ func (g *GameState) encodeSave() []byte {
 		name string
 		data any
 	}{
-		{"player", savePlayer{g.Player.stats, flags, g.toSaveItems(g.Player.GetInventory())}},
-		{"world", saveWorld{g.currentDungeonLevel, g.TurnsTaken, g.deepestDungeonLevelPlayerReached, g.levelsWithoutFood,
+		{"player", savePlayer{g.Player.stats, flagsToSave(g.Player.GetFlags()), g.toSaveItems(g.Player.GetInventory())}},
+		{"world", saveWorld{g.currentDungeonLevel, g.inSecretLevel, g.Player.Position(), g.TurnsTaken, g.deepestDungeonLevelPlayerReached, g.levelsWithoutFood,
 			g.lightsRolledUpTo, g.starGlassSpawned, g.morningStarSpawned, g.genocided, g.secretLevelDepth, g.secretLevelVisited,
 			styles, g.wanderingMonsterTurn, g.wanderingCooldown, g.noMove, g.noCommand, g.usedDocuments}},
 		{"ident", saveIdent{id.identifiedItemTypes, id.potionMap, id.ringMap, id.scrollMap, id.wandMap}},
 		{"stash", stash},
+	}
+	for name, l := range g.levelSections() {
+		sections = append(sections, struct {
+			name string
+			data any
+		}{name, l})
 	}
 	var b strings.Builder
 	b.WriteString(saveHeader + "\n")
@@ -272,13 +308,7 @@ func (g *GameState) restore(sections map[string][]byte) error {
 	if p.Stats.MaxHP > 0 { // a hero without hit points would be dead on arrival: keep the new-game stats then
 		g.Player.stats = p.Stats
 	}
-	flags := map[foundation.ActorFlag]int{}
-	for name, v := range p.Flags {
-		if flag, ok := savedFlags[name]; ok {
-			flags[flag] = v
-		}
-	}
-	g.Player.GetFlags().Init(flags)
+	g.Player.GetFlags().Init(flagsFromSave(p.Flags))
 
 	inv, eq := g.Player.GetInventory(), g.Player.GetEquipment()
 	invChanged, eqChanged := inv.onChanged, eq.onChanged
@@ -307,7 +337,7 @@ func (g *GameState) restore(sections map[string][]byte) error {
 		}
 	}
 
-	w := saveWorld{g.currentDungeonLevel, g.TurnsTaken, g.deepestDungeonLevelPlayerReached, g.levelsWithoutFood,
+	w := saveWorld{0, false, geometry.Point{}, g.TurnsTaken, g.deepestDungeonLevelPlayerReached, g.levelsWithoutFood,
 		g.lightsRolledUpTo, g.starGlassSpawned, g.morningStarSpawned, g.genocided, g.secretLevelDepth, g.secretLevelVisited,
 		nil, g.wanderingMonsterTurn, g.wanderingCooldown, g.noMove, g.noCommand, g.usedDocuments}
 	if raw, ok := sections["world"]; ok {
@@ -331,14 +361,24 @@ func (g *GameState) restore(sections map[string][]byte) error {
 		}
 	}
 
-	g.gridMap = nil // nothing to leave: the saved level is built anew
+	g.gridMap = nil // nothing to leave: the saved levels come from the file
 	g.ui.InitDungeonUI()
 	depth := min(max(w.Depth, 0), g.maximumDungeonLevel)
 	if depth == 0 {
 		g.GotoNamedLevel("town")
 	} else {
-		g.levelsWithoutFood-- // entering a new level counts one
-		g.gotoLevel(depth, StairsBoth, false, false)
+		g.restoreLevels(sections, depth, w.InSecret)
+		if g.levels[levelKey{depth, w.InSecret}] == nil { // its section is gone: a new level at that depth
+			w.InSecret = false
+			g.levelsWithoutFood--
+		}
+		g.gotoLevel(depth, StairsBoth, false, w.InSecret)
+	}
+	if p := w.PlayerPos; g.gridMap.Contains(p) && p != g.Player.Position() && g.gridMap.IsWalkable(p) && !g.gridMap.IsActorAt(p) &&
+		(g.levels[levelKey{depth, w.InSecret}] != nil || depth == 0) {
+		g.gridMap.MoveActor(g.Player, p) // back where the hero stood
+		g.afterPlayerMoved()
+		g.ui.AfterPlayerMoved(foundation.MoveInfo{Direction: geometry.North, OldPos: p, NewPos: p, Mode: foundation.PlayerMoveModeManual})
 	}
 	g.ui.UpdateInventory()
 	return nil

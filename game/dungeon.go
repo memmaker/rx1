@@ -544,6 +544,10 @@ func ReadFileAsOneStringWithoutNewLines(filename string) string {
 // watchActors makes the UI follow the actors of a new map.
 func (g *GameState) watchActors(newMap *gridmap.GridMap[*Actor, *Item, *Object]) {
 	g.ui.ForgetActors()
+	g.listenToActors(newMap)
+}
+
+func (g *GameState) listenToActors(newMap *gridmap.GridMap[*Actor, *Item, *Object]) {
 	newMap.SetActorListener(func(actor *Actor, onMap bool) {
 		g.ui.ActorMoved(actor, actor.Position(), onMap)
 		if onMap && actor != g.Player && newMap.GetCell(actor.Position()).TileType.IsChasm() && actor.IsAlive() {
