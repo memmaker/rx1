@@ -581,33 +581,6 @@ func (g *GameState) ChooseItemForDrop() {
 	})
 }
 
-func (g *GameState) ChooseItemForRead() {
-	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsScroll() || item.IsDocument()
-	})
-	if len(inventory) == 0 {
-		g.msg(foundation.Msg("You are not carrying anything to read."))
-		return
-	}
-	if len(inventory) == 1 {
-		stack, isStack := inventory[0].(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.actorUseItem(g.Player, item)
-		return
-	}
-	g.ui.OpenInventoryForSelection(inventory, "Read what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.actorUseItem(g.Player, item)
-	})
-}
-
 func (g *GameState) chooseItem(filter func(*Item) bool, none, prompt string, act func(*Item)) {
 	inventory := g.GetFilteredInventory(filter)
 	if len(inventory) == 0 {

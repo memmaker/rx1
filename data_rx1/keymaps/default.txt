@@ -31,7 +31,6 @@ h -> quick_shot
 . -> wait
 > -> descend
 < -> ascend
-r -> read
 
 
 Q -> quit

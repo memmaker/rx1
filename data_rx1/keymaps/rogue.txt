@@ -35,8 +35,8 @@ e -> consume
 d -> drop
 w -> equip
 T -> take_off
-r -> read
 z -> use
+r -> use
 
 c -> aim
 v -> quick_shot

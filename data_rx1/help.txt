@@ -24,8 +24,7 @@ Items
 ,              pick up
 i              inventory: select an item to use, consume, equip,
                take off or drop it
-e              use an item
-r              read a scroll or a document you found
+e              use an item: read a scroll or document, zap a wand
 I              list of items in view
 O              show item overlay on the map
 
