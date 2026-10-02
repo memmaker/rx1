@@ -39,13 +39,13 @@ type Theme struct {
 
 	uiBorder map[BorderCases]rune
 
-	iconsForItems   map[foundation.ItemCategory]foundation.TextIcon
-	iconsForObjects map[foundation.ObjectCategory]foundation.TextIcon
-	iconsForMap     map[foundation.TileType]foundation.TextIcon
-	defaultStyle    tcell.Style
-	isMonoChrome    bool
-	phosphorTint    *color.RGBA // optional %rec: phosphor, tints the whole screen
-	hiddenTrapDim   float64     // optional %rec: hidden_trap, the foreground brightness of the floor over a trap not found yet
+	iconsForItems        map[foundation.ItemCategory]foundation.TextIcon
+	iconsForObjects      map[foundation.ObjectCategory]foundation.TextIcon
+	iconsForMap          map[foundation.TileType]foundation.TextIcon
+	defaultStyle         tcell.Style
+	isMonoChrome         bool
+	phosphorTint         *color.RGBA // optional %rec: phosphor, tints the whole screen
+	hiddenTrapBrightness float64     // optional %rec: hidden_trap, the foreground brightness of the floor over a trap not found yet
 }
 
 func (t Theme) GetIconForItem(category foundation.ItemCategory) foundation.TextIcon {
@@ -97,19 +97,19 @@ func NewThemeFromFile(filename string) Theme {
 		}
 	}
 
-	hiddenTrapDim := 0.5
+	hiddenTrapBrightness := 0.4
 	if rec, ok := records["hidden_trap"]; ok && len(rec) > 0 {
 		for _, field := range rec[0] {
-			if field.Name == "Dim" {
-				hiddenTrapDim = field.AsFloat()
+			if field.Name == "Brightness" {
+				hiddenTrapBrightness = field.AsFloat()
 			}
 		}
 	}
 
 	return Theme{
-		phosphorTint:  phosphorTint,
-		hiddenTrapDim: hiddenTrapDim,
-		colorDefs:     colors,
+		phosphorTint:         phosphorTint,
+		hiddenTrapBrightness: hiddenTrapBrightness,
+		colorDefs:            colors,
 
 		uiColors: uiColors,
 		//uiStyles:            uiStyles,
