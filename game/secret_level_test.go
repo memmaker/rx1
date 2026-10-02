@@ -44,3 +44,15 @@ func TestSecretLevelRoundTrip(t *testing.T) {
 			g.secretLevelDepth, g.currentDungeonLevel, g.inSecretLevel, g.secretStairs)
 	}
 }
+
+// The wizard menu entry works from town, where the level number is 0.
+func TestSecretLevelFromTownIsExplored(t *testing.T) {
+	cfg := foundation.NewDefaultConfiguration()
+	cfg.DataRootDir = "../data_rx1"
+	g := NewGameState(stubUI{}, cfg)
+	g.GotoNamedLevel("town")
+	g.GotoSecretLevel()
+	if !g.inSecretLevel || g.currentDungeonLevel != g.secretLevelDepth || !g.gridMap.IsExplored(g.Player.Position()) {
+		t.Fatalf("secret=%v level=%d explored=%v", g.inSecretLevel, g.currentDungeonLevel, g.gridMap.IsExplored(g.Player.Position()))
+	}
+}

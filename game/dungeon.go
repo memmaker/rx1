@@ -176,7 +176,11 @@ func (g *GameState) GotoDungeonLevel(level int, stairs StairsInLevel, placePlaye
 // GotoSecretLevel leads to a huge level beside the current one. Its only stairs lead back.
 func (g *GameState) GotoSecretLevel() {
 	g.secretLevelVisited = true
-	g.gotoLevel(g.currentDungeonLevel, StairsUpOnly, true, true)
+	level := g.currentDungeonLevel
+	if level == 0 { // from town by the wizard menu: level 0 is never explored or lit
+		level = g.secretLevelDepth
+	}
+	g.gotoLevel(level, StairsUpOnly, true, true)
 	g.msg(foundation.Msg("You enter a vast, forgotten part of the dungeon."))
 }
 
