@@ -13,6 +13,7 @@ type MovementAnimation struct {
 	actor         foundation.ActorForUI
 	originalPos   geometry.Point
 	newPos        geometry.Point
+	trail         []geometry.Point // earlier positions of merged moves, oldest first
 	frameCount    int
 	icon          foundation.TextIcon
 	isQuickMove   bool
@@ -20,11 +21,12 @@ type MovementAnimation struct {
 	getColor      func(colorName string) color.RGBA
 }
 
-func NewMovementAnimation(actorIcon foundation.TextIcon, old, new geometry.Point, getColor func(colorName string) color.RGBA, done func()) *MovementAnimation {
+func NewMovementAnimation(actor foundation.ActorForUI, actorIcon foundation.TextIcon, old, new geometry.Point, getColor func(colorName string) color.RGBA, done func()) *MovementAnimation {
 	return &MovementAnimation{
 		BaseAnimation: &BaseAnimation{
 			done: done,
 		},
+		actor:       actor,
 		icon:        actorIcon,
 		originalPos: old,
 		newPos:      new,
@@ -50,16 +52,27 @@ func (p *MovementAnimation) GetDrawables() map[geometry.Point]foundation.TextIco
 func (p *MovementAnimation) normalAnimation() map[geometry.Point]foundation.TextIcon {
 	if p.frameCount <= 2 {
 		lightGray := p.getColor("LightGray")
-		return map[geometry.Point]foundation.TextIcon{
-			p.originalPos: p.icon.WithFg(lightGray),
-			p.newPos:      p.icon,
+		drawables := map[geometry.Point]foundation.TextIcon{p.originalPos: p.icon.WithFg(lightGray)}
+		for _, pos := range p.trail {
+			drawables[pos] = p.icon.WithFg(p.getColor("DarkGray"))
 		}
+		drawables[p.newPos] = p.icon
+		return drawables
 	}
 	darkGray := p.getColor("DarkGray")
-	return map[geometry.Point]foundation.TextIcon{
-		p.originalPos: p.icon.WithFg(darkGray),
-		p.newPos:      p.icon,
+	drawables := map[geometry.Point]foundation.TextIcon{p.originalPos: p.icon.WithFg(darkGray)}
+	for _, pos := range p.trail {
+		drawables[pos] = p.icon.WithFg(darkGray)
 	}
+	drawables[p.newPos] = p.icon
+	return drawables
+}
+
+// Merge continues this move with the actor's next step, so both play as one.
+func (p *MovementAnimation) Merge(next *MovementAnimation) {
+	p.trail = append(p.trail, p.originalPos)
+	p.originalPos, p.newPos, p.icon = p.newPos, next.newPos, next.icon
+	p.frameCount = 0
 }
 
 func (p *MovementAnimation) NextFrame() {
