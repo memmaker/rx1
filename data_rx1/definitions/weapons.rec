@@ -1,6 +1,7 @@
 name: main gauche
 internal_name: main_gauche
 category: weapons
+chance: 8
 slot: one_handed_weapon
 weapon_type: sword
 weapon_damage: 1d4
@@ -9,6 +10,7 @@ thrown_damage: 1d3
 name: mace
 internal_name: mace
 category: weapons
+chance: 11
 slot: one_handed_weapon
 weapon_type: club
 weapon_damage: 2d4
@@ -18,6 +20,7 @@ name: long sword
 internal_name: long_sword
 slot: one_handed_weapon
 category: weapons
+chance: 11
 weapon_type: sword
 weapon_damage: 3d4
 thrown_damage: 1d2
@@ -26,6 +29,7 @@ name: short bow
 internal_name: short_bow
 slot: missile_launcher
 category: weapons
+chance: 12
 weapon_type: bow
 weapon_damage: 1d1
 thrown_damage: 1d1
@@ -33,16 +37,18 @@ thrown_damage: 1d1
 name: arrow
 internal_name: arrow
 category: weapons
+chance: 12
 slot: quiver
 weapon_type: arrow
 weapon_launched_with_type: bow
 weapon_damage: 2d3
 thrown_damage: 1d1
 
-name: battle axe
+name: dagger
 internal_name: dagger
 slot: one_handed_weapon
 category: weapons
+chance: 8
 weapon_type: dagger
 weapon_damage: 1d6
 thrown_damage: 1d4
@@ -51,6 +57,7 @@ name: two handed sword
 internal_name: two_handed_sword
 slot: two_handed_weapon
 category: weapons
+chance: 10
 weapon_type: sword
 flags: two_handed
 weapon_damage: 4d4
@@ -60,6 +67,7 @@ name: dart
 internal_name: dart
 slot: quiver
 category: weapons
+chance: 12
 weapon_type: dart
 weapon_damage: 1d1
 thrown_damage: 1d3
@@ -68,6 +76,7 @@ name: crossbow
 internal_name: crossbow
 slot: missile_launcher
 category: weapons
+chance: 12
 weapon_type: crossbow
 weapon_damage: 1d1
 thrown_damage: 1d1
@@ -76,6 +85,7 @@ name: crossbow bolt
 internal_name: crossbow_bolt
 slot: quiver
 category: weapons
+chance: 12
 weapon_type: bolt
 weapon_launched_with_type: crossbow
 weapon_damage: 1d10
@@ -85,6 +95,7 @@ name: spear
 internal_name: spear
 slot: one_handed_weapon
 category: weapons
+chance: 12
 weapon_type: spear
 weapon_damage: 2d3
 thrown_damage: 1d6
@@ -93,6 +104,7 @@ name: overkill
 internal_name: overkill
 slot: one_handed_weapon
 category: weapons
+chance: 1
 weapon_type: spear
 weapon_damage: 5d8 + 1
 thrown_damage: 1d6
@@ -101,6 +113,7 @@ weapon_skill_used: melee
 name: club
 internal_name: club
 category: weapons
+chance: 11
 slot: one_handed_weapon
 weapon_type: club
 weapon_damage: 1d6
@@ -109,6 +122,7 @@ thrown_damage: 1d3
 name: axe
 internal_name: axe
 category: weapons
+chance: 10
 slot: one_handed_weapon
 weapon_type: axe
 weapon_damage: 1d8
@@ -117,6 +131,7 @@ thrown_damage: 1d3
 name: rapier
 internal_name: rapier
 category: weapons
+chance: 8
 slot: one_handed_weapon
 weapon_type: rapier
 weapon_damage: 1d6
@@ -125,7 +140,18 @@ thrown_damage: 1d2
 name: whip
 internal_name: whip
 category: weapons
+chance: 8
 slot: one_handed_weapon
 weapon_type: whip
 weapon_damage: 1d4
 thrown_damage: 1d1
+
+name: battle axe
+internal_name: battle_axe
+slot: two_handed_weapon
+category: weapons
+chance: 6
+weapon_type: axe
+flags: two_handed
+weapon_damage: 2d8
+thrown_damage: 1d3

@@ -482,7 +482,7 @@ func magicMissile(g *GameState, zapper *Actor, targetPos geometry.Point) []found
 
 	projAnim, _ := g.ui.GetAnimProjectile('°', "LightGreen", zapper.Position(), targetPos, nil)
 
-	damageConsequences := g.damageLocation(zapper.Name(), targetPos, 0)
+	damageConsequences := g.damageLocation(zapper.Name(), targetPos, rand.Intn(4)+2) // 1d4+1 as in Rogue
 	onHitAnimations = append(onHitAnimations, damageConsequences...)
 
 	if projAnim != nil {

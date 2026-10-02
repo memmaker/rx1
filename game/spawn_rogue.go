@@ -136,7 +136,7 @@ func (g *GameState) rogueTreasureRoom(random *rand.Rand, level int, room *dungen
 	nm = min(nm, floorCount)
 	for ; nm > 0; nm-- {
 		if pos, ok := findFloor(room, rogueMaxTries, canHoldMonster); ok {
-			monster := g.NewEnemyFromDef(g.rogueRandMonster(random, level+1))
+			monster := g.NewEnemyFromDef(g.rogueRandMonster(random, level+1, false))
 			monster.GetFlags().Set(foundation.FlagSleep)
 			monster.GetFlags().Set(foundation.FlagMean) // "no sloughers in THIS room"
 			newMap.AddActor(monster, pos)
@@ -146,7 +146,12 @@ func (g *GameState) rogueTreasureRoom(random *rand.Rand, level int, room *dungen
 
 // rogueRandMonster: Rogue's difficulty curve (level ± rnd(10) - 5) applied to rx1's full roster.
 // Picks target dlvl, finds all monsters at that level, returns a random one.
-func (g *GameState) rogueRandMonster(random *rand.Rand, level int) MonsterDef {
+// nonWanderers are the blank slots of wand_mons: 5.4's, plus 3.6's for its own monsters
+// (the troll wanders in 5.4, not in 3.6, and keeps its 5.4 slot).
+var nonWanderers = map[string]bool{"ice_monster": true, "leprechaun": true, "nymph": true, "venus_flytrap": true,
+	"xeroc": true, "dragon": true, "floating_eye": true, "violet_fungi": true, "mimic": true, "purple_worm": true}
+
+func (g *GameState) rogueRandMonster(random *rand.Rand, level int, wander bool) MonsterDef {
 	if len(g.dataDefinitions.Monsters) == 0 {
 		return MonsterDef{}
 	}
@@ -154,13 +159,13 @@ func (g *GameState) rogueRandMonster(random *rand.Rand, level int) MonsterDef {
 	// Index monsters by dlvl for fast lookup
 	byLevel := make(map[int][]MonsterDef)
 	for _, def := range g.dataDefinitions.Monsters {
-		if def.InternalName == "xeroc_2" {
+		if def.InternalName == "xeroc_2" || g.genocided[def.InternalName] || wander && nonWanderers[def.InternalName] {
 			continue // wizard-only test monster
 		}
 		byLevel[def.DungeonLevel] = append(byLevel[def.DungeonLevel], def)
 	}
 
-	// Rogue's algorithm: aim for level ± bias, clamp to [1,26], retry on gaps
+	// Rogue's algorithm: aim for level ± bias, clamp to [1,26]
 	for tries := 0; tries < 100; tries++ {
 		d := level + rnd(random, 10) - 5 // Rogue: ± 0-5 around level
 		if d < 1 {
@@ -190,7 +195,7 @@ func (g *GameState) rogueNewThing(random *rand.Rand, level int) *Item {
 		weight   int
 	}{
 		{foundation.ItemCategoryPotions, 26},
-		{foundation.ItemCategoryScrolls, 33},
+		{foundation.ItemCategoryScrolls, 36},
 		{foundation.ItemCategoryFood, 16},
 		{foundation.ItemCategoryWeapons, 7},
 		{foundation.ItemCategoryArmor, 7},
@@ -212,8 +217,34 @@ func (g *GameState) rogueNewThing(random *rand.Rand, level int) *Item {
 		g.levelsWithoutFood = 0
 	}
 	item := NewItem(pickWeighted(random, g.dataDefinitions.Items[category]), g.identification)
-	if item.IsEquippable() && random.Intn(5) == 0 {
-		g.AddCurseToEquippable(item)
+	// Rogue's curses and blessings; cursed means stuck, as rx1 has it
+	r := rnd(random, 100)
+	switch {
+	case item.IsMissile(): // a cursed bundle is only worse, a quiver cannot get stuck
+		if r < 10 {
+			item.weapon.hitPlus -= rnd(random, 3) + 1
+		} else if r < 15 {
+			item.weapon.hitPlus += rnd(random, 3) + 1
+		}
+	case item.IsWeapon():
+		if r < 10 {
+			makeStuck(item)
+			item.weapon.hitPlus -= rnd(random, 3) + 1
+		} else if r < 15 {
+			item.weapon.hitPlus += rnd(random, 3) + 1
+		}
+	case item.IsArmor():
+		if r < 20 {
+			makeStuck(item)
+			item.armor.plus -= rnd(random, 3) + 1
+		} else if r < 28 {
+			item.armor.plus += rnd(random, 3) + 1
+		}
+	case item.IsRing() && item.stat != "" && item.statBonus == 0: // stat_bonus 1d3-1 is Rogue's rnd(3), 0 becomes -1
+		makeStuck(item)
+		item.statBonus = -1
+	case item.internalName == "ring_teleportation":
+		makeStuck(item)
 	}
 	return item
 }

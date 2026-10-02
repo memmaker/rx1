@@ -9,8 +9,8 @@ internal_name: ring_protection
 category: rings
 slot: ring
 stat: armor
-stat_bonus: 1d6-2
-chance: 20
+stat_bonus: 1d3-1
+chance: 9
 always_id_on_use: true
 
 name: ring of strength
@@ -18,8 +18,8 @@ internal_name: ring_strength
 category: rings
 slot: ring
 stat: strength
-stat_bonus: 1d5-2
-chance: 20
+stat_bonus: 1d3-1
+chance: 9
 always_id_on_use: true
 
 name: ring of dexterity
@@ -27,8 +27,8 @@ internal_name: ring_dexterity
 category: rings
 slot: ring
 stat: to_hit
-stat_bonus: 1d5-2
-chance: 20
+stat_bonus: 1d3-1
+chance: 8
 always_id_on_use: true
 
 name: ring of increase damage
@@ -36,8 +36,8 @@ internal_name: ring_increase_damage
 category: rings
 slot: ring
 stat: damage
-stat_bonus: 1d5-2
-chance: 20
+stat_bonus: 1d3-1
+chance: 8
 always_id_on_use: true
 
 name: ring of regeneration
@@ -45,7 +45,7 @@ internal_name: ring_regeneration
 category: rings
 slot: ring
 equip_flag: regenerating
-chance: 20
+chance: 4
 always_id_on_use: true
 charges: 10d3
 
@@ -54,7 +54,7 @@ internal_name: ring_see_invisible
 category: rings
 slot: ring
 equip_flag: see_invisible
-chance: 20
+chance: 10
 always_id_on_use: true
 charges: -1
 
@@ -63,7 +63,7 @@ internal_name: ring_teleportation
 category: rings
 slot: ring
 equip_flag: curse_teleportitis
-chance: 20
+chance: 5
 always_id_on_use: true
 charges: -1
 
@@ -72,6 +72,6 @@ internal_name: ring_slow_digestion
 category: rings
 slot: ring
 equip_flag: slow_digestion
-chance: 20
+chance: 9
 always_id_on_use: true
 charges: -1

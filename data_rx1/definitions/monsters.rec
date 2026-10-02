@@ -7,7 +7,7 @@ armor: 3
 damage: 1d2
 internal_name: bat
 letter: b
-dlvl: 1
+dlvl: 3
 color: LightGray
 gold: 0
 carry_chance: 1
@@ -20,7 +20,7 @@ armor: 7
 damage: 1d2
 internal_name: emu
 letter: e
-dlvl: 1
+dlvl: 2
 color: White
 gold: 0
 carry_chance: 1
@@ -34,7 +34,7 @@ armor: 5
 damage: 1d8
 internal_name: hobgoblin
 letter: h
-dlvl: 1
+dlvl: 5
 color: Green
 gold: 5d4
 carry_chance: 35
@@ -74,7 +74,7 @@ armor: 9
 damage: 0d0
 internal_name: floating_eye
 letter: e
-dlvl: 5
+dlvl: 6
 color: Red
 gold: 0
 carry_chance: 25
@@ -88,7 +88,7 @@ armor: 9
 damage: 0d0
 internal_name: ice_monster
 letter: i
-dlvl: 5
+dlvl: 6
 color: LightBlue
 gold: 1d6
 carry_chance: 20
@@ -116,7 +116,7 @@ armor: 5
 damage: 1d3
 internal_name: snake
 letter: s
-dlvl: 6
+dlvl: 4
 color: LightGreen
 gold: 0
 carry_chance: 10
@@ -129,7 +129,7 @@ armor: 5
 damage: 1d6
 internal_name: gnome
 letter: g
-dlvl: 7
+dlvl: 10
 color: White
 gold: 5d5
 carry_chance: 35
@@ -142,7 +142,7 @@ armor: 6
 damage: 1d8
 internal_name: orc
 letter: o
-dlvl: 7
+dlvl: 8
 color: LightGreen
 gold: 1d6
 carry_chance: 35
@@ -156,7 +156,7 @@ armor: 3
 damage: 1d6
 internal_name: rattlesnake
 letter: r
-dlvl: 8
+dlvl: 7
 color: LightGreen
 gold: 0
 carry_chance: 3
@@ -169,7 +169,7 @@ armor: 3
 damage: 4d4
 internal_name: invisible_stalker
 letter: i
-dlvl: 9
+dlvl: 20
 color: White
 gold: 1d8
 carry_chance: 25
@@ -182,7 +182,7 @@ armor: 2
 damage: 0d0/0d0
 internal_name: rust_monster
 letter: r
-dlvl: 9
+dlvl: 13
 color: Orange
 gold: 2d20
 carry_chance: 65
@@ -209,7 +209,7 @@ armor: 3
 damage: 1d6
 internal_name: ant
 letter: a
-dlvl: 10
+dlvl: 7
 color: Red
 gold: 2d4
 carry_chance: 10
@@ -249,7 +249,7 @@ armor: 7
 damage: 1d4
 internal_name: kobold
 letter: k
-dlvl: 11
+dlvl: 1
 color: Red
 gold: 2d8
 carry_chance: 55
@@ -262,7 +262,7 @@ armor: 2
 damage: 0d0/0d0
 internal_name: aquator
 letter: A
-dlvl: 12
+dlvl: 13
 color: Blue
 gold: 2d12
 carry_chance: 50
@@ -290,7 +290,7 @@ armor: 3
 damage: 1d5/1d5
 internal_name: quagga
 letter: q
-dlvl: 13
+dlvl: 12
 color: White
 gold: 0
 carry_chance: 3
@@ -317,7 +317,7 @@ armor: 7
 damage: 3d4
 internal_name: mimic
 letter: m
-dlvl: 15
+dlvl: 23
 color: White
 gold: 4d4
 carry_chance: 25
@@ -345,7 +345,7 @@ armor: 4
 damage: 1d8/1d8/2d6
 internal_name: troll
 letter: T
-dlvl: 16
+dlvl: 17
 flags: regenerating | revive
 color: Orange
 gold: 2d10
@@ -358,7 +358,7 @@ armor: 3
 damage: 0d0
 internal_name: violet_fungi
 letter: f
-dlvl: 17
+dlvl: 19
 color: Magenta
 gold: 3d10
 carry_chance: 55
@@ -372,7 +372,7 @@ armor: 4
 damage: 1d6
 internal_name: wraith
 letter: w
-dlvl: 17
+dlvl: 18
 color: Red
 gold: 0
 carry_chance: 55
@@ -386,7 +386,7 @@ armor: 3
 damage: 0d0
 internal_name: venus_flytrap
 letter: f
-dlvl: 18
+dlvl: 16
 color: Green
 gold: 2d20
 carry_chance: 60
@@ -413,7 +413,7 @@ armor: 6
 damage: 2d12/2d4
 internal_name: purple_worm
 letter: P
-dlvl: 19
+dlvl: 26
 color: LightMagenta
 gold: 2d80
 carry_chance: 90
@@ -427,7 +427,7 @@ armor: -2
 damage: 1d9/1d9/2d9
 internal_name: ur_vile
 letter: u
-dlvl: 20
+dlvl: 21
 color: White
 gold: 0
 carry_chance: 45
@@ -441,7 +441,7 @@ armor: 2
 damage: 3d4/3d4/2d5
 internal_name: umber_hulk
 letter: U
-dlvl: 20
+dlvl: 22
 color: Green
 gold: 2d10
 carry_chance: 65
@@ -455,7 +455,7 @@ armor: 2
 damage: 4d3/3d5
 internal_name: griffin
 letter: g
-dlvl: 21
+dlvl: 24
 color: Yellow
 gold: 3d10
 carry_chance: 45
@@ -483,7 +483,7 @@ armor: 2
 damage: 1d2/1d2/1d4
 internal_name: quasit
 letter: Q
-dlvl: 22
+dlvl: 14
 color: Green
 gold: 2d60
 carry_chance: 75
@@ -497,7 +497,7 @@ armor: 7
 damage: 4d4
 internal_name: xeroc
 letter: x
-dlvl: 23
+dlvl: 20
 color: White
 gold: 2d8
 carry_chance: 25
@@ -510,7 +510,7 @@ armor: 7
 damage: 4d4
 internal_name: xeroc_2
 letter: x
-dlvl: 23
+dlvl: 20
 color: White
 gold: 2d8
 carry_chance: 20
@@ -523,7 +523,7 @@ armor: -2
 damage: 1d3/1d3/1d3/4d6
 internal_name: xorn
 letter: X
-dlvl: 23
+dlvl: 21
 color: Orange
 gold: 0
 carry_chance: 65
@@ -537,7 +537,7 @@ armor: 1
 damage: 1d10
 internal_name: vampire
 letter: V
-dlvl: 24
+dlvl: 23
 color: Red
 gold: 0
 carry_chance: 75

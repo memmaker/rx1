@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"rx1/foundation"
 	"rx1/geometry"
+	"rx1/gridmap"
 	"rx1/rpg"
 )
 
@@ -35,6 +36,7 @@ func GetAllUseEffects() map[string]func(g *GameState, user *Actor) (bool, []foun
 		"drain_life":                     endTurn(true, drainLife),
 		"heal":                           endTurn(true, heal),
 		"extra_heal":                     endTurn(true, extraHeal),
+		"gain_max_hp":                    endTurn(true, gainMaxHP),
 		"raise_level":                    endTurn(true, noAnim(raiseLevel)),
 		"uncloak":                        endTurn(true, uncloak),
 		"vorpalize":                      endTurn(false, playerVorpalizeWeapon),
@@ -42,6 +44,7 @@ func GetAllUseEffects() map[string]func(g *GameState, user *Actor) (bool, []foun
 		"identify_item":                  endTurn(false, playerIdentifyItem),
 		"remove_curse":                   endTurn(false, removeCurse),
 		"fire_wall":                      endTurn(true, fireWall),
+		"genocide":                       endTurn(false, genocide),
 	}
 }
 
@@ -90,6 +93,13 @@ func extraHeal(g *GameState, actor *Actor) []foundation.Animation {
 	return nil
 }
 
+func gainMaxHP(g *GameState, actor *Actor) []foundation.Animation {
+	actor.DrainMaxHP(-1)
+	actor.Heal(1)
+	g.msg(foundation.Msg("you feel more alive"))
+	return nil
+}
+
 func satiateFully(g *GameState, actor *Actor) []foundation.Animation {
 	actor.Satiate()
 	g.msg(foundation.Msg("you don't feel hungry anymore"))
@@ -98,6 +108,10 @@ func satiateFully(g *GameState, actor *Actor) []foundation.Animation {
 
 func drainLife(g *GameState, user *Actor) []foundation.Animation {
 	userHealth := user.GetHitPoints()
+	if userHealth < 2 {
+		g.msg(foundation.Msg("you are too weak to use it"))
+		return nil
+	}
 	damageDone := max(1, userHealth/2)
 	userRoom := g.dungeonLayout.GetRoomAt(user.Position())
 	isInRoom := userRoom != nil
@@ -169,6 +183,34 @@ func light(g *GameState, user *Actor) {
 	g.gridMap.SetListExplored(roomTiles, true)
 }
 
+// genocide is Rogue 3.6's: the chosen monster leaves every level and is never generated again.
+func genocide(g *GameState, user *Actor) []foundation.Animation {
+	g.msg(foundation.Msg("You have been granted the boon of genocide"))
+	var menu []foundation.MenuItem
+	for _, def := range g.dataDefinitions.Monsters {
+		if def.InternalName == "xeroc_2" || g.genocided[def.InternalName] {
+			continue
+		}
+		menu = append(menu, foundation.MenuItem{Name: def.Name, CloseMenus: true, Action: func() {
+			g.genocided[def.InternalName] = true
+			maps := []*gridmap.GridMap[*Actor, *Item, *Object]{g.gridMap}
+			for _, v := range g.levels {
+				maps = append(maps, v.gridMap)
+			}
+			for _, m := range maps {
+				for _, actor := range m.Actors() {
+					if actor != g.Player && actor.GetInternalName() == def.InternalName {
+						m.RemoveActor(actor)
+					}
+				}
+			}
+			g.endPlayerTurn()
+		}})
+	}
+	g.ui.OpenMenu(menu)
+	return nil
+}
+
 func createMonster(g *GameState, user *Actor) {
 	freePositions := g.gridMap.GetFilteredNeighbors(user.Position(), func(point geometry.Point) bool {
 		return g.gridMap.CanPlaceActorHere(point)
@@ -179,7 +221,7 @@ func createMonster(g *GameState, user *Actor) {
 		return
 	}
 
-	monster := g.NewEnemyFromDef(g.dataDefinitions.RandomMonsterDef())
+	monster := g.NewEnemyFromDef(g.rogueRandMonster(rand.New(rand.NewSource(rand.Int63())), g.currentDungeonLevel, false))
 	g.msg(foundation.Msg("A monster appears!"))
 
 	randomPos := freePositions[rand.Intn(len(freePositions))]
@@ -236,7 +278,7 @@ func makeInvisible(g *GameState, user *Actor) {
 }
 func haste(g *GameState, user *Actor) {
 	if user.GetFlags().IsSet(foundation.FlagSlow) {
-		user.GetFlags().Unset(foundation.FlagHaste)
+		user.GetFlags().Unset(foundation.FlagSlow)
 		return
 	}
 	user.GetFlags().Set(foundation.FlagHaste)
@@ -330,6 +372,9 @@ func aggroMonsters(g *GameState, actor *Actor) []foundation.Animation {
 
 func playerIdentifyItem(g *GameState, actor *Actor) []foundation.Animation {
 	inventory := g.GetFilteredInventory(func(item *Item) bool {
+		if item.IsWeapon() || item.IsArmor() { // known one by one, as in Rogue
+			return !item.isKnown
+		}
 		return item.IsMagic() && !g.identification.IsItemIdentified(item.GetInternalName())
 	})
 	if len(inventory) == 0 {
@@ -340,7 +385,13 @@ func playerIdentifyItem(g *GameState, actor *Actor) []foundation.Animation {
 	onSelected := func(item foundation.ItemForUI) {
 		unknownItem := item.(*InventoryStack).First()
 
-		g.identification.IdentifyItem(unknownItem.GetInternalName())
+		if unknownItem.IsWeapon() || unknownItem.IsArmor() {
+			for _, each := range item.(*InventoryStack).items {
+				each.isKnown = true
+			}
+		} else {
+			g.identification.IdentifyItem(unknownItem.GetInternalName())
+		}
 		g.msg(foundation.HiLite("identified as %s.", unknownItem.Name()))
 
 		g.ui.UpdateInventory()

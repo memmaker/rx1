@@ -223,10 +223,7 @@ func (e *Equipment) changed() {
 }
 
 func (e *Equipment) CanUnequip(item *Item) bool {
-	if item.GetEquipFlag() == foundation.FlagCurseStuck && item.GetCharges() > 0 {
-		return false
-	}
-	return true
+	return !item.IsStuck()
 }
 
 func (e *Equipment) ContainsFlag(flag foundation.ActorFlag) bool {

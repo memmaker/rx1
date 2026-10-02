@@ -304,7 +304,7 @@ func (a *Actor) GetMelee(enemyInternalName string) (hplus, dplus int, dmg string
 	if a.GetEquipment().HasMeleeWeaponEquipped() {
 		weapon := a.GetEquipment().GetMainWeapon(MeleeAttack).GetWeapon()
 		vh, vd := weapon.GetVorpalBonus(enemyInternalName)
-		return hplus + vh, dplus + vd + weapon.damagePlus, weapon.damageDice.String()
+		return hplus + vh + weapon.hitPlus, dplus + vd + weapon.damagePlus, weapon.damageDice.String()
 	}
 	return hplus, dplus, a.stats.Dmg
 }
@@ -318,10 +318,10 @@ func (a *Actor) GetThrowing(enemyInternalName string, missile *Item) (hplus, dpl
 	}
 	weapon := missile.GetWeapon()
 	vh, vd := weapon.GetVorpalBonus(enemyInternalName)
-	hplus, dplus = hplus+vh, dplus+vd+weapon.damagePlus
+	hplus, dplus = hplus+vh+weapon.hitPlus, dplus+vd+weapon.damagePlus
 	if a.IsLaunching(missile) {
 		launcher := a.GetEquipment().GetMissileLauncher().GetWeapon()
-		return hplus, dplus + launcher.damagePlus, weapon.damageDice.String()
+		return hplus + launcher.hitPlus, dplus + launcher.damagePlus, weapon.damageDice.String()
 	}
 	return hplus, dplus, missile.GetThrowDamageDice().String()
 }

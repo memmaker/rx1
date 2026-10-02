@@ -14,7 +14,8 @@ import (
 
 type WeaponInfo struct {
 	damageDice       rpg.Dice
-	damagePlus       int
+	hitPlus          int // Rogue's o_hplus
+	damagePlus       int // Rogue's o_dplus
 	weaponType       WeaponType
 	launchedWithType WeaponType
 	vorpalEnemy      string
@@ -37,7 +38,7 @@ func (i *WeaponInfo) GetVorpalBonus(enemyName string) (int, int) {
 	return 0, 0
 }
 func (i *WeaponInfo) IsEnchantable() bool {
-	return i.damagePlus <= 7
+	return max(i.hitPlus, i.damagePlus) <= 7
 }
 
 // Corrode lowers the damage bonus, down to -3.
@@ -49,12 +50,17 @@ func (i *WeaponInfo) Corrode() bool {
 	return true
 }
 
+// AddEnchantment is Rogue's coin flip: +1 to hit or +1 damage
 func (i *WeaponInfo) AddEnchantment() {
-	i.damagePlus++
+	if rand.Intn(2) == 0 {
+		i.hitPlus++
+	} else {
+		i.damagePlus++
+	}
 }
 
 func (i *WeaponInfo) IsEnchanted() bool {
-	return i.damagePlus > 0
+	return i.hitPlus > 0 || i.damagePlus > 0
 }
 
 func (i *WeaponInfo) IsLaunchedWith(category WeaponType) bool {
@@ -108,6 +114,7 @@ type Item struct {
 	statBonus int
 
 	equipFlag    foundation.ActorFlag
+	stuckTurns   int // cursed: cannot be taken off for this many more equipped turns
 	thrownDamage rpg.Dice
 	isKnown      bool
 	text         string
@@ -194,8 +201,15 @@ func (i *Item) Name() string {
 		name = fmt.Sprintf("%s ring", flavor)
 	}
 
+	if i.isKnown && i.IsWeapon() {
+		name = fmt.Sprintf("%+d,%+d %s", i.weapon.hitPlus, i.weapon.damagePlus, name)
+	}
+	if i.isKnown && i.IsArmor() {
+		name = fmt.Sprintf("%+d %s", i.armor.plus, name)
+	}
+
 	if i.IsStuck() && i.isKnown {
-		name = fmt.Sprintf("*%d* %s", i.GetCharges(), name)
+		name = fmt.Sprintf("*%d* %s", i.stuckTurns, name)
 	}
 
 	if i.statBonus != 0 && (i.isKnown || i.id.IsItemIdentified(i.internalName)) {
@@ -250,7 +264,7 @@ func (i *Item) CanStackWith(other *Item) bool {
 		return false
 	}
 
-	if i.charges != other.charges {
+	if i.charges != other.charges || i.IsMissile() && (i.weapon.hitPlus != other.weapon.hitPlus || i.weapon.damagePlus != other.weapon.damagePlus) {
 		return false
 	}
 
@@ -369,14 +383,18 @@ func (i *Item) SetCharges(amount int) {
 }
 
 func (i *Item) AfterEquippedTurn() {
-	if (i.IsRing() || i.IsStuck()) && i.charges > 0 {
+	if i.IsRing() && i.charges > 0 {
 		i.charges--
+		i.isKnown = true
+	}
+	if i.IsStuck() {
+		i.stuckTurns--
 		i.isKnown = true
 	}
 }
 
 func (i *Item) IsStuck() bool {
-	return i.equipFlag == foundation.FlagCurseStuck && i.charges > 0
+	return i.stuckTurns > 0
 }
 
 func (i *Item) IsCursed() bool {
@@ -389,9 +407,7 @@ func (i *Item) RemoveCurse() {
 	}
 	blessing := rand.Intn(100) < 4
 
-	if i.IsStuck() {
-		i.equipFlag = foundation.FlagNone
-	}
+	i.stuckTurns = 0
 	if i.statBonus < 0 {
 		if blessing {
 			i.statBonus = rand.Intn(3) + 1

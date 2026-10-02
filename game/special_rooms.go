@@ -120,7 +120,7 @@ func (g *GameState) specialRoomMonster(random *rand.Rand, level int, kind specia
 	name := ""
 	switch kind {
 	case zoo:
-		return g.rogueRandMonster(random, level), true
+		return g.rogueRandMonster(random, level, false), true
 	case leprechaunHall:
 		name = "leprechaun"
 	case anthole:
