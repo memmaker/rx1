@@ -43,6 +43,8 @@ type GameState struct {
 	deepestDungeonLevelPlayerReached int
 	levelsWithoutFood                int // Rogue's no_food
 	lightsRolledUpTo                 int
+	exploreVisited                   map[geometry.Point]bool // tiles auto explore stood on, for exploreVisitedMap
+	exploreVisitedMap                *gridmap.GridMap[*Actor, *Item, *Object]
 	starGlassSpawned                 bool
 	morningStarSpawned               bool
 	secrets                          map[geometry.Point]gridmap.Tile // secret doors/passages: the real tile until found

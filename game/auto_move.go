@@ -105,8 +105,13 @@ func (g *GameState) AutoExploreStep() bool {
 		return false
 	}
 	m := g.gridMap
+	if g.exploreVisitedMap != m {
+		g.exploreVisited, g.exploreVisitedMap = map[geometry.Point]bool{}, m
+	}
+	g.exploreVisited[player.Position()] = true
 	isFrontier := func(p geometry.Point) bool {
-		return len(m.NeighborsAll(p, func(n geometry.Point) bool { return m.Contains(n) && !m.IsExplored(n) })) > 0
+		// a tile we stood on without revealing its neighbours never will; skipping it stops the back-and-forth
+		return !g.exploreVisited[p] && len(m.NeighborsAll(p, func(n geometry.Point) bool { return m.Contains(n) && !m.IsExplored(n) })) > 0
 	}
 	return g.autoMoveToward(isFrontier, true)
 }
