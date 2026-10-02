@@ -1,6 +1,7 @@
 package game
 
 import (
+	"rx1/dungen"
 	"rx1/foundation"
 	"rx1/geometry"
 	"testing"
@@ -68,5 +69,34 @@ func TestTownRoundTrip(t *testing.T) {
 	g.PlayerTryAscend()
 	if g.currentDungeonLevel != 0 {
 		t.Fatal("expected town after ascending from level 1")
+	}
+}
+
+// A stronger light shows more of the map as soon as it is equipped, not only after the next step.
+func TestSwitchingLightUpdatesTheMap(t *testing.T) {
+	cfg := foundation.NewDefaultConfiguration()
+	cfg.DataRootDir = "../data_rx1"
+	g := NewGameState(stubUI{}, cfg)
+	for {
+		g.GotoDungeonLevel(1, StairsBoth, true)
+		// a straight piece of corridor: the torch reaches one tile, the lantern two
+		for y := 0; y < g.gridMap.GetHeight(); y++ {
+			for x := 0; x+2 < g.gridMap.GetWidth(); x++ {
+				if g.dungeonLayout.GetTile(x, y) != dungen.Corridor || g.dungeonLayout.GetTile(x+1, y) != dungen.Corridor || g.dungeonLayout.GetTile(x+2, y) != dungen.Corridor {
+					continue
+				}
+				here, far := geometry.Point{X: x, Y: y}, geometry.Point{X: x + 2, Y: y}
+				g.gridMap.MoveActor(g.Player, here)
+				g.exploreMap()
+				if g.canPlayerSee(far) {
+					t.Fatalf("the torch lights %v from %v", far, here)
+				}
+				g.actorEquipItem(g.Player, g.NewItemFromName("lantern"))
+				if !g.canPlayerSee(far) || !g.gridMap.IsExplored(far) {
+					t.Fatalf("the lantern does not light %v from %v right away", far, here)
+				}
+				return
+			}
+		}
 	}
 }

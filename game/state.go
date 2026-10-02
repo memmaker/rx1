@@ -364,7 +364,12 @@ func (g *GameState) init() {
 
 	g.Player.GetInventory().SetOnBeforeRemove(equipment.UnEquip)
 
-	equipment.SetOnChangeHandler(g.updateUIStatus)
+	equipment.SetOnChangeHandler(func() {
+		if g.gridMap != nil { // another light shows more or less of the map
+			g.exploreMap()
+		}
+		g.updateUIStatus()
+	})
 
 	g.identification = NewIdentificationKnowledge()
 	g.identification.SetOnIdChanged(g.ui.UpdateInventory)
