@@ -919,17 +919,12 @@ func (g *GameState) isInPlayerRoom(position geometry.Point) bool {
 }
 
 func (g *GameState) openWizardCreateItemMenu() {
-	allCategories := []foundation.ItemCategory{
-		foundation.ItemCategoryFood,
-		foundation.ItemCategoryWeapons,
-		foundation.ItemCategoryArmor,
-		foundation.ItemCategoryAmulets,
-		foundation.ItemCategoryPotions,
-		foundation.ItemCategoryScrolls,
-		foundation.ItemCategoryRings,
-		foundation.ItemCategoryWands,
-		foundation.ItemCategoryDocuments,
+	// every category that has item definitions, so new ones show up by themselves
+	var allCategories []foundation.ItemCategory
+	for category := range g.dataDefinitions.Items {
+		allCategories = append(allCategories, category)
 	}
+	slices.Sort(allCategories)
 	var menuActions []foundation.MenuItem
 
 	for _, c := range allCategories {
