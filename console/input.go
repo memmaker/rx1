@@ -119,30 +119,21 @@ func (u *UI) setupCommandTable() {
 	}
 
 	u.commandTable["throw"] = u.game.ChooseItemForThrow
-	u.commandTable["quaff"] = u.game.ChooseItemForQuaff
 	u.commandTable["read"] = u.game.ChooseItemForRead
-	u.commandTable["zap"] = u.game.ChooseItemForZap
 	u.commandTable["use"] = u.game.ChooseItemForUse
-	u.commandTable["wear"] = u.game.ChooseArmorForWear
-	u.commandTable["take_off"] = u.game.ChooseArmorToTakeOff
-	u.commandTable["wield"] = u.game.ChooseWeaponForWield
-	u.commandTable["ring_put_on"] = u.game.ChooseRingToPutOn
-	u.commandTable["ring_remove"] = u.game.ChooseRingToRemove
+	u.commandTable["consume"] = u.game.ChooseItemForConsume
+	u.commandTable["equip"] = u.game.ChooseItemForEquip
+	u.commandTable["take_off"] = u.game.ChooseItemToTakeOff
 	u.commandTable["drop"] = u.game.ChooseItemForDrop
-	u.commandTable["eat"] = u.game.ChooseItemForEat
 
-	u.commandTable["apply"] = u.game.ChooseItemForApply
 	u.commandTable["launch"] = u.game.ChooseItemForMissileLaunch
 	u.commandTable["aim"] = u.game.AimedShot
 	u.commandTable["quick_shot"] = u.game.QuickShot
 	u.commandTable["pickup"] = u.game.PickupItem
-	u.commandTable["map_interaction"] = u.game.PlayerInteractWithMap
 	u.commandTable["run_direction"] = u.ChooseDirectionForRun
 	u.commandTable["descend"] = u.useOrTravelToStairs(true, u.game.PlayerTryDescend)
 	u.commandTable["ascend"] = u.useOrTravelToStairs(false, u.game.PlayerTryAscend)
 	u.commandTable["wait"] = u.game.Wait
-	"save":              "Save Game",
-	"load":              "Load Game",
 	u.commandTable["show_key_bindings"] = u.showKeyBindings
 	u.commandTable["auto_explore"] = u.startAutoExplore
 	u.commandTable["commands"] = u.openCommandMenu
@@ -150,6 +141,8 @@ func (u *UI) setupCommandTable() {
 
 var friendlyNames = map[string]string{
 	"quit":              "Quit",
+	"save":              "Save Game",
+	"load":              "Load Game",
 	"inventory":         "Inventory",
 	"tactics":           "Tactics Menu",
 	"character":         "Character",
@@ -183,23 +176,16 @@ var friendlyNames = map[string]string{
 	"gamma_down":        "Gamma Down",
 	"toggle_cursor":     "Toggle Cursor",
 	"throw":             "Throw",
-	"quaff":             "Quaff",
 	"read":              "Read",
-	"zap":               "Zap",
 	"use":               "Use",
-	"apply":             "Apply",
-	"wear":              "Wear",
+	"consume":           "Consume",
+	"equip":             "Equip",
 	"take_off":          "Take Off",
-	"wield":             "Wield",
-	"ring_put_on":       "Put On Ring",
-	"ring_remove":       "Remove Ring",
 	"drop":              "Drop",
-	"eat":               "Eat",
 	"launch":            "Launch",
 	"aim":               "Aim",
 	"quick_shot":        "Quick Shot",
 	"pickup":            "Pickup",
-	"map_interaction":   "Map Interaction",
 	"run_direction":     "Run Direction",
 	"descend":           "Descend",
 	"auto_explore":      "Auto Explore",
@@ -232,7 +218,6 @@ func (u *UI) showKeyBindings() {
 		"run_direction",
 		"descend",
 		"ascend",
-		"map_interaction",
 		"wait",
 		"inventory",
 		"character",
@@ -243,17 +228,11 @@ func (u *UI) showKeyBindings() {
 
 	rightColCommands := []string{
 		"use",
-		"zap",
-		"apply",
+		"consume",
+		"equip",
 		"throw",
-		"quaff",
 		"read",
-		"eat",
-		"wield",
-		"wear",
 		"take_off",
-		"ring_put_on",
-		"ring_remove",
 		"drop",
 		"pickup",
 		"launch",
@@ -505,9 +484,9 @@ var commandMenuGroups = []struct {
 	name     string
 	commands []string
 }{
-	{"Items", []string{"inventory", "pickup", "drop", "use", "apply", "eat", "quaff", "read", "zap", "throw", "wear", "take_off", "wield", "ring_put_on", "ring_remove"}},
+	{"Items", []string{"inventory", "pickup", "drop", "use", "consume", "equip", "read", "throw", "take_off"}},
 	{"Combat", []string{"aim", "quick_shot", "launch", "tactics", "look"}},
-	{"Explore", []string{"auto_explore", "descend", "ascend", "map_interaction", "wait"}},
+	{"Explore", []string{"auto_explore", "descend", "ascend", "wait"}},
 	{"Info", []string{"character", "monsters", "items", "log", "help", "show_key_bindings"}},
 	{"Display", []string{"overlay_monsters", "overlay_items", "themes", "gamma_up", "gamma_down", "toggle_cursor"}},
 	{"Game", []string{"save", "load", "wizard", "quit"}},

@@ -27,30 +27,24 @@ g -> run_direction
 5 -> run_direction
 
 t -> throw
-e -> eat
+e -> consume
 , -> pickup
 . -> wait
 < -> ascend
 > -> descend
 d -> drop
-w -> wield
-W -> wear
+w -> equip
 T -> take_off
-P -> ring_put_on
-R -> ring_remove
-q -> quaff
 r -> read
-z -> zap
-s -> use
-a -> apply
-F7 -> save
-F8 -> load
+z -> use
 
 x -> launch
 c -> aim
 v -> quick_shot
 
 Q -> quit
+F7 -> save
+F8 -> load
 i -> inventory
 C -> character
 o -> log
@@ -67,7 +61,6 @@ f -> tactics
 
 Ctrl+T -> themes
 
-Enter -> map_interaction
 
 
 ? -> help

@@ -257,28 +257,6 @@ const (
 	StairsBoth
 )
 
-func (g *GameState) PlayerInteractWithMap() {
-	pos := g.Player.Position()
-	cell := g.gridMap.GetCell(pos)
-
-	isDescending := cell.TileType.IsStairsDown()
-	isAscending := cell.TileType.IsStairsUp()
-	if !isDescending && !isAscending {
-		g.msg(foundation.Msg("There are no stairs here"))
-		return
-	}
-	if isDescending && isAscending {
-		g.msg(foundation.Msg("There are both up and down stairs here."))
-		return
-	}
-
-	if isDescending {
-		g.PlayerTryDescend()
-	} else if isAscending {
-		g.PlayerTryAscend()
-	}
-}
-
 func (g *GameState) PlayerTryDescend() {
 	pos := g.Player.Position()
 	cell := g.gridMap.GetCell(pos)
@@ -581,34 +559,6 @@ func (g *GameState) actorUnequipItem(wearer *Actor, item *Item) {
 	}
 }
 
-func (g *GameState) ChooseItemForApply() {
-	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsUsableOrZappable()
-	})
-	if len(inventory) == 0 {
-		g.msg(foundation.Msg("You are not carrying anything usable."))
-		return
-	}
-	if len(inventory) == 1 {
-		stack, isStack := inventory[0].(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.playerUseOrZapItem(item)
-		return
-
-	}
-	g.ui.OpenInventoryForSelection(inventory, "Use what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.playerUseOrZapItem(item)
-	})
-}
-
 func (g *GameState) ChooseItemForDrop() {
 	inventory := g.GetFilteredInventory(func(item *Item) bool {
 		return true
@@ -628,62 +578,6 @@ func (g *GameState) ChooseItemForDrop() {
 	}
 	g.ui.OpenInventoryForSelection(inventory, "Drop what?", func(itemStack foundation.ItemForUI) {
 		g.DropItem(itemStack)
-	})
-}
-
-func (g *GameState) ChooseItemForQuaff() {
-	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsPotion()
-	})
-	if len(inventory) == 0 {
-		g.msg(foundation.Msg("You are not carrying any potions."))
-		return
-	}
-	if len(inventory) == 1 {
-		stack, isStack := inventory[0].(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.actorUseItem(g.Player, item)
-		return
-
-	}
-	g.ui.OpenInventoryForSelection(inventory, "Quaff what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.actorUseItem(g.Player, item)
-	})
-}
-
-func (g *GameState) ChooseItemForEat() {
-	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsFood()
-	})
-	if len(inventory) == 0 {
-		g.msg(foundation.Msg("You are not carrying any food."))
-		return
-	}
-	if len(inventory) == 1 {
-		stack, isStack := inventory[0].(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.actorUseItem(g.Player, item)
-		return
-
-	}
-	g.ui.OpenInventoryForSelection(inventory, "Eat what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.actorUseItem(g.Player, item)
 	})
 }
 
@@ -714,195 +608,48 @@ func (g *GameState) ChooseItemForRead() {
 	})
 }
 
-func (g *GameState) ChooseItemForZap() {
-	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsZappable()
-	})
+func (g *GameState) chooseItem(filter func(*Item) bool, none, prompt string, act func(*Item)) {
+	inventory := g.GetFilteredInventory(filter)
 	if len(inventory) == 0 {
-		g.msg(foundation.Msg("You are not carrying any wands."))
+		g.msg(foundation.Msg(none))
 		return
+	}
+	pick := func(itemStack foundation.ItemForUI) {
+		if stack, isStack := itemStack.(*InventoryStack); isStack {
+			act(stack.First())
+		}
 	}
 	if len(inventory) == 1 {
-		stack, isStack := inventory[0].(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.startAimItem(item)
+		pick(inventory[0])
 		return
-
 	}
-	g.ui.OpenInventoryForSelection(inventory, "Zap what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.startAimItem(item)
-	})
+	g.ui.OpenInventoryForSelection(inventory, prompt, pick)
 }
 
+// ChooseItemForUse uses any usable item or zaps any wand
 func (g *GameState) ChooseItemForUse() {
-	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsUsable()
-	})
-	if len(inventory) == 0 {
-		g.msg(foundation.Msg("You are not carrying anything usable."))
-		return
-	}
-	if len(inventory) == 1 {
-		stack, isStack := inventory[0].(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.actorUseItem(g.Player, item)
-		return
-
-	}
-	g.ui.OpenInventoryForSelection(inventory, "Use what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.actorUseItem(g.Player, item)
-	})
+	g.chooseItem(func(item *Item) bool { return item.IsUsableOrZappable() },
+		"You are not carrying anything usable.", "Use what?", g.playerUseOrZapItem)
 }
 
-func (g *GameState) ChooseWeaponForWield() {
-	equipment := g.Player.GetEquipment()
-	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsWeapon() && item.IsEquippable() && !equipment.IsEquipped(item)
-	})
-	if len(inventory) == 0 {
-		g.msg(foundation.Msg("You are not carrying any weapons."))
-		return
-	}
-	if len(inventory) == 1 {
-		stack, isStack := inventory[0].(*InventoryStack)
-		if !isStack {
-			return
-		}
-		g.playerEquip(stack.First())
-		return
-	}
-	g.ui.OpenInventoryForSelection(inventory, "Wield what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.playerEquip(item)
-	})
+// ChooseItemForConsume eats food or quaffs potions
+func (g *GameState) ChooseItemForConsume() {
+	g.chooseItem(func(item *Item) bool { return item.IsFood() || item.IsPotion() },
+		"You are not carrying anything to eat or drink.", "Consume what?",
+		func(item *Item) { g.actorUseItem(g.Player, item) })
 }
 
-func (g *GameState) ChooseArmorForWear() {
+// ChooseItemForEquip wields weapons, wears armor and puts on rings
+func (g *GameState) ChooseItemForEquip() {
 	equipment := g.Player.GetEquipment()
-	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsArmor() && item.IsEquippable() && !equipment.IsEquipped(item)
-	})
-	if len(inventory) == 0 {
-		g.msg(foundation.Msg("You are not carrying any armor."))
-		return
-	}
-	if len(inventory) == 1 {
-		stack, isStack := inventory[0].(*InventoryStack)
-		if !isStack {
-			return
-		}
-		g.playerEquip(stack.First())
-		return
-	}
-	g.ui.OpenInventoryForSelection(inventory, "Wear what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.playerEquip(item)
-	})
+	g.chooseItem(func(item *Item) bool {
+		return (item.IsWeapon() || item.IsArmor() || item.IsRing()) && item.IsEquippable() && !equipment.IsEquipped(item)
+	}, "You are not carrying anything to equip.", "Equip what?", g.playerEquip)
 }
 
-func (g *GameState) ChooseRingToPutOn() {
+// ChooseItemToTakeOff unequips worn armor, wielded weapons and rings
+func (g *GameState) ChooseItemToTakeOff() {
 	equipment := g.Player.GetEquipment()
-	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsRing() && item.IsEquippable() && !equipment.IsEquipped(item)
-	})
-	if len(inventory) == 0 {
-		g.msg(foundation.Msg("You are not carrying any rings."))
-		return
-	}
-	if len(inventory) == 1 {
-		stack, isStack := inventory[0].(*InventoryStack)
-		if !isStack {
-			return
-		}
-		g.playerEquip(stack.First())
-		return
-	}
-	g.ui.OpenInventoryForSelection(inventory, "Put on what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.playerEquip(item)
-	})
-}
-
-func (g *GameState) ChooseArmorToTakeOff() {
-	equipment := g.Player.GetEquipment()
-	wornArmor := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsArmor() && item.IsEquippable() && equipment.IsEquipped(item)
-	})
-
-	if len(wornArmor) == 0 {
-		g.msg(foundation.Msg("You are not wearing any armor."))
-		return
-	}
-	if len(wornArmor) == 1 {
-		stack, isStack := wornArmor[0].(*InventoryStack)
-		if !isStack {
-			return
-		}
-		g.playerUnequip(stack.First())
-		return
-	}
-	g.ui.OpenInventoryForSelection(wornArmor, "Take off what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.playerUnequip(item)
-	})
-}
-
-func (g *GameState) ChooseRingToRemove() {
-	equipment := g.Player.GetEquipment()
-	wornRings := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsRing() && item.IsEquippable() && equipment.IsEquipped(item)
-	})
-	if len(wornRings) == 0 {
-		g.msg(foundation.Msg("You are not wearing any rings."))
-		return
-	}
-	if len(wornRings) == 1 {
-		stack, isStack := wornRings[0].(*InventoryStack)
-		if !isStack {
-			return
-		}
-		g.playerUnequip(stack.First())
-		return
-
-	}
-	g.ui.OpenInventoryForSelection(wornRings, "Remove what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.playerUnequip(item)
-	})
+	g.chooseItem(func(item *Item) bool { return item.IsEquippable() && equipment.IsEquipped(item) },
+		"You are not wearing anything.", "Take off what?", g.playerUnequip)
 }

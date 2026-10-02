@@ -34,7 +34,6 @@ type GameForUI interface {
 	QuickShot()
 	Wait()
 
-	PlayerInteractWithMap() // up/down stairs..
 	SaveGame()
 	LoadGame()
 
@@ -67,20 +66,13 @@ type GameForUI interface {
 	OpenInventory()
 	ChooseItemForDrop()
 	ChooseItemForThrow()
-	ChooseItemForQuaff()
-	ChooseItemForEat()
 	ChooseItemForRead()
-	ChooseItemForZap()
 	ChooseItemForUse()
-	ChooseItemForApply()
+	ChooseItemForConsume()
+	ChooseItemForEquip()
 	ChooseItemForMissileLaunch()
 
-	ChooseWeaponForWield()
-	ChooseArmorForWear()
-	ChooseRingToPutOn()
-
-	ChooseArmorToTakeOff()
-	ChooseRingToRemove()
+	ChooseItemToTakeOff()
 
 	IsEquipped(item ItemForUI) bool
 

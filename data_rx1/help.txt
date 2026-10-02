@@ -9,7 +9,6 @@ w a s d        move north / west / south / east
 W A S D        run in that direction
 numpad 1-9     move in all eight directions (5: run in a direction)
 .              wait a turn
-Enter          take the stairs you are standing on (up or down)
 > / <          go down / up the stairs you are standing on
 
 Fighting
@@ -24,8 +23,8 @@ t              tactics menu
 Items
 =====
 ,              pick up
-i              inventory: select an item to quaff, read, eat, wear,
-               wield, put on, remove, drop or zap it
+i              inventory: select an item to use, consume, equip,
+               take off or drop it
 e              use an item
 r              read a scroll or a document you found
 I              list of items in view
@@ -51,8 +50,8 @@ o              auto explore (any key stops it)
 Screen
 ======
 F3 / F4        darker / brighter
-F7 / F8        save / load the game (hero, pack and every level seen)
 Ctrl+T         switch the colour theme
+F7 / F8        save / load the game (hero, pack and every level seen)
 Q              quit
 
 Targeting
