@@ -22,6 +22,7 @@ type Animator struct {
 	runningAnimations []TextAnimation
 	pending           []TextAnimation   // added since the last Flush
 	queue             [][]TextAnimation // flushed batches, each starts when the one before has finished
+	moves             map[foundation.ActorForUI]*MovementAnimation // step moves, play alongside the batches
 }
 
 func NewAnimator() *Animator {
@@ -31,6 +32,17 @@ func NewAnimator() *Animator {
 }
 
 func (a *Animator) AddAnimation(animation TextAnimation) {
+	if move, isMove := animation.(*MovementAnimation); isMove && move.actor != nil && !move.isQuickMove && len(move.GetFollowUp()) == 0 {
+		if a.moves == nil {
+			a.moves = map[foundation.ActorForUI]*MovementAnimation{}
+		}
+		if running, ok := a.moves[move.actor]; ok && !running.IsDone() {
+			running.Merge(move)
+		} else {
+			a.moves[move.actor] = move
+		}
+		return
+	}
 	a.pending = append(a.pending, animation)
 }
 
@@ -43,7 +55,7 @@ func (a *Animator) Flush() {
 }
 
 func (a *Animator) IsBusy() bool {
-	return len(a.runningAnimations) > 0 || len(a.queue) > 0
+	return len(a.runningAnimations) > 0 || len(a.queue) > 0 || len(a.moves) > 0
 }
 
 func (a *Animator) Tick() (shouldUpdateMapState bool) {
@@ -74,6 +86,18 @@ func (a *Animator) Tick() (shouldUpdateMapState bool) {
 
 	clear(a.animationState)
 
+	for actor, move := range a.moves {
+		if move.IsDone() {
+			mapStateNeedsUpdate = mapStateNeedsUpdate || move.IsRequestingMapStateUpdate()
+			delete(a.moves, actor)
+		}
+	}
+	for _, move := range a.moves {
+		for pos, icon := range move.GetDrawables() {
+			a.animationState[pos] = icon
+		}
+		move.NextFrame()
+	}
 	for _, animation := range a.runningAnimations {
 		for pos, icon := range animation.GetDrawables() {
 			a.animationState[pos] = icon
@@ -92,7 +116,10 @@ func (a *Animator) CancelAll() {
 			cancelRecursive(animation)
 		}
 	}
-	a.runningAnimations, a.queue, a.pending = nil, nil, nil
+	for _, move := range a.moves {
+		move.Cancel()
+	}
+	a.runningAnimations, a.queue, a.pending, a.moves = nil, nil, nil, nil
 	clear(a.animationState)
 }
 

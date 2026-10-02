@@ -360,7 +360,7 @@ func (u *UI) AfterPlayerMoved(moveInfo foundation.MoveInfo) {
 
 func (u *UI) GetAnimMove(actor foundation.ActorForUI, old geometry.Point, new geometry.Point) foundation.Animation {
 	if u.settings.AnimationsEnabled && u.settings.AnimateMovement {
-		return NewMovementAnimation(u.getIconForActor(actor), old, new, u.currentTheme.GetColorByName, nil)
+		return NewMovementAnimation(actor, u.getIconForActor(actor), old, new, u.currentTheme.GetColorByName, nil)
 	}
 	return nil
 }
@@ -406,7 +406,7 @@ func (u *UI) isPlayerHallucinating() bool {
 
 func (u *UI) GetAnimQuickMove(actor foundation.ActorForUI, path []geometry.Point) foundation.Animation {
 	if u.settings.AnimationsEnabled && u.settings.AnimateMovement {
-		animation := NewMovementAnimation(u.getIconForActor(actor), actor.Position(), path[len(path)-1], u.currentTheme.GetColorByName, nil)
+		animation := NewMovementAnimation(actor, u.getIconForActor(actor), actor.Position(), path[len(path)-1], u.currentTheme.GetColorByName, nil)
 		animation.EnableQuickMoveMode(path)
 		return animation
 	}
