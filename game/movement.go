@@ -84,6 +84,9 @@ func (g *GameState) afterPlayerMoved() {
 		g.PickupItem()
 	}
 
+	if _, isSecret := g.secrets[g.Player.Position()]; isSecret {
+		g.revealSecret(g.Player.Position())
+	}
 	g.msg(g.GetMapInfoForMovement(g.Player.Position()))
 	g.exploreMap()
 	g.updateDijkstraMap()

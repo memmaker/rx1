@@ -38,6 +38,7 @@ type UI struct {
 	currentTheme Theme
 
 	mapOverlay *Overlay
+	mapScroll  geometry.Point // the map position in the top left corner of the map window
 
 	mainGrid        *cview.Grid
 	lowerRightPanel *cview.TextView
@@ -1139,7 +1140,7 @@ func (u *UI) InitDungeonUI() {
 
 	u.application.SetFocus(grid)
 
-	u.mapOverlay = NewOverlay(u.settings.MapWidth, u.settings.MapHeight)
+	u.mapOverlay = NewOverlay()
 
 	u.setTheme(u.settings.ThemeFullPath())
 }
@@ -1267,13 +1268,13 @@ func (u *UI) drawMap(screen tcell.Screen, x int, y int, width int, height int) (
 		return x, y, width, height
 	}
 
+	player, mapSize := u.game.GetPlayerPosition(), u.game.GetMapSize()
+	u.mapScroll.X = scrollAxis(u.mapScroll.X, player.X, width, mapSize.X)
+	u.mapScroll.Y = scrollAxis(u.mapScroll.Y, player.Y, height, mapSize.Y)
+
 	for row := y; row < y+height; row++ {
 		for col := x; col < x+width; col++ {
-
-			mapPosX := col - x
-			mapPosY := row - y
-
-			mapPos := geometry.Point{X: mapPosX, Y: mapPosY}
+			mapPos := geometry.Point{X: col - x, Y: row - y}.Add(u.mapScroll)
 
 			ch, style := u.renderMapPosition(mapPos)
 
@@ -1281,10 +1282,19 @@ func (u *UI) drawMap(screen tcell.Screen, x int, y int, width int, height int) (
 		}
 	}
 	if u.showCursor {
-		screen.ShowCursor(u.game.GetPlayerPosition().X+x, u.game.GetPlayerPosition().Y+y)
+		screen.ShowCursor(player.X-u.mapScroll.X+x, player.Y-u.mapScroll.Y+y)
 	}
 	// Space for other content.
 	return x, y, width, height
+}
+
+// scrollAxis keeps the player in a window that is smaller than the map:
+// the view centres on them again when they come close to its edge.
+func scrollAxis(scroll, player, window, mapSize int) int {
+	if margin := min(5, window/4); player < scroll+margin || player >= scroll+window-margin {
+		scroll = player - window/2
+	}
+	return max(0, min(scroll, mapSize-window))
 }
 
 func (u *UI) renderMapPosition(mapPos geometry.Point) (rune, tcell.Style) {
@@ -1890,9 +1900,7 @@ func (u *UI) popOnSpaceWithNotification(currentPage string, onClose func()) func
 func (u *UI) ScreenToMap(point geometry.Point) geometry.Point {
 	x, y, _, _ := u.mapWindow.GetInnerRect()
 
-	mapX := point.X - x
-	mapY := point.Y - y
-	return geometry.Point{X: mapX, Y: mapY}
+	return geometry.Point{X: point.X - x, Y: point.Y - y}.Add(u.mapScroll)
 }
 
 func (u *UI) handleMainMouse(event *tcell.EventMouse, action cview.MouseAction) (*tcell.EventMouse, cview.MouseAction) {
@@ -2074,7 +2082,7 @@ func (u *UI) calculateOverlayPos(position geometry.Point, widthNeeded int) (labe
 		return u.game.IsSomethingInterestingAtLoc(pos) || u.mapOverlay.IsSet(pos.X, pos.Y)
 	}
 	isPosForLabelValid := func(pos geometry.Point) bool {
-		if pos.X < 0 || pos.Y < 0 || pos.X+widthNeeded >= sW || pos.Y >= sH {
+		if onScreen := pos.Sub(u.mapScroll); onScreen.X < 0 || onScreen.Y < 0 || onScreen.X+widthNeeded >= sW || onScreen.Y >= sH {
 			return false
 		}
 		for x := 0; x < widthNeeded; x++ {

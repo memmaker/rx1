@@ -188,6 +188,10 @@ func (g *GameState) PlayerTryDescend() {
 	cell := g.gridMap.GetCell(pos)
 	stairs := StairsBoth
 	if cell.TileType.IsStairsDown() {
+		if pos == g.secretStairs {
+			g.GotoSecretLevel()
+			return
+		}
 		g.descendWithStairs(stairs)
 	}
 }
@@ -197,6 +201,10 @@ func (g *GameState) PlayerTryAscend() {
 	cell := g.gridMap.GetCell(pos)
 	stairs := StairsBoth
 	if cell.TileType.IsStairsUp() {
+		if g.inSecretLevel { // back to where the hidden stairs were
+			g.GotoDungeonLevel(g.currentDungeonLevel, StairsBoth, false)
+			return
+		}
 		if g.currentDungeonLevel == 1 {
 			if g.Player.GetInventory().HasItemWithName("amulet_of_yendor") {
 				g.gameWon()
