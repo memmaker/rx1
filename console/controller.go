@@ -94,9 +94,18 @@ func (u *UI) OpenVendorMenu(itemsForSale []util.Tuple[foundation.ItemForUI, int]
 	list.SetTitle("←→ 0-9 count  + buy 10  * buy max")
 	counts := make([]int, len(itemsForSale))
 	typed := ""
+	names := make([]string, len(itemsForSale))
+	nameWidth, priceWidth := 0, 0
+	for index, i := range itemsForSale {
+		names[index] = i.Item1.InventoryNameWithColors(RGBAToFgColorCode(u.currentTheme.GetInventoryItemColor(i.Item1.GetCategory())))
+		nameWidth = max(nameWidth, cview.TaggedStringWidth(names[index]))
+		priceWidth = max(priceWidth, len(strconv.Itoa(i.Item2)))
+	}
+	// a table: ware | < count > | price each | total, numbers right-aligned
 	label := func(index int) string {
 		i := itemsForSale[index]
-		return fmt.Sprintf("%s < %d > (%d each)", i.Item1.InventoryNameWithColors(RGBAToFgColorCode(u.currentTheme.GetInventoryItemColor(i.Item1.GetCategory()))), counts[index], i.Item2)
+		pad := strings.Repeat(" ", nameWidth-cview.TaggedStringWidth(names[index]))
+		return fmt.Sprintf("%s%s  < %3d >  %*d each  %*d total", names[index], pad, counts[index], priceWidth, i.Item2, priceWidth+3, i.Item2*counts[index])
 	}
 	setCount := func(index, count int) {
 		counts[index] = min(max(count, 1), 999)
