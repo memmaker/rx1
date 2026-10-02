@@ -104,11 +104,10 @@ func (r *RogueGenerator) doRooms(m *DungeonMap) []rogueRoom {
 				}
 			}
 			floor := geometry.NewRect(rp.pos.X+1, rp.pos.Y+1, rp.pos.X+rp.max.X-1, rp.pos.Y+rp.max.Y-1)
-			rp.room = NewDungeonRoomFromRect(r.random, floor)
+			rp.room = NewDungeonRoomFromRect(floor)
 			m.AddRoomAndSetTiles(rp.room)
 		}
 		rp.room.SetLit(!rp.dark)
-		rp.room.SetMaze(rp.maze)
 	}
 	return rooms
 }

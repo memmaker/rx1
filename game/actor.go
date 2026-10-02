@@ -133,14 +133,6 @@ func (c CapModifier) SortOrder() int {
 	return 3
 }
 
-func ModCapWhen(maxValue int, description string, conditionForApplication func() bool) rpg.Modifier {
-	return CapModifier{
-		maxValue:    maxValue,
-		doesApply:   conditionForApplication,
-		description: description,
-		persistent:  true,
-	}
-}
 func ModCap(maxValue int, reason string) rpg.Modifier {
 	return CapModifier{
 		maxValue:    maxValue,
@@ -475,10 +467,6 @@ func (a *Actor) GetSkill(name rpg.SkillName) int {
 	return a.charSheet.GetSkill(name) + a.GetEquipment().GetSkillModifier(name)
 }
 
-func (a *Actor) GetColor() string {
-	return a.color
-}
-
 func (a *Actor) TextIcon(bg color.RGBA, getColor func(string) color.RGBA) foundation.TextIcon {
 	return foundation.TextIcon{
 		Rune: a.icon,
@@ -639,10 +627,6 @@ func (a *Actor) GetDetailInfo() []string {
 	return result
 }
 
-func (a *Actor) GetPointsInfo() []string {
-	return a.charSheet.GetOverview()
-}
-
 func (a *Actor) SetIntrinsicAttacks(attacks []IntrinsicAttack) {
 	a.intrinsicAttacks = attacks
 }
@@ -755,12 +739,6 @@ func (a *Actor) SetSleeping() {
 	flags.Set(foundation.FlagSleep)
 	flags.Unset(foundation.FlagAwareOfPlayer)
 	flags.Unset(foundation.FlagScared)
-}
-
-func (a *Actor) SetUnwary() {
-	flags := a.GetFlags()
-	flags.Unset(foundation.FlagSleep)
-	flags.Unset(foundation.FlagAwareOfPlayer)
 }
 
 func (a *Actor) SetAware() {

@@ -298,11 +298,9 @@ func (g *GameState) actorMeleeAttack(attacker *Actor, attackMod []rpg.Modifier, 
 
 	if outcome.IsHit() {
 		animDamage := g.damageActor(attacker.Name(), defender, damageDone)
-		//animAttack := g.ui.GetAnimAttack(attacker, defender) // currently no attack animation
 		afterAttackAnimations = append(afterAttackAnimations, animDamage...)
 		afterAttackAnimations = append(afterAttackAnimations, g.applyHitEffects(attacker, defender)...)
 		afterAttackAnimations = append(afterAttackAnimations, g.applyStruckEffects(attacker, defender)...)
-		//animAttack.SetFollowUp(afterAttackAnimations)
 	} else {
 		animMiss := g.ui.GetAnimDamage(defender.Position(), 0, nil)
 		afterAttackAnimations = append(afterAttackAnimations, animMiss)
@@ -382,7 +380,6 @@ func (g *GameState) PickupItem() {
 		}
 
 		g.msg(foundation.HiLite("You picked up %s", item.Name()))
-		//g.endPlayerTurn()
 	}
 }
 
@@ -414,11 +411,6 @@ func (g *GameState) actorDropItem(holder *Actor, item *Item) {
 	}
 }
 
-func (g *GameState) inspectItem(item *Item) func() {
-	return func() {
-		g.ui.OpenTextWindow([]string{"Item", item.name})
-	}
-}
 func (g *GameState) actorRangedAttackWithMissile(thrower *Actor, missile *Item, origin, targetPos geometry.Point) {
 	pathOfFlight := geometry.BresenhamLine(origin, targetPos, func(x, y int) bool {
 		if origin.X == x && origin.Y == y {
@@ -444,7 +436,6 @@ func (g *GameState) actorRangedAttackWithMissile(thrower *Actor, missile *Item, 
 
 	if g.gridMap.IsActorAt(targetPos) {
 		defender := g.gridMap.ActorAt(targetPos)
-		//isLaunch := thrower.IsLaunching(missile) // otherwise it's a throw
 		consequenceOfActorHit := g.actorRangedAttack(thrower, ModRangedDefault(thrower.Position(), defender), defender, NoModifiers, missile)
 		onHitAnimations = append(onHitAnimations, consequenceOfActorHit...)
 	} else if g.gridMap.IsObjectAt(targetPos) {

@@ -222,13 +222,10 @@ func (g *GameState) gotoLevel(level int, stairs StairsInLevel, placePlayerOnStai
 	}
 
 	// place player
-	//var otherEndPos geometry.Point
 	if placePlayerOnStairs && isDown && stairs.AllowsUp() {
 		newMap.AddActor(g.Player, stairsUp)
-		//otherEndPos = stairsDown
 	} else if placePlayerOnStairs && !isDown && stairs.AllowsDown() {
 		newMap.AddActor(g.Player, stairsDown)
-		//otherEndPos = stairsUp
 	} else {
 		randomPos := newMap.RandomSpawnPosition()
 		newMap.AddActor(g.Player, randomPos)

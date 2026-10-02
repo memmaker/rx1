@@ -66,22 +66,6 @@ func (r Dice) Roll() int {
 	return result
 }
 
-func (r Dice) RollWithBonus(bonus int) int {
-	return r.Roll() + bonus
-}
-
-func (r Dice) DiceCount() int {
-	return r.dice
-}
-
-func (r Dice) Avg() int {
-	return r.Min() + (r.Max()-r.Min())/2
-}
-
-func (r Dice) RollPyramid() int {
-	return int((float64(r.Roll()) + float64(r.Roll())) * 0.5)
-}
-
 func (r Dice) WithBonus(plus int) Dice {
 	return NewDice(r.dice, r.sides, r.bonus+plus)
 }
@@ -107,10 +91,6 @@ func (r Dice) expectedValueForOneDice() float64 {
 		sum += float64(i) * p
 	}
 	return sum
-}
-
-func (r Dice) WithAddedDice(bonus int) Dice {
-	return NewDice(r.dice+bonus, r.sides, r.bonus)
 }
 
 func ParseDice(dice string) Dice {
@@ -172,10 +152,6 @@ func ParseDice(dice string) Dice {
 	numSides, _ := strconv.Atoi(match[2])
 	bonus, _ := strconv.Atoi(match[3])
 	return NewDice(numDice, numSides, bonus*sign)
-}
-
-func InSix(count int) bool {
-	return rand.Intn(6)+1 <= count
 }
 
 func Spread(value int, spread float64) int {

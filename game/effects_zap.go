@@ -64,7 +64,6 @@ func uncloakAndCharge(g *GameState, zapper *Actor, pos geometry.Point) []foundat
 	zapper.SetAware()
 	uncloakAnim, _ := g.ui.GetAnimUncloakAtPosition(zapper, zapper.Position())
 	chargeAnim, _ := charge(g, zapper, pos, false, g.getLine)
-	//tileIcon := g.gridMap.GetTileIconAt(targetPos)
 	uncloakAnim.SetFollowUp([]foundation.Animation{chargeAnim})
 
 	return []foundation.Animation{uncloakAnim}
@@ -274,9 +273,6 @@ func invisibilityTarget(g *GameState, zapper *Actor, targetPos geometry.Point) [
 
 	if g.gridMap.IsActorAt(targetPos) {
 		targetActor := g.gridMap.ActorAt(targetPos)
-		//actorIcon := targetActor.Icon()
-		//coverAnim := g.ui.GetAnimCover(targetPos, actorIcon, dist, nil)
-		//animations = append(animations, coverAnim)
 		makeInvisible(g, targetActor)
 		if zapper == g.Player && !g.Player.IsBlind() && (g.isInPlayerRoom(targetPos) || g.canPlayerSee(targetPos)) {
 			g.identification.EffectWitnessed()
@@ -307,9 +303,6 @@ func teleportTargetTo(g *GameState, zapper *Actor, targetPos geometry.Point) []f
 
 	if g.gridMap.IsActorAt(targetPos) {
 		targetActor := g.gridMap.ActorAt(targetPos)
-		//hitActorIcon := targetActor.Icon()
-		//coverAnim := g.ui.GetAnimCover(targetPos, hitActorIcon, dist, nil)
-		//animations = append(animations, coverAnim)
 
 		teleportAnim := teleportWithAnimation(g, targetActor, teleportTargetPos)
 		projAnim.SetFollowUp([]foundation.Animation{teleportAnim})
@@ -337,9 +330,6 @@ func teleportTargetAway(g *GameState, zapper *Actor, targetPos geometry.Point) [
 
 	if g.gridMap.IsActorAt(targetPos) {
 		targetActor := g.gridMap.ActorAt(targetPos)
-		//hitActorIcon := targetActor.Icon()
-		//coverAnim := g.ui.GetAnimCover(targetPos, hitActorIcon, dist, nil)
-		//animations = append(animations, coverAnim)
 
 		teleportAnim := phaseDoor(g, targetActor)
 		if projAnim != nil {
@@ -472,10 +462,6 @@ func polymorph(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.
 	if g.gridMap.IsActorAt(targetPos) {
 
 		defender := g.gridMap.ActorAt(targetPos)
-		//originalActorIcon := defender.Icon()
-
-		//coverAnim := g.ui.GetAnimCover(targetPos, originalActorIcon, dist, nil)
-		//animations = append(animations, coverAnim)
 
 		monsterDef := g.dataDefinitions.RandomMonsterDef()
 		newMonster := g.NewEnemyFromDef(monsterDef)
@@ -573,7 +559,6 @@ func (g *GameState) damageActorWithFollowUp(damageSource string, victim *Actor, 
 
 	if victim.GetHitPoints() <= 0 {
 		g.actorKilled(damageSource, victim)
-		//damageAnim.SetFollowUp(consequencesOfKill.Animations)
 	}
 	if damageAnim == nil { // damage animations are switched off
 		return followUps

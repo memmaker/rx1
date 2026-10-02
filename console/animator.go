@@ -108,8 +108,6 @@ func (a *Animator) EndAction(lastOfActor bool) {
 	a.current = nil
 }
 
-func (a *Animator) HasPending() bool { return len(a.pending) > 0 }
-
 // Flush queues what was added since the last one, one batch per step: it plays after everything flushed before it.
 func (a *Animator) Flush() {
 	clear(a.moves)

@@ -19,11 +19,6 @@ package geometry
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import (
-	"bytes"
-	"encoding/gob"
-)
-
 // PathRange allows for efficient path finding within a range. It caches
 // structures, so that they can be reused without further memory allocations.
 //
@@ -38,40 +33,12 @@ type pathRange struct {
 	AstarNodes          *nodeMap
 	DijkstraNodes       *nodeMap // dijkstra map
 	DijkstraIterNodes   []Node
-	BfMap               []int  // breadth first map
-	BfQueue             []Node // map numbers for caching
-	CC                  []int  // connected components
-	CCStack             []int
-	CCIterCache         []Point
 	AstarQueue          priorityQueue
 	DijkstraQueue       priorityQueue
 	Rg                  Rect
 	DijkstraUnreachable int
-	BfUnreachable       int // last maxcost + 1
-	BfEnd               int // bf map last index
 	W                   int // path range width
 	Capacity            int
-}
-
-// GobDecode implements gob.GobDecoder.
-func (pr *PathRange) GobDecode(bs []byte) error {
-	r := bytes.NewReader(bs)
-	gd := gob.NewDecoder(r)
-	ipr := &pathRange{}
-	err := gd.Decode(ipr)
-	if err != nil {
-		return err
-	}
-	pr.pathRange = *ipr
-	return nil
-}
-
-// GobEncode implements gob.GobEncoder.
-func (pr *PathRange) GobEncode() ([]byte, error) {
-	buf := bytes.Buffer{}
-	ge := gob.NewEncoder(&buf)
-	err := ge.Encode(&pr.pathRange)
-	return buf.Bytes(), err
 }
 
 // NewPathRange returns a new PathFinder for positions in a given range,
@@ -95,11 +62,6 @@ func (pr *PathRange) SetRange(rg Rect) {
 	}
 	npr := NewPathRange(rg)
 	*pr = *npr
-}
-
-// Range returns the current PathRange's range of positions.
-func (pr *PathRange) Range() Rect {
-	return pr.Rg
 }
 
 func (pr *PathRange) idx(p Point) int {
@@ -141,7 +103,7 @@ type nodeMap struct {
 	Idx   int
 }
 
-// priorityQueue implements a custom heap-like interface with node elements.
+// priorityQueue is a heap.Interface of nodes.
 type priorityQueue []*node
 
 func (pq priorityQueue) Len() int {
@@ -158,13 +120,14 @@ func (pq priorityQueue) Swap(i, j int) {
 	pq[j].Idx = j
 }
 
-func (pq *priorityQueue) Push(n *node) {
+func (pq *priorityQueue) Push(x any) {
+	n := x.(*node)
 	i := len(*pq)
 	n.Idx = i
 	*pq = append(*pq, n)
 }
 
-func (pq *priorityQueue) Pop() *node {
+func (pq *priorityQueue) Pop() any {
 	old := *pq
 	i := len(old)
 	n := old[i-1]

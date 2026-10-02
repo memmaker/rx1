@@ -3,6 +3,8 @@
 
 package geometry
 
+import "container/heap"
+
 // code of this file is a modified version of code from
 // https://github.com/anaseto/gruid, which has the following license:
 //
@@ -46,39 +48,23 @@ func (pr *PathRange) JPSPath(path []Point, from, to Point, passable func(Point) 
 	nm.Idx++
 	defer checkNodesIdx(nm)
 	pr.AstarQueue = pr.AstarQueue[:0]
-	pqInit(&pr.AstarQueue)
+	heap.Init(&pr.AstarQueue)
 	fromNode := nm.get(pr, from)
 	fromNode.Closed = true
 	fromNode.Open = false
 	neighbors := make([]Point, 0, 8)
 	pr.expandOrigin(from, to)
-	//logrid.Map(func(p Point, c gruid.Cell) gruid.Cell {
-	//if passable(p) {
-	//return gruid.Cell{Rune: '.'}
-	//}
-	//return gruid.Cell{Rune: '#'}
-	//})
-	//logrid.SetSquare(from, gruid.Cell{Rune: 'O'})
-	//logrid.SetSquare(to, gruid.Cell{Rune: 'G'})
 	for {
 		if (&pr.AstarQueue).Len() == 0 {
 			// There's no path.
-			//if pr.passable(to) && pr.passable(from) {
-			//log.Printf("\n%v\n", logrid)
-			//}
 			return nil
 		}
-		n := pqPop(&pr.AstarQueue)
-		//if n.P != from && n.P != to {
-		//logrid.SetSquare(n.P, gruid.Cell{Rune: 'X'})
-		//}
+		n := heap.Pop(&pr.AstarQueue).(*node)
 		n.Open = false
 		n.Closed = true
 
 		if n.P == to {
 			path = pr.path(path, from, n)
-			//logPath(path)
-			//log.Printf("\n%v\n", logrid)
 			return path
 		}
 
@@ -400,13 +386,10 @@ func (pr *PathRange) jumpDiagonalNoDiags(p, dir, to Point, cost int) (Point, int
 			}
 		}
 		q, j := pr.jumpStraightNoDiags(p.Shift(dir.X, 0), Point{dir.X, 0}, to)
-		//_, j := pr.jumpStraightNoDiags(p.Shift(dir.X, 0), Point{dir.X, 0}, to)
 		if j > 0 {
-			//return p, i
 			pr.addSuccessor(q, from, to, cost+i+j)
 		}
 		q, j = pr.jumpStraightNoDiags(p.Shift(0, dir.Y), Point{0, dir.Y}, to)
-		//_, j = pr.jumpStraightNoDiags(p.Shift(0, dir.Y), Point{0, dir.Y}, to)
 		if j > 0 {
 			pr.addSuccessor(q, from, to, cost+i+j)
 		}
@@ -527,7 +510,7 @@ func (pr *PathRange) addSuccessor(p, parent, to Point, cost int) {
 	nbNode := pr.AstarNodes.get(pr, p)
 	if cost < nbNode.Cost {
 		if nbNode.Open {
-			pqRemove(&pr.AstarQueue, nbNode.Idx)
+			heap.Remove(&pr.AstarQueue, nbNode.Idx)
 		}
 		nbNode.Open = false
 		nbNode.Closed = false
@@ -541,7 +524,7 @@ func (pr *PathRange) addSuccessor(p, parent, to Point, cost int) {
 		nbNode.Estimation = dx + dy
 		nbNode.Rank = cost + pr.estim(dx, dy)
 		nbNode.Parent = parent
-		pqPush(&pr.AstarQueue, nbNode)
+		heap.Push(&pr.AstarQueue, nbNode)
 	}
 }
 
@@ -611,18 +594,3 @@ func sign(n int) int {
 	}
 	return i
 }
-
-//var logrid gruid.Grid
-
-//func init() {
-//logrid = gruid.NewGrid(80, 24)
-//}
-
-//func logPath(path []Point) {
-//for _, p := range path {
-//c := logrid.AtSquare(p)
-//if c.Rune == '.' {
-//logrid.SetSquare(p, gruid.Cell{Rune: 'o'})
-//}
-//}
-//}

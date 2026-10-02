@@ -205,13 +205,6 @@ type MenuItem struct {
 	CloseMenus bool
 }
 
-type UIStat struct {
-	DisplayName          string
-	CurrentValue         int
-	MaxValue             int
-	MaxLenOfValueDisplay int
-}
-
 type ScoreInfo struct {
 	PlayerName         string
 	MaxLevel           int

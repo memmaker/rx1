@@ -207,41 +207,6 @@ func (e *Equipment) HasMeleeWeaponEquipped() bool {
 	return (slotMain != nil && slotMain.IsMeleeWeapon()) || (slotOff != nil && slotOff.IsMeleeWeapon())
 }
 
-func (e *Equipment) AllItems() []*Item {
-	var items []*Item
-	for _, item := range e.slots {
-		items = append(items, item)
-	}
-	return items
-}
-
-func (e *Equipment) GetSlot(item *Item) foundation.EquipSlot {
-	for slot, slotItem := range e.slots {
-		if slotItem == item {
-			return slot
-		}
-	}
-	return foundation.SlotNameNotEquippable
-}
-
-func (e *Equipment) HasThrowableQuivered() bool {
-	slot := e.GetBySlot(foundation.SlotNameQuiver)
-	return slot != nil && slot.IsThrowable()
-}
-
-func (e *Equipment) GetNextQuiveredThrowable() *Item {
-	slot := e.GetBySlot(foundation.SlotNameQuiver)
-	if slot == nil {
-		return nil
-	}
-	return slot
-}
-
-func (e *Equipment) HasWeaponEquipped() bool {
-	slot := e.GetBySlot(foundation.SlotNameMainHand)
-	return slot != nil && slot.IsWeapon()
-}
-
 func (e *Equipment) HasArmorEquipped() bool {
 	slot := e.GetBySlot(foundation.SlotNameArmorTorso)
 	return slot != nil && slot.IsArmor()
@@ -255,15 +220,6 @@ func (e *Equipment) changed() {
 	if e.onChanged != nil {
 		e.onChanged()
 	}
-}
-
-func (e *Equipment) HasShieldEquipped() bool {
-	slot := e.GetBySlot(foundation.SlotNameOffHand)
-	return slot != nil && slot.IsShield()
-}
-
-func (e *Equipment) GetShield() *Item {
-	return e.GetBySlot(foundation.SlotNameOffHand)
 }
 
 func (e *Equipment) CanUnequip(item *Item) bool {

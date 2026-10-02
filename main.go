@@ -3,27 +3,18 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"image"
-	"math/rand"
 	"os"
 	"path"
 	"rx1/console"
-	"rx1/dungen"
 	"rx1/foundation"
 	"rx1/game"
 	"rx1/util"
 	"strings"
-
-	"github.com/gdamore/tcell/v2"
 )
 
 func main() {
-	//testMapGen()
-	//return
 
 	//setKeypadToApplicationMode()   // set application mode
-	//estKeyCodes()
-	//return
 	playerName, showScoresOnly, ok := startup()
 	if !ok {
 		return
@@ -46,17 +37,6 @@ func main() {
 	gameUI.StartGameLoop()
 }
 
-func mustLoadImage(filename string) image.Image {
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	defer file.Close()
-	img, _, err := image.Decode(file)
-	return img
-}
-
 func showBanner(width int) {
 	bannerLines := util.ReadFileAsLines(path.Join("data", "banner.txt"))
 	for _, line := range bannerLines {
@@ -70,67 +50,9 @@ func showBanner(width int) {
 	}
 }
 
-func testKeyCodes() {
-	screen, _ := tcell.NewScreen()
-	screen.Init()
-	tty, _ := screen.Tty()
-	//tty.Write([]byte{0x1B, 0x3D}) // set application mode
-	tty.Write([]byte{0x1B, 0x3E}) // set numeric mode
-	//util.SetKeypadToApplicationMode()       // unset application mode
-	quit := false
-	for !quit {
-		event := screen.PollEvent()
-		switch typedEvent := event.(type) {
-		case *tcell.EventKey:
-			keyMessage := fmt.Sprintf("KeyID: %d, KeyName: %s, Rune: %c, Mods: %s", typedEvent.Key(), tcell.KeyNames[typedEvent.Key()], typedEvent.Rune(), modAsString(typedEvent.Modifiers()))
-			screenPrint(screen, keyMessage)
-			if typedEvent.Key() == tcell.KeyCtrlC {
-				quit = true
-			}
-		}
-	}
-}
-
-func modAsString(modifiers tcell.ModMask) string {
-	var mods []string
-	if modifiers&tcell.ModCtrl != 0 {
-		mods = append(mods, "Ctrl")
-	}
-	if modifiers&tcell.ModAlt != 0 {
-		mods = append(mods, "Alt")
-	}
-	if modifiers&tcell.ModShift != 0 {
-		mods = append(mods, "Shift")
-	}
-	return strings.Join(mods, "|")
-}
-
-func screenPrint(screen tcell.Screen, text string) {
-	screen.Clear()
-	startY := 0
-	startX := 0
-	style := tcell.StyleDefault
-	for i, r := range []rune(text) {
-		screen.SetContent(startX+i, startY, r, nil, style)
-	}
-	screen.Show()
-}
-
 func askForName() string {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("\033[H\033[2J\033[3JWho are you? ") // clear screen + scrollback
 	userInput, _ := reader.ReadString('\n')
 	return strings.TrimSpace(userInput)
-}
-
-func testMapGen() {
-	random := rand.New(rand.NewSource(42))
-	dunGen := dungen.NewRogueGenerator(random, 80, 23, 10)
-	for i := 0; i < 10; i++ {
-
-		dungeon := dunGen.Generate()
-		dungeon.Print()
-		println()
-	}
-
 }

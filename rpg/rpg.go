@@ -243,44 +243,6 @@ func Attack(attackerEffectiveSkill int, attackerDamageDice Dice, activeDefenseSc
 	}
 }
 
-func AttackAgainstDoubleActiveDefense(attackerEffectiveSkill int, attackerDamageDice Dice, activeDefenseScores [2]int, damageResistance int) (ResultType, int) {
-	attackRoll, attack, _ := SuccessRoll(attackerEffectiveSkill)
-	if attack.IsFailure() {
-		return attack, 0
-	}
-
-	isCrit := attack.IsCriticalSucces()
-
-	if !isCrit {
-		if _, defense, _ := SuccessRoll(activeDefenseScores[0]); defense.IsSuccess() {
-			return defense, 0
-		}
-		if _, defense, _ := SuccessRoll(activeDefenseScores[1]); defense.IsSuccess() {
-			return defense, 0
-		}
-	}
-
-	_, damage := rollDamage(attackRoll, attackerDamageDice, damageResistance)
-
-	return attack, damage
-}
-
-func checkDefenseCritSuccess(activeDefenseScore int, defRoll int) ResultType {
-	hitType := TypeFail
-	if isCriticalSuccess(activeDefenseScore, defRoll) {
-		hitType = TypeCriticalFail
-	}
-	return hitType
-}
-
-func checkHitCritFail(attackerEffectiveSkill int, attackRoll int) ResultType {
-	hitType := TypeFail
-	if isCriticalFailure(attackerEffectiveSkill, attackRoll) {
-		hitType = TypeCriticalFail
-	}
-	return hitType
-}
-
 func isCriticalSuccess(effectiveSkill int, roll int) bool {
 	return roll <= 4 ||
 		(effectiveSkill == 15 && roll <= 5) ||
@@ -294,19 +256,6 @@ func isCriticalFailure(effectiveSkill int, roll int) bool {
 		(effectiveSkill == 5 && roll >= 15) ||
 		(effectiveSkill == 4 && roll >= 14) ||
 		(effectiveSkill == 3 && roll >= 13)
-}
-
-func rollDamage(attackRoll int, attackerDamageDice Dice, damageResistance int) (rawDamage int, damageAfterDR int) {
-	willDoMaxDamage := attackRoll == 3
-
-	var damage int
-	if willDoMaxDamage {
-		damage = attackerDamageDice.Max()
-	} else {
-		damage = attackerDamageDice.Roll()
-	}
-
-	return damage, max(1, damage-damageResistance)
 }
 
 func rollDamageWithMultiplier(willDoMaxDamage bool, multiplier float64, attackerDamageDice Dice, damageResistance int) (rawDamage int, damageAfterDR int) {

@@ -2,12 +2,13 @@ package console
 
 import (
 	"fmt"
-	"github.com/gdamore/tcell/v2"
-	"github.com/memmaker/go/cview"
 	"image/color"
 	"rx1/foundation"
 	"strings"
 	"unicode"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/memmaker/go/cview"
 )
 
 type TextInventory struct {
@@ -102,7 +103,6 @@ func (i *TextInventory) drawInside(screen tcell.Screen, x int, y int, width int,
 
 func NewTextInventory() *TextInventory {
 	box := cview.NewBox()
-	//box.SetBorder(true)
 	t := &TextInventory{
 		Box:   box,
 		items: []foundation.ItemForUI{},

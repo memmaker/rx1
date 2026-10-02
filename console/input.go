@@ -89,7 +89,6 @@ func (u *UI) setupCommandTable() {
 	u.commandTable["southwest"] = func() { u.game.ManualMovePlayer(geometry.SouthWest) }
 	u.commandTable["southeast"] = func() { u.game.ManualMovePlayer(geometry.SouthEast) }
 
-	// u.startAutoRun(direction)
 	u.commandTable["run_north"] = func() { u.startAutoRun(geometry.North) }
 	u.commandTable["run_south"] = func() { u.startAutoRun(geometry.South) }
 	u.commandTable["run_west"] = func() { u.startAutoRun(geometry.West) }
@@ -408,8 +407,6 @@ func UIKeyFromString(s string) UIKey {
 	if shiftComboRegex.MatchString(s) {
 		matches := shiftComboRegex.FindStringSubmatch(s)
 		keyString = matches[1]
-		//letterIndex := strings.ToLower(matches[1])[0] - 'a'
-		//return CtrlCombo(tcell.Key(letterIndex) + tcell.KeyCtrlA)
 		mods = tcell.ModShift
 	}
 	if printableRune, ok := ParsePrintableKey(keyString); ok {
@@ -459,9 +456,6 @@ func ParseNonPrintableKey(s string) (tcell.Key, bool) {
 	}
 	return 0, false
 }
-func FunctionKey(key tcell.Key) UIKey {
-	return UIKey{key: key, name: tcell.KeyNames[key]}
-}
 func Letter(letter rune) UIKey {
 	keyName := string(letter)
 	key := tcell.KeyRune
@@ -494,11 +488,7 @@ func LetterCombo(letter rune, mod tcell.ModMask) UIKey {
 func CtrlCombo(key tcell.Key) UIKey {
 	return UIKey{ch: rune(key), mod: tcell.ModCtrl, key: key, name: tcell.KeyNames[key]}
 }
-func ShiftCombo(key tcell.Key) UIKey {
-	return UIKey{ch: rune(key), mod: tcell.ModShift, key: key, name: tcell.KeyNames[key]}
-}
 func NonPrintableKeyCombo(key tcell.Key, mod tcell.ModMask) UIKey {
-	//ch := rune(key)
 	return UIKey{key: key, name: tcell.KeyNames[key], mod: mod}
 }
 func (k UIKey) String() string {

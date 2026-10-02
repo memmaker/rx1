@@ -2,7 +2,6 @@ package recfile
 
 import (
 	"bufio"
-	"encoding/csv"
 	"fmt"
 	"image/color"
 	"io"
@@ -19,17 +18,8 @@ type Field struct {
 }
 type Record []Field
 
-func (f Field) String() string {
-	return fmt.Sprintf("%s: %s", f.Name, f.Value)
-}
-
 func (f Field) IsEmpty() bool {
 	return f.Name == "" && f.Value == ""
-}
-
-// UnEscapedValue returns the value with the sequence "\n+ " replaced with newlines.
-func (f Field) UnEscapedValue() string {
-	return regexp.MustCompile(`\n\+\s`).ReplaceAllString(f.Value, "\n")
 }
 
 // EscapedValue returns the value with newlines escaped as "\n+ ".
@@ -47,10 +37,6 @@ func (f Field) AsInt() int {
 
 func (f Field) AsRune() rune {
 	return []rune(f.Value)[0]
-}
-func (f Field) AsInt32() int32 {
-	value, _ := strconv.ParseInt(f.Value, 10, 32)
-	return int32(value)
 }
 
 func (f Field) AsBool() bool {
@@ -103,88 +89,6 @@ func stringMap(fields []string, mapFunc func(string) string) []string {
 	return result
 }
 
-type DataMap map[string]string
-
-func (d DataMap) GetInt(key string) (int, error) {
-	if value, ok := d[key]; ok {
-		return strconv.Atoi(value)
-	}
-	return -1, fmt.Errorf("no value")
-}
-
-func (d DataMap) GetBoolOrFalse(key string) bool {
-	if value, ok := d[key]; ok {
-		return value == "true"
-	}
-	return false
-}
-func (d DataMap) GetBoolOrTrue(key string) bool {
-	if value, ok := d[key]; ok {
-		return value == "true"
-	}
-	return true
-}
-func (d DataMap) GetStringOrDefault(key string, defaultValue string) string {
-	if value, ok := d[key]; ok {
-		return value
-	}
-	return defaultValue
-}
-
-func (d DataMap) GetFloatOrDefault(key string, defaultValue float64) float64 {
-	if value, ok := d[key]; ok {
-		if floatVal, err := strconv.ParseFloat(value, 64); err == nil {
-			return floatVal
-		}
-	}
-	return defaultValue
-}
-
-func (d DataMap) GetIntOrDefault(key string, defaultValue int) int {
-	if value, ok := d[key]; ok {
-		if intVal, err := strconv.Atoi(value); err == nil {
-			return intVal
-		}
-	}
-	return defaultValue
-}
-
-func (r Record) ToMap(listSeperator string) DataMap {
-	m := make(map[string]string, len(r))
-	for _, field := range r {
-		if _, exists := m[field.Name]; exists {
-			// append
-			m[field.Name] += listSeperator + field.Value
-		} else {
-			m[field.Name] = field.Value
-		}
-	}
-	return m
-}
-
-func (r Record) ToValueList() []string {
-	result := make([]string, len(r))
-	for i, field := range r {
-		result[i] = field.Value
-	}
-	return result
-}
-
-func (r Record) ToFixedSizeValueList(fieldNamesInOrder []string) []string {
-	var result []string
-	asMap := r.ToMap("|")
-
-	for _, fieldName := range fieldNamesInOrder {
-		if value, ok := asMap[fieldName]; ok {
-			result = append(result, value)
-		} else {
-			result = append(result, "")
-		}
-	}
-
-	return result
-}
-
 type RecReader struct {
 	records           map[string][]Record
 	currentRecord     []Field
@@ -203,7 +107,6 @@ func NewReader() *RecReader {
 	}
 }
 func (r *RecReader) ReadLine(line string) {
-	//scanner := bufio.NewScanner(file)
 	fieldNamePattern := regexp.MustCompile(`^([a-zA-Z%][a-zA-Z0-9_]*):[\t ]?`)
 	plusPrefixPattern := regexp.MustCompile(`^\+\s?`)
 	// eg. %rec: Article
@@ -268,12 +171,6 @@ func (r *RecReader) End() map[string][]Record {
 	return r.records
 }
 
-func (r *RecReader) ReadLines(data []string) map[string][]Record {
-	for _, line := range data {
-		r.ReadLine(line)
-	}
-	return r.End()
-}
 func defaultOnly(records map[string][]Record) []Record {
 	return records["default"]
 }
@@ -290,15 +187,6 @@ func ReadMulti(input io.Reader) map[string][]Record {
 }
 func Write(file io.StringWriter, records []Record) error {
 	return WriteMulti(file, map[string][]Record{"default": records})
-}
-func WriteCSV(output io.Writer, fieldNames []string, records []Record) {
-	csvWriter := csv.NewWriter(output)
-	csvWriter.Write(fieldNames)
-	for _, record := range records {
-		asValues := record.ToFixedSizeValueList(fieldNames)
-		csvWriter.Write(asValues)
-	}
-	csvWriter.Flush()
 }
 func WriteMulti(file io.StringWriter, recordsInCategories map[string][]Record) error {
 	sanitizeFieldname := func(s string) string {

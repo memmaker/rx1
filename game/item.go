@@ -2,12 +2,13 @@ package game
 
 import (
 	"fmt"
-	"github.com/memmaker/go/cview"
 	"image/color"
 	"math/rand"
 	"rx1/foundation"
 	"rx1/geometry"
 	"rx1/rpg"
+
+	"github.com/memmaker/go/cview"
 )
 
 type WeaponInfo struct {
@@ -19,15 +20,8 @@ type WeaponInfo struct {
 	skillUsed        rpg.SkillName
 }
 
-func (i *WeaponInfo) GetVorpalEnemy() string {
-	return i.vorpalEnemy
-}
-
 func (i *WeaponInfo) Vorpalize(enemy string) {
 	i.vorpalEnemy = enemy
-}
-func (i *WeaponInfo) GetDamagePlus() int {
-	return i.damagePlus
 }
 
 func (i *WeaponInfo) GetDamageDice() rpg.Dice {
@@ -83,10 +77,6 @@ type ArmorInfo struct {
 	damageResistance int
 	plus             int
 	encumbrance      rpg.Encumbrance
-}
-
-func (i *ArmorInfo) GetArmorClass() int {
-	return i.damageResistance
 }
 
 func (i *ArmorInfo) GetDamageResistanceWithPlus() int {
@@ -309,10 +299,6 @@ func (i *Item) IsWeapon() bool {
 	return i.weapon != nil
 }
 
-func (i *Item) IsShield() bool {
-	return i.IsArmor() && i.slot == foundation.SlotNameShield
-}
-
 func (i *Item) GetCategory() foundation.ItemCategory {
 	return i.category
 }
@@ -396,10 +382,6 @@ func (i *Item) IsMissile() bool {
 
 func (i *Item) GetThrowDamageDice() rpg.Dice {
 	return i.thrownDamage
-}
-
-func (i *Item) ConsumeCharge() {
-	i.charges--
 }
 
 func (i *Item) SetCharges(amount int) {

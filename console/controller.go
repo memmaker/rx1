@@ -86,8 +86,8 @@ type UI struct {
 func (u *UI) OpenVendorMenu(itemsForSale []util.Tuple[foundation.ItemForUI, int], buyItem func(ui foundation.ItemForUI, price int)) {
 	var menuItems []foundation.MenuItem
 	for _, i := range itemsForSale {
-		item := i.GetItem1()
-		price := i.GetItem2()
+		item := i.Item1
+		price := i.Item2
 		menuItems = append(menuItems, foundation.MenuItem{
 			Name: fmt.Sprintf("%s (%d)", item.InventoryNameWithColors(RGBAToFgColorCode(u.currentTheme.GetInventoryItemColor(item.GetCategory()))), price),
 			Action: func() {
@@ -105,10 +105,6 @@ func (u *UI) GetAnimBackgroundColor(position geometry.Point, colorName string, f
 	iconAtLocation, _ := u.mapLookup(position)
 	bgColor := u.currentTheme.GetColorByName(colorName)
 	return NewCoverAnimation(position, iconAtLocation.WithBg(bgColor), frameCount, done)
-}
-
-func (u *UI) HighlightStatChange(stat rpg.Stat) {
-	//TODO
 }
 
 func (u *UI) ShowGameOver(scoreInfo foundation.ScoreInfo, highScores []foundation.ScoreInfo) {
@@ -448,12 +444,6 @@ func (u *UI) GetAnimQuickMove(actor foundation.ActorForUI, path []geometry.Point
 		animation := NewMovementAnimation(actor, u.getIconForActor(actor), actor.Position(), path[len(path)-1], u.currentTheme.GetColorByName, nil)
 		animation.EnableQuickMoveMode(path)
 		return animation
-	}
-	return nil
-}
-func (u *UI) GetAnimCover(loc geometry.Point, icon foundation.TextIcon, turns int, done func()) foundation.Animation {
-	if u.settings.AnimationsEnabled && u.settings.AnimateMovement {
-		return NewCoverAnimation(loc, icon, turns, done)
 	}
 	return nil
 }
@@ -871,7 +861,7 @@ func darkenScreen(screen tcell.Screen) bool {
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			dist := geometry.Distance(centerPos, geometry.Point{X: x, Y: y})
-			percent := util.Clamp(0.2, 1.0, (float64(dist)/float64(maxDist))+0.5)
+			percent := min(max((float64(dist)/float64(maxDist))+0.5, 0.2), 1.0)
 			workDone := darkenScreenLocation(screen, x, y, int32(float64(darkenAmount)*percent))
 			if workDone {
 				workLeft = true
@@ -893,10 +883,6 @@ func darkenScreenLocation(screen tcell.Screen, x int, y int, darkenAmount int32)
 	return hadWorkLeft
 }
 
-func (u *UI) ShowTextFile(fileName string) {
-	lines := util.ReadFileAsLines(fileName)
-	u.OpenTextWindow(lines)
-}
 func (u *UI) OpenTextWindow(description []string) {
 	u.openTextModal(description)
 }
@@ -959,17 +945,9 @@ func (u *UI) setColoredText(view *cview.TextView, text string) {
 
 func (u *UI) UpdateLogWindow() {
 	logMessages := u.game.GetLog()
-	/*
-		_, _, _, windowHeight := u.messageLabel.GetInnerRect()
-
-		if len(logMessages) > windowHeight { // get just the last lines
-			logMessages = logMessages[len(logMessages)-windowHeight:]
-		}
-
-	*/
 	var asColoredStrings []string
 	for i, message := range logMessages {
-		fadePercent := util.Clamp(0.2, 1.0, float64(i+1)/float64(len(logMessages)))
+		fadePercent := min(max(float64(i+1)/float64(len(logMessages)), 0.2), 1.0)
 		asColoredStrings = append(asColoredStrings, u.ToColoredText(message, fadePercent))
 	}
 
@@ -1345,7 +1323,7 @@ func (u *UI) withTargeting(mapPos geometry.Point, ch rune, style tcell.Style) (r
 
 func applyGamma(colorChannel uint8, gamma float64) uint8 {
 	colorAsFloat := float64(colorChannel) / 255.0
-	gammaCorrected := util.Clamp(0, 1, math.Pow(colorAsFloat, gamma))
+	gammaCorrected := min(max(math.Pow(colorAsFloat, gamma), 0), 1)
 	asEightBit := uint8(gammaCorrected * 255.0)
 	return asEightBit
 }
@@ -1416,7 +1394,6 @@ func IconAsString(icon foundation.TextIcon) string {
 
 func (u *UI) UpdateVisibleEnemies() {
 	visibleEnemies := u.game.GetVisibleEnemies()
-	//longest := longestInventoryLineWithoutColorCodes(visibleEnemies)
 	var asString []string
 	for _, enemy := range visibleEnemies {
 		icon := u.getIconForActor(enemy)
@@ -1590,13 +1567,6 @@ func FlagStringShort(flags map[foundation.ActorFlag]int) string {
 	return strings.Join(flagStrings, " ")
 }
 
-func mapStrings(listOfStrings []string, mapper func(arg string) string) []string {
-	var mapped []string
-	for _, s := range listOfStrings {
-		mapped = append(mapped, mapper(s))
-	}
-	return mapped
-}
 func (u *UI) colorIfDiff(statStr string, stat foundation.HudValue, currentValue int) string {
 	lastValue, ok := u.lastHudStats[stat]
 	if !ok {
@@ -1677,7 +1647,6 @@ func (u *UI) openInventory(items []foundation.ItemForUI) *TextInventory {
 
 	list.SetItems(items)
 
-	//u.setupListForUI("inventory", list)
 	panelName := "inventory"
 
 	list.SetCloseHandler(func() {
@@ -1687,7 +1656,6 @@ func (u *UI) openInventory(items []foundation.ItemForUI) *TextInventory {
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(list)
 
-	//u.makeTopRightModal(panelName, list, len(inventoryItems), longestItem)
 	return list
 }
 
@@ -1837,16 +1805,11 @@ func (u *UI) ShowMonsterInfo(monster foundation.ActorForUI) {
 	}
 	monsterStats.SetInputCapture(inputHandler("lore"))
 	monsterLoreText.SetInputCapture(inputHandler("stats"))
-	//panels.SetInputCapture(u.popOnEscape)
 
 	panelName := "monsterInfo"
 	u.pages.AddPanel(panelName, panels, true, true)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(panels)
-}
-func (u *UI) getListForPanel(panelName string) (*cview.List, bool) {
-	list, exists := u.listTable[panelName]
-	return list, exists
 }
 
 func (u *UI) popOnEscape(event *tcell.EventKey) *tcell.EventKey {
@@ -1953,12 +1916,6 @@ func (u *UI) handleMainMouse(event *tcell.EventMouse, action cview.MouseAction) 
 	return event, action
 }
 
-func (u *UI) setupListForUI(panelName string, list *cview.List) {
-	u.applyListStyle(list)
-
-	u.listTable[panelName] = list
-}
-
 func (u *UI) applyListStyle(list *cview.List) {
 	fg := u.currentTheme.GetUIColorForTcell(UIColorUIForeground)
 	bg := u.currentTheme.GetUIColorForTcell(UIColorUIBackground)
@@ -1969,7 +1926,6 @@ func (u *UI) applyListStyle(list *cview.List) {
 	list.ShowSecondaryText(false)
 
 	list.SetScrollBarColor(fg)
-	//list.SetHighlightFullLine(true)
 
 	list.SetTitleColor(fg)
 	list.SetMainTextColor(fg)
@@ -1994,13 +1950,6 @@ func (u *UI) ShowLog() {
 	}
 	textView := u.openTextModal(logTexts)
 	textView.ScrollToEnd()
-}
-
-type OverlayDrawInfo struct {
-	Text       string
-	Pos        geometry.Point
-	Connectors []geometry.Point
-	SourcePos  geometry.Point
 }
 
 func (u *UI) ShowEnemyOverlay() {
@@ -2243,20 +2192,6 @@ func runeToDirection(r rune) geometry.CompassDirection {
 		return geometry.SouthWest
 	case '3':
 		return geometry.SouthEast
-	}
-	return geometry.North
-}
-
-func upperRuneToDirection(r rune) geometry.CompassDirection {
-	switch r {
-	case 'W':
-		return geometry.North
-	case 'S':
-		return geometry.South
-	case 'A':
-		return geometry.West
-	case 'D':
-		return geometry.East
 	}
 	return geometry.North
 }
@@ -2631,7 +2566,6 @@ func (u *UI) getCommandForKey(key UIKey) string {
 	if command, ok := u.keyTable[KeyLayerMain][key]; ok {
 		return command
 	}
-	//println("No command found for key %s", key.String())
 	return ""
 }
 
@@ -2639,7 +2573,6 @@ func (u *UI) getDirectionalTargetingCommandForKey(key UIKey) string {
 	if command, ok := u.keyTable[KeyLayerDirectionalTargeting][key]; ok {
 		return command
 	}
-	//println("No command found for key %s", key.String())
 	return ""
 }
 
@@ -2647,7 +2580,6 @@ func (u *UI) getAdvancedTargetingCommandForKey(key UIKey) string {
 	if command, ok := u.keyTable[KeyLayerAdvancedTargeting][key]; ok {
 		return command
 	}
-	//println("No command found for key %s", key.String())
 	return ""
 }
 

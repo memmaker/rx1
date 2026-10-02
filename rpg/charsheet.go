@@ -2,7 +2,6 @@ package rpg
 
 import (
 	"cmp"
-	"fmt"
 	"slices"
 )
 
@@ -69,9 +68,6 @@ func (c *Character) SetResourceChangedHandler(f func()) {
 func (c *Character) AddStatModifier(stat Stat, modifier Modifier) {
 	c.statModifiers[stat] = append(c.statModifiers[stat], modifier)
 }
-func (c *Character) AddSkillModifier(skill SkillName, modifier Modifier) {
-	c.skillModifiers[skill] = append(c.skillModifiers[skill], modifier)
-}
 func (c *Character) GetStat(stat Stat) int {
 	var statValue int
 	if stat.IsDerived() {
@@ -95,10 +91,6 @@ func (c *Character) GetTotalCost() int {
 
 func (c *Character) GetCharacterPointsBalance() int {
 	return c.characterPointsReceived - c.GetTotalCost()
-}
-
-func (c *Character) IsBalanceValid() bool {
-	return c.GetCharacterPointsBalance() >= 0
 }
 
 func (c *Character) SetCharacterPointsReceived(points int) {
@@ -145,67 +137,6 @@ func (c *Character) IncreaseSkillLevel(skill SkillName) {
 
 func (c *Character) SetSkillLevel(skill SkillName, level int) {
 	c.skillLevels[skill] = level
-}
-
-func (c *Character) GetFlatAttributes() map[Stat]int {
-	flatAttributes := make(map[Stat]int)
-	for stat, _ := range c.levelAdjustments {
-		flatAttributes[stat] = c.GetStat(stat)
-	}
-	return flatAttributes
-}
-
-func (c *Character) GetFlatSkills() map[SkillName]int {
-	skills := make(map[SkillName]int)
-	for skill, _ := range c.skillLevels {
-		skills[skill] = c.GetSkill(skill)
-	}
-	return skills
-}
-
-func (c *Character) GetOverview() []string {
-	attribs := c.GetFlatAttributes()
-	skills := c.GetFlatSkills()
-	overview := make([]string, 0)
-	overview = append(overview, fmt.Sprintf("ST: %d [%d]", attribs[Strength], c.pointsSpent(Strength)))
-	overview = append(overview, fmt.Sprintf("DX: %d [%d]", attribs[Dexterity], c.pointsSpent(Dexterity)))
-	overview = append(overview, fmt.Sprintf("IQ: %d [%d]", attribs[Intelligence], c.pointsSpent(Intelligence)))
-	overview = append(overview, fmt.Sprintf("HT: %d [%d]", attribs[Health], c.pointsSpent(Health)))
-	overview = append(overview, fmt.Sprintf("Will: %d [%d]", attribs[Will], c.pointsSpent(Will)))
-	overview = append(overview, fmt.Sprintf("Per: %d [%d]", attribs[Perception], c.pointsSpent(Perception)))
-	overview = append(overview, fmt.Sprintf("Basic Speed: %d [%d]", attribs[BasicSpeed], c.pointsSpent(BasicSpeed)))
-	overview = append(overview, fmt.Sprintf("Basic Move: %d [%d]", attribs[BasicSpeed], c.pointsSpent(BasicSpeed)))
-	overview = append(overview, fmt.Sprintf("Max Fatigue: %d [%d]", attribs[FatiguePoints], c.pointsSpent(FatiguePoints)))
-	overview = append(overview, fmt.Sprintf("Max HP: %d [%d]", attribs[HitPoints], c.pointsSpent(HitPoints)))
-	overview = append(overview, "")
-	overview = append(overview, fmt.Sprintf("Brawling: %d [%d]", skills[SkillNameBrawling], c.pointsSpentSkill(SkillNameShield)))
-	overview = append(overview, fmt.Sprintf("Melee: %d [%d]", skills[SkillNameMeleeWeapons], c.pointsSpentSkill(SkillNameMeleeWeapons)))
-	overview = append(overview, fmt.Sprintf("Shield: %d [%d]", skills[SkillNameShield], c.pointsSpentSkill(SkillNameShield)))
-	overview = append(overview, fmt.Sprintf("Throwing: %d [%d]", skills[SkillNameThrowing], c.pointsSpentSkill(SkillNameShield)))
-	overview = append(overview, fmt.Sprintf("Missile: %d [%d]", skills[SkillNameMissileWeapons], c.pointsSpentSkill(SkillNameShield)))
-	overview = append(overview, "")
-	overview = append(overview, fmt.Sprintf("Total Points: %d", c.GetTotalCost()))
-
-	return overview
-}
-
-func (c *Character) GetApplicableModifiersDescription() []string {
-	descriptions := make([]string, 0)
-	for stat, modifiers := range c.statModifiers {
-		for _, modifier := range modifiers {
-			if modifier.IsApplicable() {
-				descriptions = append(descriptions, fmt.Sprintf("%s: %s", stat.ToString(), modifier.Description()))
-			}
-		}
-	}
-	for skillName, modifiers := range c.skillModifiers {
-		for _, modifier := range modifiers {
-			if modifier.IsApplicable() {
-				descriptions = append(descriptions, fmt.Sprintf("%s: %s", skillName, modifier.Description()))
-			}
-		}
-	}
-	return descriptions
 }
 
 func (c *Character) ResetResources() {
@@ -262,14 +193,6 @@ func (c *Character) onStatChanged(stat Stat) {
 		}
 		return
 	}
-}
-
-func (c *Character) pointsSpent(state Stat) int {
-	return c.levelAdjustments[state] * state.CostPerLevel()
-}
-
-func (c *Character) pointsSpentSkill(name SkillName) int {
-	return name.PointsSpentFromLevel(c.skillLevels[name])
 }
 
 func (c *Character) SetStat(stat Stat, value int) {

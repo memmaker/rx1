@@ -3,11 +3,12 @@ package game
 import (
 	"cmp"
 	"fmt"
-	"github.com/memmaker/go/cview"
 	"image/color"
 	"rx1/foundation"
 	"rx1/geometry"
 	"slices"
+
+	"github.com/memmaker/go/cview"
 )
 
 type Inventory struct {
@@ -141,15 +142,6 @@ func (i *Inventory) Remove(item *Item) {
 			return
 		}
 	}
-}
-
-func (i *Inventory) Has(item *Item) bool {
-	for _, invItem := range i.items {
-		if invItem == item {
-			return true
-		}
-	}
-	return false
 }
 
 func (i *Inventory) Add(item *Item) {
