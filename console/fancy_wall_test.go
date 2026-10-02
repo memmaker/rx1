@@ -44,6 +44,30 @@ func TestFancyWallOverDoorIsFull(t *testing.T) {
 	}
 }
 
+type bottomWallGame struct{ foundation.GameForUI }
+
+func (bottomWallGame) MapAt(p geometry.Point) foundation.TileType {
+	switch {
+	case p.Y == 0:
+		return foundation.TileRoomWallHorizontal
+	case p.X == 0:
+		return foundation.TileEmpty
+	case p.X == 1:
+		return foundation.TileCorridorWall
+	}
+	return foundation.TileWall
+}
+
+// The bottom wall of a room is half over nothing and over black rock, full over a drawn wall.
+func TestFancyBottomWallIsHalf(t *testing.T) {
+	u := &UI{game: bottomWallGame{}, currentTheme: NewThemeFromFile("../data_rx1/themes/fancy.rec")}
+	for x, want := range []rune{'▀', '▀', '█'} {
+		if r := u.mapIconAt(geometry.Point{X: x}).Rune; r != want {
+			t.Fatalf("x %d: %c, want %c", x, r, want)
+		}
+	}
+}
+
 // A bar survives values out of range: below zero on death, zero maximum, more than the maximum.
 func TestColorBarOutOfRange(t *testing.T) {
 	u := &UI{currentTheme: NewThemeFromFile("../data_rx1/themes/fancy.rec")}
