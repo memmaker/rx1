@@ -575,6 +575,9 @@ func (g *GameState) damageActorWithFollowUp(damageSource string, victim *Actor, 
 		g.actorKilled(damageSource, victim)
 		//damageAnim.SetFollowUp(consequencesOfKill.Animations)
 	}
+	if damageAnim == nil { // damage animations are switched off
+		return followUps
+	}
 	damageAnim.SetFollowUp(followUps)
 	return []foundation.Animation{damageAnim}
 }

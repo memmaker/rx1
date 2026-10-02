@@ -128,3 +128,11 @@ worth: 300
 use_effect: vorpalize
 always_id_on_use: true
 
+name: fire wall
+internal_name: fire_wall
+category: scrolls
+charges: 1
+probability: 4
+worth: 220
+use_effect: fire_wall
+always_id_on_use: true

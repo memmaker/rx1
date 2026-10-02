@@ -468,18 +468,14 @@ func (m *GridMap[ActorType, ItemType, ObjectType]) GetAllDiagonalNeighbors(pos g
 	return allCardinalNeighbors
 }
 
-func (m *GridMap[ActorType, ItemType, ObjectType]) WavePropagationFrom(pos geometry.Point, size int, pressure int) map[int][]geometry.Point {
-	soundAnimationMap := make(map[int][]geometry.Point)
-	m.pathfinder.DijkstraMap(m.getDijkstraMapperWithActorsNotBlocking(), []geometry.Point{pos}, size)
-	for _, v := range m.pathfinder.DijkstraIterNodes {
-		cost := v.Cost
-		point := v.P
-		if soundAnimationMap[cost] == nil {
-			soundAnimationMap[cost] = make([]geometry.Point, 0)
-		}
-		soundAnimationMap[cost] = append(soundAnimationMap[cost], point)
+// WavePropagationFrom spreads from pos through everything walkable, around corners but not through walls.
+// waves[d] holds the tiles that are d steps away.
+func (m *GridMap[ActorType, ItemType, ObjectType]) WavePropagationFrom(pos geometry.Point, steps int) [][]geometry.Point {
+	waves := make([][]geometry.Point, steps+1)
+	for _, node := range m.pathfinder.DijkstraMap(m.getDijkstraMapperWithActorsNotBlocking(), []geometry.Point{pos}, steps*10+9) {
+		waves[node.Cost/10] = append(waves[node.Cost/10], node.P)
 	}
-	return soundAnimationMap
+	return waves
 }
 
 type DijkstraMapper struct {
