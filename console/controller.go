@@ -88,10 +88,10 @@ type UI struct {
 
 // OpenVendorMenu: ←/→ or typed digits set how many of the selected ware to buy, Enter buys them,
 // + buys 10 and * as many as the gold allows (count 0)
-func (u *UI) OpenVendorMenu(itemsForSale []util.Tuple[foundation.ItemForUI, int], buyItem func(ui foundation.ItemForUI, price int, count int)) {
+func (u *UI) OpenVendorMenu(shop string, itemsForSale []util.Tuple[foundation.ItemForUI, int], buyItem func(ui foundation.ItemForUI, price int, count int)) {
 	list := cview.NewList()
 	u.applyListStyle(list)
-	list.SetTitle("←→ 0-9 count  + buy 10  * buy max")
+	list.SetTitle(shop + ": ←→ 0-9 count  + buy 10  * buy max")
 	counts := make([]int, len(itemsForSale))
 	typed := ""
 	names := make([]string, len(itemsForSale))
@@ -1823,9 +1823,12 @@ func (u *UI) makeSideBySideModal(panelName string, primitive, qPrimitive cview.P
 	u.application.SetFocus(qPrimitive)
 }
 
-func (u *UI) OpenMenu(actions []foundation.MenuItem) {
+func (u *UI) OpenMenu(actions []foundation.MenuItem) { u.OpenTitledMenu("", actions) }
+
+func (u *UI) OpenTitledMenu(title string, actions []foundation.MenuItem) {
 	list := cview.NewList()
 	u.applyListStyle(list)
+	list.SetTitle(title)
 
 	list.SetSelectedFunc(func(index int, listItem *cview.ListItem) {
 		action := actions[index]
@@ -1839,6 +1842,9 @@ func (u *UI) OpenMenu(actions []foundation.MenuItem) {
 	})
 
 	longestItem := 0
+	if title != "" {
+		longestItem = len(title) + 2
+	}
 	for index, a := range actions {
 		action := a
 		shortcut := foundation.ShortCutFromIndex(index)
