@@ -414,23 +414,18 @@ func (u *UI) getIconForActor(actor foundation.ActorForUI) foundation.TextIcon {
 		}
 	}
 
-	var backGroundColor color.RGBA
-
 	if category, disguised := actor.Disguise(); disguised {
 		return u.getIconForItem(category)
 	}
 
-	if actor.HasFlag(foundation.FlagHeld) {
-		return foundation.TextIcon{
-			Rune: actor.Icon(),
-			Fg:   u.currentTheme.GetColorByName("Blue"),
-			Bg:   u.currentTheme.GetColorByName("White"),
-		}
-	} else {
-		backGroundColor = u.currentTheme.GetIconForMap(foundation.TileFloor).Bg
+	icon := actor.TextIcon(u.currentTheme.GetIconForMap(foundation.TileFloor).Bg, u.currentTheme.GetColorByName)
+	if actor == u.game.ActorAt(u.game.GetPlayerPosition()) { // the player looks as the theme says
+		icon.Rune, icon.Fg = u.currentTheme.playerIcon.Rune, u.currentTheme.playerIcon.Fg
 	}
-
-	return actor.TextIcon(backGroundColor, u.currentTheme.GetColorByName)
+	if actor.HasFlag(foundation.FlagHeld) {
+		icon.Fg, icon.Bg = u.currentTheme.GetColorByName("Blue"), u.currentTheme.GetColorByName("White")
+	}
+	return icon
 }
 
 func (u *UI) isPlayerHallucinating() bool {
