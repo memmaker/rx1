@@ -146,3 +146,33 @@ func TestSaveKeepsTheLevels(t *testing.T) {
 		t.Fatalf("depth %d, other levels must survive", k.currentDungeonLevel)
 	}
 }
+
+// Loading must not explore the stairs the hero is first placed on before being moved back.
+func TestLoadExploresNothingNew(t *testing.T) {
+	t.Chdir(t.TempDir())
+	g := newSaveTestGame(t)
+	for y := 0; y < g.gridMap.GetHeight(); y += 3 {
+		for x := 0; x < g.gridMap.GetWidth(); x += 5 {
+			if p := (geometry.Point{X: x, Y: y}); g.gridMap.IsWalkable(p) && !g.gridMap.IsActorAt(p) {
+				g.gridMap.MoveActor(g.Player, p)
+				g.afterPlayerMoved()
+			}
+		}
+	}
+	count := func(g *GameState) (n int) {
+		for y := 0; y < g.gridMap.GetHeight(); y++ {
+			for x := 0; x < g.gridMap.GetWidth(); x++ {
+				if g.gridMap.IsExplored(geometry.Point{X: x, Y: y}) {
+					n++
+				}
+			}
+		}
+		return
+	}
+	g.SaveGame()
+	h := newSaveTestGame(t)
+	h.LoadGame()
+	if count(g) != count(h) {
+		t.Fatalf("explored %d before, %d after load", count(g), count(h))
+	}
+}
