@@ -54,6 +54,7 @@ type GameState struct {
 	wizardLevelStyle                 *dungen.LevelStyle  // makes the next level of that style, set by the wizard menu
 	levelStyle                       dungen.LevelStyle   // of the current level: picks the lighting rules, see canPlayerSee
 	inSecretLevel                    bool
+	levels                           map[levelKey]*visitedLevel // every dungeon level stays as it was left: no new loot by taking the stairs twice
 
 	tileStyle int
 

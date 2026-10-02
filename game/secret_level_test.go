@@ -38,10 +38,15 @@ func TestSecretLevelRoundTrip(t *testing.T) {
 		t.Fatal("the player does not start on the stairs back")
 	}
 
+	secretLevel := g.gridMap
 	g.PlayerTryAscend()
-	if g.inSecretLevel || g.currentDungeonLevel != g.secretLevelDepth || g.secretStairs != (geometry.Point{}) {
-		t.Fatalf("want to be back on level %d without new hidden stairs, level=%d secret=%v stairs=%v",
-			g.secretLevelDepth, g.currentDungeonLevel, g.inSecretLevel, g.secretStairs)
+	if g.inSecretLevel || g.currentDungeonLevel != g.secretLevelDepth || g.Player.Position() != stairs {
+		t.Fatalf("want to be back on level %d on the found stairs %v, level=%d secret=%v pos=%v",
+			g.secretLevelDepth, stairs, g.currentDungeonLevel, g.inSecretLevel, g.Player.Position())
+	}
+	g.PlayerTryDescend()
+	if !g.inSecretLevel || g.gridMap != secretLevel {
+		t.Fatal("the found stairs lead to the same secret level again")
 	}
 }
 
@@ -72,5 +77,31 @@ func TestAscendFromLevelOneArrivesOnTownStairs(t *testing.T) {
 	pos := g.Player.Position()
 	if g.currentDungeonLevel != 0 || !g.gridMap.GetCell(pos).TileType.IsStairsDown() || pos == start {
 		t.Fatalf("level=%d pos=%v start=%v", g.currentDungeonLevel, pos, start)
+	}
+}
+
+// A visited level stays as it was left: the same map with its items and monsters, by the stairs from either side.
+func TestVisitedLevelsStay(t *testing.T) {
+	cfg := foundation.NewDefaultConfiguration()
+	cfg.DataRootDir = "../data_rx1"
+	g := NewGameState(stubUI{}, cfg)
+	g.GotoNamedLevel("town")
+	g.GotoDungeonLevel(1, StairsBoth, true)
+	one := g.gridMap
+	g.PlayerTryAscend() // to town
+	g.GotoDungeonLevel(1, StairsBoth, true)
+	if g.gridMap != one || !g.gridMap.GetCell(g.Player.Position()).TileType.IsStairsUp() {
+		t.Fatal("level 1 from town: want the same level, on its stairs up")
+	}
+	g.descendWithStairs(StairsBoth)
+	if g.gridMap == one || g.currentDungeonLevel != 2 {
+		t.Fatal("level 2 is a new level")
+	}
+	g.ascendWithStairs(StairsBoth)
+	if g.gridMap != one || !g.gridMap.GetCell(g.Player.Position()).TileType.IsStairsDown() {
+		t.Fatal("level 1 from below: want the same level, on its stairs down")
+	}
+	if g.gridMap.ActorAt(g.Player.Position()) != g.Player {
+		t.Fatal("the player is not on the map")
 	}
 }
