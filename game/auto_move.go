@@ -139,7 +139,7 @@ func (g *GameState) spotNewThings() bool {
 		spot(item)
 	}
 	for _, object := range g.gridMap.Objects() {
-		if !object.IsHidden() && g.canPlayerSee(object.Position()) {
+		if object.IsTrap() && !object.IsHidden() && g.canPlayerSee(object.Position()) {
 			spot(object)
 		}
 	}
