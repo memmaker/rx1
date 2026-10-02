@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"rx1/foundation"
 	"rx1/geometry"
+	"rx1/gridmap"
 	"strings"
 	"testing"
 )
@@ -174,5 +175,25 @@ func TestLoadExploresNothingNew(t *testing.T) {
 	h.LoadGame()
 	if count(g) != count(h) {
 		t.Fatalf("explored %d before, %d after load", count(g), count(h))
+	}
+}
+
+// Walking into a wall slides the hero sideways when the corridor starts one tile beside them.
+func TestWallSlideIntoCorridor(t *testing.T) {
+	g := newSaveTestGame(t)
+	wall, floor := gridmap.Tile{}, gridmap.Tile{IsWalkable: true, IsTransparent: true}
+	at := geometry.Point{X: 30, Y: 10}
+	for y := at.Y - 2; y <= at.Y+2; y++ {
+		for x := at.X - 2; x <= at.X+4; x++ {
+			g.gridMap.SetTile(geometry.Point{X: x, Y: y}, wall)
+		}
+	}
+	for _, p := range []geometry.Point{at, at.Add(geometry.Point{X: 0, Y: -1}), at.Add(geometry.Point{X: 1, Y: -1}), at.Add(geometry.Point{X: 2, Y: -1})} {
+		g.gridMap.SetTile(p, floor)
+	}
+	g.gridMap.MoveActor(g.Player, at)
+	g.ManualMovePlayer(geometry.East)
+	if want := at.Add(geometry.Point{X: 0, Y: -1}); g.Player.Position() != want {
+		t.Fatalf("hero at %v, want %v", g.Player.Position(), want)
 	}
 }
