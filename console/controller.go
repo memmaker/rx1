@@ -78,6 +78,8 @@ type UI struct {
 	animWake         atomic.Bool // the animation ticker has work: playback or afterAnimations
 	afterAnimations  []func()
 	lastHudStats     map[foundation.HudValue]int
+	lastHP           int       // as last shown in the status bar
+	hpFlashUntil     time.Time // the status bar is drawn inverted until then
 }
 
 func (u *UI) OpenVendorMenu(itemsForSale []util.Tuple[foundation.ItemForUI, int], buyItem func(ui foundation.ItemForUI, price int)) {
@@ -284,11 +286,13 @@ func (u *UI) AddAnimations(animations []foundation.Animation) {
 	}
 }
 
-func (u *UI) AnimatePending(movesFirst bool) {
+func (u *UI) EndAnimatedAction(lastOfActor bool) { u.animator.EndAction(lastOfActor) }
+
+func (u *UI) AnimatePending() {
 	if u.animator.HasPending() {
 		// each batch plays over the map as it is right now, after the actions it shows
 		icons, styles := u.snapshotMap()
-		u.animator.Flush(movesFirst, func() { u.lastFrameIcons, u.lastFrameStyle = icons, styles })
+		u.animator.Flush(func() { u.lastFrameIcons, u.lastFrameStyle = icons, styles })
 	}
 	if !u.animator.IsBusy() || u.isAnimationFrame {
 		return
@@ -1468,6 +1472,9 @@ func (u *UI) isStatusBarMultiLine() bool {
 	_, hNeeded := u.settings.GetMinTerminalSize()
 	return h >= hNeeded+1
 }
+
+const hpFlashDuration = 250 * time.Millisecond
+
 func (u *UI) UpdateStats() {
 	statusValues := u.game.GetHudStats()
 	flags := u.game.GetHudFlags()
@@ -1509,7 +1516,18 @@ func (u *UI) UpdateStats() {
 		statusStr = fmt.Sprintf("%s\n%s", lineTwo, statusStr)
 	}
 
-	u.statusBar.SetText(fmt.Sprintf("[::r]%s[-:-:-]", statusStr))
+	if hp := statusValues[foundation.HudHitPoints]; hp != u.lastHP {
+		if hp < u.lastHP { // the hit may have been animated and skipped: flash the bar
+			u.hpFlashUntil = time.Now().Add(hpFlashDuration)
+			time.AfterFunc(hpFlashDuration, func() { u.application.QueueUpdateDraw(u.UpdateStats) })
+		}
+		u.lastHP = hp
+	}
+	attributes := "[::r]"
+	if time.Now().Before(u.hpFlashUntil) {
+		attributes = ""
+	}
+	u.statusBar.SetText(fmt.Sprintf("%s%s[-:-:-]", attributes, statusStr))
 
 	if !u.isAnimationFrame {
 		u.lastHudStats = statusValues

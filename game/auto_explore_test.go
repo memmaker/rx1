@@ -36,7 +36,8 @@ func TestAutoExploreTerminates(t *testing.T) {
 	}
 }
 
-func (stubUI) AnimatePending(bool)      {}
+func (stubUI) AnimatePending()          {}
+func (stubUI) EndAnimatedAction(bool)   {}
 func (stubUI) AfterAnimations(f func()) { f() }
 func (stubUI) GetAnimMove(foundation.ActorForUI, geometry.Point, geometry.Point) foundation.Animation {
 	return nil

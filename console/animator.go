@@ -20,7 +20,9 @@ type TextAnimation interface {
 type Animator struct {
 	animationState    map[geometry.Point]foundation.TextIcon
 	runningAnimations []TextAnimation
-	pending           []TextAnimation                              // added since the last Flush
+	pending           [][]TextAnimation                            // added since the last Flush, by step: steps play one after the other
+	step              int                                          // the step new animations are added to
+	stepUsed          bool                                         // something was added to the current step
 	queue             []animationBatch                             // flushed batches, each starts when the one before has finished
 	moves             map[foundation.ActorForUI]*MovementAnimation // each actor's step move in pending
 }
@@ -47,33 +49,36 @@ func (a *Animator) AddAnimation(animation TextAnimation) {
 		}
 		a.moves[move.actor] = move
 	}
-	a.pending = append(a.pending, animation)
+	for len(a.pending) <= a.step {
+		a.pending = append(a.pending, nil)
+	}
+	a.pending[a.step] = append(a.pending[a.step], animation)
+	a.stepUsed = true
+}
+
+// EndAction closes an actor's action: what the same actor adds next plays after what it added so far.
+// With lastOfActor the next actor starts over, so its animations play alongside those of the actors before it.
+// ponytail: steps of all actors are aligned, a long step holds up everybody's next step. Per-actor tracks if that shows.
+func (a *Animator) EndAction(lastOfActor bool) {
+	if lastOfActor {
+		a.step = 0
+	} else if a.stepUsed {
+		a.step++
+	}
+	a.stepUsed = false
 }
 
 func (a *Animator) HasPending() bool { return len(a.pending) > 0 }
 func (a *Animator) HasQueued() bool  { return len(a.queue) > 0 }
 
-// Flush closes the batch built by AddAnimation: it plays after everything flushed before it, and
-// onStart runs when it starts. With movesFirst its step moves play before the rest of it.
-func (a *Animator) Flush(movesFirst bool, onStart func()) {
+// Flush queues what AddAnimation collected, one batch per step: it plays after everything flushed before it,
+// and onStart runs when each of its batches starts.
+func (a *Animator) Flush(onStart func()) {
 	clear(a.moves)
-	if len(a.pending) == 0 {
-		return
+	for _, animations := range a.pending {
+		a.queue = append(a.queue, animationBatch{animations, onStart})
 	}
-	var first, rest []TextAnimation
-	for _, animation := range a.pending {
-		if move, isMove := animation.(*MovementAnimation); movesFirst && isMove && !move.isQuickMove {
-			first = append(first, animation)
-		} else {
-			rest = append(rest, animation)
-		}
-	}
-	for _, animations := range [][]TextAnimation{first, rest} {
-		if len(animations) > 0 {
-			a.queue = append(a.queue, animationBatch{animations, onStart})
-		}
-	}
-	a.pending = nil
+	a.pending, a.step, a.stepUsed = nil, 0, false
 }
 
 func (a *Animator) IsBusy() bool {
@@ -125,12 +130,16 @@ func (a *Animator) CancelAll() {
 	for _, animation := range a.runningAnimations {
 		cancelRecursive(animation)
 	}
-	for _, batch := range append(a.queue, animationBatch{animations: a.pending}) {
-		for _, animation := range batch.animations {
+	for _, batch := range a.queue {
+		a.pending = append(a.pending, batch.animations)
+	}
+	for _, animations := range a.pending {
+		for _, animation := range animations {
 			cancelRecursive(animation)
 		}
 	}
 	a.runningAnimations, a.queue, a.pending, a.moves = nil, nil, nil, nil
+	a.step, a.stepUsed = 0, false
 	clear(a.animationState)
 }
 

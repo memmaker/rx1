@@ -156,7 +156,10 @@ type GameUI interface {
 	AddAnimations(animations []Animation)
 	// AnimatePending starts playing what was added since the last call, after anything still playing. It returns at once.
 	// With movesFirst the step moves play before the rest.
-	AnimatePending(movesFirst bool)
+	AnimatePending()
+	// EndAnimatedAction separates the animations of one action from the next: actions of one actor play in order,
+	// after lastOfActor the next actor's play alongside.
+	EndAnimatedAction(lastOfActor bool)
 	// AfterAnimations runs f once everything queued has played (or was skipped by a key press).
 	AfterAnimations(f func())
 	GetAnimThrow(item ItemForUI, origin geometry.Point, target geometry.Point) (Animation, int)
