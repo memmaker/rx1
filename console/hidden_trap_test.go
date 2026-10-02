@@ -17,13 +17,13 @@ func (trapFloorGame) ObjectAt(loc geometry.Point) foundation.ObjectCategory {
 	return foundation.ObjectCategory(loc.X - 1)
 }
 
-// The floor over a hidden trap is a little darker than plain floor.
+// The foreground of the floor over a hidden trap is darker than that of plain floor.
 func TestHiddenTrapDarkensItsFloor(t *testing.T) {
-	theme := NewThemeFromFile("../data_rx1/themes/hack.rec")
+	theme := NewThemeFromFile("../data_rx1/themes/fancy.rec") // its floor has a background colour
 	u := &UI{game: trapFloorGame{}, currentTheme: theme}
 	plain, _ := u.visibleLookup(geometry.Point{X: 0}) // ObjectAt -1: nothing there
 	trap, _ := u.visibleLookup(geometry.Point{X: 1})
-	if trap.Rune != plain.Rune || trap.Fg.R >= plain.Fg.R || trap.Fg.R < plain.Fg.R/2 {
+	if trap.Rune != plain.Rune || trap.Bg != plain.Bg || trap.Fg.R != uint8(float64(plain.Fg.R)*0.6) {
 		t.Fatalf("plain %v, over a trap %v", plain, trap)
 	}
 }
