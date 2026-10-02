@@ -203,7 +203,10 @@ func (g *GameState) gotoLevel(level int, stairs StairsInLevel, placePlayerOnStai
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	var dungeon *dungen.DungeonMap
 	if secret {
-		dungeon = dungen.NewMegaDungeonGenerator(random).Generate(2*g.config.MapWidth, 3*g.config.MapHeight)
+		width, height := 2*g.config.MapWidth, 3*g.config.MapHeight
+		generator := dungen.NewMegaDungeonGenerator(random, width*height/40) // some 220 rooms
+		generator.WindingPercent, generator.RoomExtraSize = 70, 1            // Hauberk's goblin stronghold
+		dungeon = generator.Generate(width, height)
 		rooms := dungeon.AllRooms()
 		dungeon.SetStairsUp(rooms[random.Intn(len(rooms))].GetRandomAbsoluteFloorPosition(random))
 	} else {

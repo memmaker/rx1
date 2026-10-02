@@ -125,7 +125,3 @@ func (rg Rect) Center() Point {
 		Y: rg.Min.Y + rg.Size().Y/2,
 	}
 }
-
-func (rg Rect) IsOnCorner(position Point) bool {
-	return position.X == rg.Min.X && position.Y == rg.Min.Y || position.X == rg.Max.X-1 && position.Y == rg.Min.Y || position.X == rg.Min.X && position.Y == rg.Max.Y-1 || position.X == rg.Max.X-1 && position.Y == rg.Max.Y-1
-}
