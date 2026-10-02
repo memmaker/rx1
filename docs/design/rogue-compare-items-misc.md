@@ -170,9 +170,9 @@ Sources: 3.6 `init.c: a_class, a_names, a_chances`; 5.4 `extern.c: arm_info`; rx
 | Max pack | `MAXPACK 23`; blocks at `inpack == MAXPACK-1`, effective 22 | `pack_room`: `++inpack > MAXPACK`, 23 | `NewInventory(23)`, counted in stacks (`IsFull`: stacks == 23) | rx1 = 5.4 count, but stack-based; 3.6!=5.4 |
 | Stack counting | ISMULT (potion/scroll/food) stacks by `which`, each unit increments `inpack`; groups (`o_group`) share a slot | same, per unit for ISMULT, per slot for groups | any number of identical items in one slot | DIFFERENT (unlimited stack counts) |
 | Weight | none | none | none | SAME |
-| Letters | positional, shift when items removed | stable per item (`o_packch`, `pack_used[]`) | letters via inventory menu (not verified in detail) | 3.6!=5.4 |
+| Letters | positional, shift when items removed | stable per item (`o_packch`, `pack_used[]`) | (corrected) letters are positional: `InventoryStack.Shortcut = ShortCutFromIndex(invIndex)`, a..z then punctuation/digits from index 26 (`foundation/shortcuts.go`); stacks are sorted by category, so letters shift when items are added or removed, like 3.6 | rx1 = 3.6 (3.6!=5.4) |
 | Pickup | automatic on walking | automatic; `,` picks up; `m <dir>` moves without picking up; blocked while levitating | automatic (`AutoPickup: true` in `config.rec`) and `,` command; gold goes straight to purse; message "You cannot carry any more items" when full | rx1 = 5.4 (`,`); no `m` |
-| Scare monster pickup | second pickup turns to dust | same | scare via scroll only (not verified) | not verified |
+| Scare monster pickup | second pickup turns to dust | same | (corrected) scare monster is a read-only scroll (`scare_monsters_in_room`, sets `FlagScared` on visible monsters); no floor repel, no pickup counter, no dust (grep of `game/` finds no such code) | MISSING in rx1 |
 | Stack rule | `which` equal, ISMULT; weapon groups | same | `CanStackWith`: same name+category, not non-missile weapons/armor/rings, same effects and charges, missiles equal plusses | DIFFERENT detail |
 | Drop | non-weapon with count>=2 drops one; weapon stack drops entirely | `leave_pack(obj,TRUE,!ISMULT)`: whole weapon/armor stack, one potion/scroll/food | drop costs a turn (`endPlayerTurn`); equipped stuck item refused | SAME-ish |
 | Throw | `missile()`: one WEAPON-type item | `leave_pack(obj,TRUE,FALSE)` one item | any item throwable (`IsThrowable` always true); `v` throw; `f` launch; `h` quick shot at nearest; `g` aim | DIFFERENT (rx1 throws anything; launching commands rx1-only) |
@@ -193,7 +193,7 @@ Sources: 3.6 `init.c: a_class, a_names, a_chances`; 5.4 `extern.c: arm_info`; rx
 | Armor identified on wear | ISKNOW set | similar | `isKnown` set on equip | SAME |
 | Ring identified | by effect | by effect | `always_id_on_use: true` | DIFFERENT |
 | Ring food use | `ring_eat` | `ring_eat` table (PROTECT 1, ADDSTR 1, SUSTSTR 1, SEARCH -3, SEEINVIS -5, ADDHIT -3, ADDDAM -3, REGEN 2, DIGEST -2, STEALTH 1, SUSTARM 1; negative = 1-in-N) | slow digestion halves hunger; regeneration/see invisible rings have `charges` and burn out | DIFFERENT (rx1-only burnout) |
-| Ring teleport | `rnd(100) < 2` per turn | `rnd(50) == 0` (2%) | teleportation ring exists (mechanics not verified) | 3.6!=5.4 (equal rate) |
+| Ring teleport | `rnd(100) < 2` per turn | `rnd(50) == 0` (2%) | (corrected) `ring_teleportation` (`equip_flag: curse_teleportitis`, chance 5): `movement.go:106` teleports the hero to `RandomSpawnPosition` with `rand.Intn(100) < 5` after each move, so 5% per move against Rogue's 2% | DIFFERENT (rate 2.5x); 3.6 and 5.4 equal |
 | Slots in rx1 | - | - | main hand, off hand, two-handed, launcher, quiver, light source, amulet, torso (and unused head/hands/feet/back) | rx1-only |
 
 ---
@@ -241,7 +241,7 @@ Traps: rx1 `rnd(10) < level`, count `min(rnd(level/4)+1,10)*scale`. rx1-only ext
 | Hungry | below 300 | below 300 | hunger increments every 300 turns since eating (`hungerInterval 300`), message "You are hungry." | DIFFERENT |
 | Weak / Faint | weak <150; faint <=0, about 21%, `rnd(8)+4` turns | faint `rnd(5)==0` (20%), `rnd(8)+4` | none found | rx1 lacks stages |
 | Starvation | no death | death at `food_left < -STARVETIME (850)` | none found | 3.6!=5.4; rx1 none |
-| "Yuk" exp | `rnd(100)>70` gives exp++ | similar for fruit | not found | not verified |
+| "Yuk" exp | `rnd(100)>70` gives exp++ | similar for fruit | (corrected) food is only `food_ration` (`satiate_fully`); no fruit, no "yuk" and no exp gain from eating | MISSING in rx1 |
 | Effects of hunger | weaker | weaker | blocks natural healing, drains fatigue (rx1 FP) | rx1-only |
 | Natural heal | level-based interval | level-based | `max(3, 20 - 2*level)` turns when no enemy visible | DIFFERENT |
 
@@ -264,8 +264,8 @@ Traps: rx1 `rnd(10) < level`, count `min(rnd(level/4)+1,10)*scale`. rx1-only ext
 | Wraith drain | 15% | similar | `DrainLevel` | SAME |
 | Saving throw | `14 + which - lvl/2` | same | `d20 >= 14 + which - lvl/2` (`rpg.Save`) | SAME |
 | Strength limits | 3..31 w/ 18/xx | same | `ChangeStrength` clamps 3..18 | DIFFERENT |
-| Level-up message | "welcome to level N" | same | not verified | not verified |
-| Floating eye death | `no_command > 100 && food_left <= 0` | - | hold effects only | not verified |
+| Level-up message | "welcome to level N" | same | (corrected) `Welcome to level %d` via `raiseLevel` and `state.go` level-up | SAME |
+| Floating eye death | `no_command > 100 && food_left <= 0` | - | (corrected) the eye is a `struck_effect: freeze` Stun (hero stunned when hitting it), no starvation death | DIFFERENT |
 
 ---
 
@@ -295,7 +295,7 @@ rx1 keymap: `data_rx1/keymaps/default.txt` (WASD) and `data_rx1/keymaps/rogue.tx
 | Repeat | `a` (5.4), counts (3.6 and 5.4) | none found | none found | rx1 lacks |
 | Fight to death | 5.4 `F`/`f` | none | none | rx1 lacks |
 | Version / help | `v`, `?` | `?` and F2 manual, `=` key bindings | same | SAME-ish |
-| Save | `S` | none found | none found | rx1 lacks (not verified) |
+| Save | `S` | none found | none found | rx1 lacks (corrected: verified, no save key in either keymap) |
 | Quit | `Q` | `Q` | `Q` | SAME |
 | Redraw | Ctrl-L | none | none | rx1 lacks |
 | Explore | RVIP `x` | `o` auto explore | none listed | rx1-only |
@@ -336,7 +336,7 @@ rx1 keymap: `data_rx1/keymaps/default.txt` (WASD) and `data_rx1/keymaps/rogue.tx
 | Win worth | `total_winner`: amulet 1000, food 2*count, scroll/potion `mi_worth*count`, ring base +20*o_ac if >0 else 50, stick +20*charges | halved if unidentified, ring +o_arm*100 else 10, floor 0 | none | DIFFERENT |
 | Flags | 0 killed, 1 quit, 2 winner | + 3 killed with amulet | escaped / died / max level | DIFFERENT |
 | Win condition | carry amulet to level 0 via `<` | same | `<` on level 1 with amulet calls `gameWon`; without amulet goes to town | rx1 adds town |
-| Tombstone | always | `tombstone` option | not verified | not verified |
+| Tombstone | always | `tombstone` option | (corrected) no tombstone: `showDeathScreen` (`console/controller.go`) shows name, gold, deepest level, cause of death, a play-again prompt and the high-score table; `showWinScreen` for a win | DIFFERENT (text screen, no gravestone art, no option) |
 | Wizard games | not scored | not scored | score not tied to wizard mode | DIFFERENT |
 | Max level | 26 (amulet) | 26 | `maximumDungeonLevel: 26` | SAME |
 
@@ -346,7 +346,7 @@ rx1 keymap: `data_rx1/keymaps/default.txt` (WASD) and `data_rx1/keymaps/rogue.tx
 
 | Topic | 3.6 | 5.4 | rx1 | Verdict |
 |---|---|---|---|---|
-| Save | `S` saves and exits; file unlinked on restore | same | not verified (no save key in keymaps) | not verified |
+| Save | `S` saves and exits; file unlinked on restore | same | (corrected) none: no save key in either keymap and no game-state serialization; only the high-score table is gob-encoded (`saveHighScoreTable`, `LoadHighScoreTable`) | MISSING in rx1: a game cannot be saved or restored |
 | Wizard entry | Ctrl-P, password `mTBellIQOsLNA` | `+`, same password | F10 wizard menu, no password | DIFFERENT |
 | Wizard commands | `C` create_obj, Ctrl-I level objects, Ctrl-W whatis, Ctrl-D/U level change, Ctrl-F map, Ctrl-X monsters, Ctrl-T teleport, Ctrl-E food, Ctrl-A inpack, Ctrl-N charge, Ctrl-H sword+plate mail, `@` position | `|` position, `C`, `$` inpack, Ctrl-G, Ctrl-W, Ctrl-D/A, Ctrl-F, Ctrl-T, Ctrl-E, Ctrl-Q add_pass, Ctrl-X turn_see, `~` charge, Ctrl-I sword+plate, `*` pr_list | `OpenWizardMenu`: toggle show map, teleport (town, test map, secret level, depth, new level per style), raise level, curse all equipment, create item, create monster, create trap; F5/F6 wiz ascend/descend | DIFFERENT (menu based) |
 
@@ -382,4 +382,4 @@ rx1 keymap: `data_rx1/keymaps/default.txt` (WASD) and `data_rx1/keymaps/rogue.tx
 9. Interface: rx1 has two keymaps (WASD default, Rogue-style `rogue.txt`), menus, targeting cursors and auto explore; no save, discoveries, call, repeat or count commands were found. Options are a config file, not an in-game screen.
 10. Score/wizard: rx1 scores gold only in a 15-entry gob table; wizard is a password-free F10 menu.
 
-Items marked "not verified" were not confirmed in rx1 source (save/load, tombstone, scare-monster dust, yuk exp, inventory letters, ring teleport mechanics).
+(corrected) The former "not verified" items are now verified in rx1 source: no save/load, no tombstone, no scare-monster floor mechanic or dust, no yuk exp, positional inventory letters (3.6 style), ring of teleportation 5% per move.
