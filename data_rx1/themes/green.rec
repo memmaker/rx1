@@ -244,3 +244,7 @@ UIBorder_BottomRightFocus: +
 %rec: phosphor
 
 Tint: 51 | 255 | 102
+
+%rec: hidden_trap
+
+Brightness: 0.2
