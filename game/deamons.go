@@ -24,7 +24,9 @@ func (g *GameState) enemyMovement(playerTimeSpent int) {
 		for enemy.HasEnergyForActions() {
 			enemy.SpendTimeEnergy()
 			g.aiAct(enemy)
+			g.ui.EndAnimatedAction(false)
 		}
+		g.ui.EndAnimatedAction(true)
 	}
 }
 func (g *GameState) removeDeadAndApplyRegeneration() {

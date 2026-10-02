@@ -11,9 +11,9 @@ func TestAnimatorPlaysBatchesInOrder(t *testing.T) {
 	a := NewAnimator()
 	var order []string
 	a.AddAnimation(NewCoverAnimation(geometry.Point{}, foundation.TextIcon{}, 2, func() { order = append(order, "player") }))
-	a.Flush(false, nil)
+	a.Flush(nil)
 	a.AddAnimation(NewCoverAnimation(geometry.Point{X: 1}, foundation.TextIcon{}, 1, func() { order = append(order, "enemy") }))
-	a.Flush(false, nil)
+	a.Flush(nil)
 	for i := 0; a.IsBusy(); i++ {
 		if _, enemyShown := a.animationState[geometry.Point{X: 1}]; enemyShown && len(order) == 0 {
 			t.Fatal("enemy batch started before the player batch finished")
@@ -33,13 +33,16 @@ func TestAnimatorMergesMovesOfOneActor(t *testing.T) {
 	grey := func(string) color.RGBA { return color.RGBA{} }
 	a.AddAnimation(NewMovementAnimation(actor, foundation.TextIcon{}, geometry.Point{X: 0}, geometry.Point{X: 1}, grey, nil))
 	a.AddAnimation(NewMovementAnimation(actor, foundation.TextIcon{}, geometry.Point{X: 1}, geometry.Point{X: 2}, grey, nil))
-	a.AddAnimation(NewCoverAnimation(geometry.Point{}, foundation.TextIcon{}, 1, nil))
+	a.EndAction(false)
+	a.AddAnimation(NewCoverAnimation(geometry.Point{}, foundation.TextIcon{}, 1, nil)) // its attack
+	a.EndAction(true)
+	a.AddAnimation(NewCoverAnimation(geometry.Point{Y: 1}, foundation.TextIcon{}, 1, nil)) // another actor's attack
 	if len(a.pending) != 2 || len(a.moves[actor].GetDrawables()) != 3 {
-		t.Fatalf("want one merged move over 3 tiles and the cover, got %d animations", len(a.pending))
+		t.Fatalf("want one merged move over 3 tiles, then the attack, got %d steps", len(a.pending))
 	}
-	a.Flush(true, nil)
-	if _, isMove := a.queue[0].animations[0].(*MovementAnimation); len(a.queue) != 2 || !isMove {
-		t.Fatalf("want the move in its own batch before the rest, got %d batches", len(a.queue))
+	a.Flush(nil)
+	if len(a.queue) != 2 || len(a.queue[0].animations) != 2 || len(a.queue[1].animations) != 1 {
+		t.Fatalf("want the other actor's attack alongside the move and the first actor's attack after it, got %v", a.queue)
 	}
 	for i := 0; i < 20 && a.IsBusy(); i++ {
 		a.Tick()
