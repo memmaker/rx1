@@ -66,6 +66,8 @@ func (u *UI) setupCommandTable() {
 	u.commandTable = make(map[string]func())
 
 	u.commandTable["quit"] = u.application.Stop
+	u.commandTable["save"] = u.game.SaveGame
+	u.commandTable["load"] = u.game.LoadGame
 
 	u.commandTable["inventory"] = u.game.OpenInventory
 	u.commandTable["tactics"] = u.game.OpenTacticsMenu
@@ -139,6 +141,8 @@ func (u *UI) setupCommandTable() {
 	u.commandTable["descend"] = u.useOrTravelToStairs(true, u.game.PlayerTryDescend)
 	u.commandTable["ascend"] = u.useOrTravelToStairs(false, u.game.PlayerTryAscend)
 	u.commandTable["wait"] = u.game.Wait
+	"save":              "Save Game",
+	"load":              "Load Game",
 	u.commandTable["show_key_bindings"] = u.showKeyBindings
 	u.commandTable["auto_explore"] = u.startAutoExplore
 	u.commandTable["commands"] = u.openCommandMenu
@@ -506,7 +510,7 @@ var commandMenuGroups = []struct {
 	{"Explore", []string{"auto_explore", "descend", "ascend", "map_interaction", "wait"}},
 	{"Info", []string{"character", "monsters", "items", "log", "help", "show_key_bindings"}},
 	{"Display", []string{"overlay_monsters", "overlay_items", "themes", "gamma_up", "gamma_down", "toggle_cursor"}},
-	{"Game", []string{"wizard", "quit"}},
+	{"Game", []string{"save", "load", "wizard", "quit"}},
 }
 
 func (u *UI) openCommandMenu() {

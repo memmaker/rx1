@@ -36,6 +36,8 @@ r -> read
 
 Q -> quit
 i -> inventory
+F7 -> save
+F8 -> load
 c -> character
 l -> log
 m -> monsters
