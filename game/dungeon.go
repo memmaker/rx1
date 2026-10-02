@@ -135,10 +135,7 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 		spawnPos = stairsDown
 	}
 
-	if g.gridMap != nil {
-		g.gridMap.RemoveActor(g.Player)
-		g.Player.RemoveLevelStatusEffects()
-	}
+	g.leaveLevel()
 
 	g.dungeonLayout = nil
 	g.currentDungeonLevel = 0
@@ -204,17 +201,77 @@ func (g *GameState) styleOfLevel(level int) dungen.LevelStyle {
 	return dungen.StyleRogue
 }
 
-func (g *GameState) gotoLevel(level int, stairs StairsInLevel, placePlayerOnStairs bool, secret bool) {
-	if g.gridMap != nil {
-		g.gridMap.RemoveActor(g.Player)
-		g.Player.RemoveLevelStatusEffects()
+type levelKey struct {
+	level  int
+	secret bool
+}
+
+// visitedLevel is what belongs to one dungeon level; the map holds its monsters, items and what was explored.
+type visitedLevel struct {
+	gridMap       *gridmap.GridMap[*Actor, *Item, *Object]
+	dungeonLayout *dungen.DungeonMap
+	style         dungen.LevelStyle
+	secrets       map[geometry.Point]gridmap.Tile
+	secretStairs  geometry.Point
+	glowing       map[geometry.Point]color.RGBA
+}
+
+// leaveLevel takes the player off the current map and keeps a dungeon level for the next visit.
+func (g *GameState) leaveLevel() {
+	if g.gridMap == nil {
+		return
 	}
+	g.gridMap.RemoveActor(g.Player)
+	g.Player.RemoveLevelStatusEffects()
+	if g.currentDungeonLevel == 0 || g.dungeonLayout == nil {
+		return
+	}
+	if g.levels == nil {
+		g.levels = map[levelKey]*visitedLevel{}
+	}
+	g.levels[levelKey{g.currentDungeonLevel, g.inSecretLevel}] = &visitedLevel{g.gridMap, g.dungeonLayout, g.levelStyle, g.secrets, g.secretStairs, g.glowing}
+}
+
+// returnToLevel puts the player back on a visited level: on the stairs they came by (the hidden ones when coming
+// back from the secret level), or next to them when a monster stands there.
+func (g *GameState) returnToLevel(v *visitedLevel, placePlayerOnStairs, isDown, fromSecret bool) {
+	g.gridMap, g.dungeonLayout, g.levelStyle, g.secrets, g.secretStairs, g.glowing = v.gridMap, v.dungeonLayout, v.style, v.secrets, v.secretStairs, v.glowing
+	pos, found := v.secretStairs, fromSecret
+	size := g.gridMap.MapSize()
+	for y := 0; y < size.Y && !found && placePlayerOnStairs; y++ {
+		for x := 0; x < size.X && !found; x++ {
+			p := geometry.Point{X: x, Y: y}
+			tile := g.gridMap.GetCell(p).TileType
+			found = p != v.secretStairs && ((isDown && tile.IsStairsUp()) || (!isDown && tile.IsStairsDown()))
+			pos = p
+		}
+	}
+	if !found {
+		pos = g.gridMap.RandomSpawnPosition()
+	} else if g.gridMap.IsActorAt(pos) {
+		if free := g.gridMap.GetFreeCellsForDistribution(pos, 1, g.gridMap.IsCurrentlyPassable); len(free) > 0 {
+			pos = free[0]
+		}
+	}
+	g.gridMap.AddActor(g.Player, pos)
+	g.afterPlayerMoved()
+	g.ui.AfterPlayerMoved(foundation.MoveInfo{Direction: geometry.North, OldPos: pos, NewPos: pos, Mode: foundation.PlayerMoveModeManual})
+	g.updateUIStatus()
+}
+
+func (g *GameState) gotoLevel(level int, stairs StairsInLevel, placePlayerOnStairs bool, secret bool) {
+	g.leaveLevel()
 	isDown := secret || level > g.currentDungeonLevel
+	fromSecret := g.inSecretLevel && !secret
 	g.inSecretLevel = secret
 
 	g.currentDungeonLevel = level
 	if g.deepestDungeonLevelPlayerReached < level {
 		g.deepestDungeonLevelPlayerReached = level
+	}
+	if v := g.levels[levelKey{level, secret}]; v != nil && g.wizardLevelStyle == nil {
+		g.returnToLevel(v, placePlayerOnStairs, isDown, fromSecret)
+		return
 	}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
