@@ -7,6 +7,8 @@ mkdir -p "$OUT"
 GOOS=js GOARCH=wasm go build -trimpath -ldflags '-s -w' -o "$OUT/rx1.wasm" .
 gzip -9 -k -f "$OUT/rx1.wasm"
 install -m 644 "$(go env GOROOT)/lib/wasm/wasm_exec.js" ~/Games/rvip-tools/web/rvip-wm.js "$OUT/"
+# RVIP font list (RvipWM.FONTS) is served as fonts/<name>.woff
+rsync -a --delete ~/Games/roguelikes-index/fonts/ "$OUT/fonts/"
 # tcell's DOM renderer, minus its own loader (index.html loads the wasm)
 WEB=$(go list -m -f '{{.Dir}}' github.com/gdamore/tcell/v3)/webfiles
 sed '/^const go = new Go/,$d' "$WEB/tcell.js" > "$OUT/tcell.js"
