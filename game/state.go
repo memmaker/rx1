@@ -646,22 +646,18 @@ func (g *GameState) endPlayerTurn() {
 
 	g.TurnsTaken++
 
-	didCancel := g.ui.AnimatePending() // animate player actions..
+	g.ui.AnimatePending() // the player's actions play first..
 
 	playerTimeTakeForTurn := 100 / (g.Player.GetBasicSpeed())
 
 	g.enemyMovement(playerTimeTakeForTurn)
 
-	if didCancel {
-		g.ui.SkipAnimations()
-	} else {
-		g.ui.AnimatePending() // animate enemy actions
-	}
+	g.ui.AnimatePending() // ..then the enemies'
 
 	g.removeDeadAndApplyRegeneration()
 
 	for _, action := range g.afterAnimationActions {
-		action()
+		g.ui.AfterAnimations(action)
 	}
 	g.afterAnimationActions = nil
 
