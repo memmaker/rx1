@@ -74,7 +74,7 @@ func (b *Object) IsWalkable(actor *Actor) bool {
 }
 
 func (b *Object) IsTransparent() bool {
-	return false
+	return true // objects are traps in the floor
 }
 func (b *Object) IsPassableForProjectile() bool {
 	return false
