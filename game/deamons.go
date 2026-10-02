@@ -21,7 +21,7 @@ func (g *GameState) enemyMovement(playerTimeSpent int) {
 		// IMPORTANT:
 		// Actions of enemies should never remove actors from the game directly
 		enemy.AddTimeEnergy(playerTimeSpent)
-		for enemy.HasEnergyForActions() {
+		for enemy.IsAlive() && enemy.HasEnergyForActions() { // a trap may kill it between its actions
 			enemy.SpendTimeEnergy()
 			g.aiAct(enemy)
 			g.ui.EndAnimatedAction(false)

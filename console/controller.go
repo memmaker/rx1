@@ -2498,7 +2498,7 @@ func (u *UI) getIconForMap(worldTileType foundation.TileType) foundation.TextIco
 
 func (u *UI) getIconForObject(object foundation.ObjectCategory) foundation.TextIcon {
 	if u.isPlayerHallucinating() {
-		u.currentTheme.GetIconForObject(foundation.RandomObjectCategory())
+		return u.currentTheme.GetIconForObject(foundation.RandomObjectCategory())
 	}
 	return u.currentTheme.GetIconForObject(object)
 }

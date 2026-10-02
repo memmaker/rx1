@@ -103,7 +103,11 @@ func (m *DungeonMap) GetTile(x int, y int) DungeonTile {
 	return m.tiles[x+y*m.width]
 }
 
+// GetTileAt, GetRoomAt and AllRooms also work on a nil map, e.g. in town: all wall, no rooms.
 func (m *DungeonMap) GetTileAt(pos geometry.Point) DungeonTile {
+	if m == nil {
+		return Wall
+	}
 	return m.tiles[pos.X+pos.Y*m.width]
 }
 
@@ -203,6 +207,9 @@ func rotate(matrix [3][3]DungeonTile, rotationCount int) [3][3]DungeonTile {
 	return rotate(matrix, rotationCount-1)
 }
 func (m *DungeonMap) AllRooms() []*DungeonRoom {
+	if m == nil {
+		return nil
+	}
 	return m.rooms
 }
 
@@ -369,6 +376,9 @@ func (m *DungeonMap) AddDoorAndConnect(absoluteDoorPos geometry.Point, direction
 }
 
 func (m *DungeonMap) GetRoomAt(posOne geometry.Point) *DungeonRoom {
+	if m == nil {
+		return nil
+	}
 	for _, room := range m.rooms {
 		if room.Contains(posOne) {
 			return room
