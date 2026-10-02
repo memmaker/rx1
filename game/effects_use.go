@@ -345,8 +345,6 @@ func playerIdentifyItem(g *GameState, actor *Actor) []foundation.Animation {
 
 		g.ui.UpdateInventory()
 
-		//g.ui.AddAnimations([]foundation.Animation{animation})
-
 		g.endPlayerTurn()
 	}
 
@@ -372,8 +370,6 @@ func removeCurse(g *GameState, actor *Actor) []foundation.Animation {
 
 		g.ui.UpdateInventory()
 
-		//g.ui.AddAnimations([]foundation.Animation{animation})
-
 		g.endPlayerTurn()
 	}
 
@@ -391,17 +387,10 @@ func playerEnchantArmor(g *GameState, actor *Actor) []foundation.Animation {
 		return nil
 	}
 
-	//playerInventory := g.Player.GetInventory()
-	//playerEquipment := g.Player.GetEquipment()
-
 	onSelected := func(item foundation.ItemForUI) {
 		armorItem := item.(*InventoryStack).First()
 
-		//wasEquipped := playerEquipment.IsEquipped(armorItem)
-		//playerInventory.Remove(armorItem)
 		armorItem.GetArmor().AddEnchantment()
-		//playerInventory.Add(armorItem)
-		//if wasEquipped {playerEquipment.Equip(armorItem)}
 		g.msg(foundation.HiLite("Your %s glows silver for a moment.", armorItem.Name()))
 
 		g.ui.UpdateInventory()
@@ -438,8 +427,6 @@ func playerVorpalizeWeapon(g *GameState, actor *Actor) []foundation.Animation {
 				Name: monsterDef.Name,
 				Action: func() {
 					weaponItem.GetWeapon().Vorpalize(monsterDef.InternalName)
-					//playerInventory.Add(armorItem)
-					//if wasEquipped {playerEquipment.Equip(armorItem)}
 					g.msg(foundation.HiLite("Your %s gives off a flash of intense white light", weaponItem.Name()))
 
 					g.ui.UpdateInventory()
@@ -473,11 +460,7 @@ func playerEnchantWeapon(g *GameState, actor *Actor) []foundation.Animation {
 	onSelected := func(item foundation.ItemForUI) {
 		weaponItem := item.(*InventoryStack).First()
 
-		//wasEquipped := playerEquipment.IsEquipped(armorItem)
-		//playerInventory.Remove(armorItem)
 		weaponItem.GetWeapon().AddEnchantment()
-		//playerInventory.Add(armorItem)
-		//if wasEquipped {playerEquipment.Equip(armorItem)}
 		g.msg(foundation.HiLite("Your %s glows blue for a moment.", weaponItem.Name()))
 
 		g.ui.UpdateInventory()
@@ -568,8 +551,6 @@ func revealMap(g *GameState, user *Actor) []foundation.Animation {
 
 	waveEffect := g.ui.GetAnimRadialReveal(user.Position(), dMap, nil)
 
-	//g.QueueActionAfterAnimation(reveal)
-
 	return []foundation.Animation{waveEffect}
 }
 func holdAllVisibleMonsters(g *GameState, user *Actor) []foundation.Animation {
@@ -586,13 +567,9 @@ func holdAllVisibleMonsters(g *GameState, user *Actor) []foundation.Animation {
 	}
 	var animations []foundation.Animation
 	for _, actor := range affectedMonsters {
-		//originalActorIcon := actor.Icon()
-		// cover up anim
 
 		flightAnim, _ := g.ui.GetAnimProjectile('☼', "White", user.Position(), actor.Position(), nil)
-		//coverAnim := g.ui.GetAnimCover(actor.Position(), originalActorIcon, dist, nil)
 		animations = append(animations, flightAnim)
-		//animations = append(animations, coverAnim)
 	}
 
 	return animations
@@ -611,13 +588,9 @@ func sleepAllVisibleMonsters(g *GameState, user *Actor) []foundation.Animation {
 	}
 	var animations []foundation.Animation
 	for _, actor := range affectedMonsters {
-		//originalActorIcon := actor.Icon()
-		// cover up anim
 
 		flightAnim, _ := g.ui.GetAnimProjectile('Z', "Yellow", user.Position(), actor.Position(), nil)
-		//coverAnim := g.ui.GetAnimCover(actor.Position(), originalActorIcon, dist, nil)
 		animations = append(animations, flightAnim)
-		//animations = append(animations, coverAnim)
 	}
 
 	return animations
@@ -637,88 +610,17 @@ func scareAllVisibleMonsters(g *GameState, user *Actor) []foundation.Animation {
 	}
 	var animations []foundation.Animation
 	for _, actor := range affectedMonsters {
-		//originalActorIcon := actor.Icon()
-		// cover up anim
 
 		flightAnim, _ := g.ui.GetAnimProjectile('☼', "Red", user.Position(), actor.Position(), nil)
-		//coverAnim := g.ui.GetAnimCover(actor.Position(), originalActorIcon, dist, nil)
 		animations = append(animations, flightAnim)
-		//animations = append(animations, coverAnim)
 	}
 
 	return animations
 }
 
-func (g *GameState) removePlayerCanConfuse() {
-	g.Player.GetFlags().Unset(foundation.FlagCanConfuse)
-}
-
 // Adapted from: https://github.com/memmaker/rogue-pc-modern-C/blob/582340fcaef32dd91595721efb2d5db41ff3cb05/src/potions.c#L47
 // and
 // https://github.com/memmaker/rogue-pc-modern-C/blob/582340fcaef32dd91595721efb2d5db41ff3cb05/src/potions.c#L288C15-L288C31
-
-// adapted from: https://github.com/memmaker/rogue-pc-modern-C/blob/582340fcaef32dd91595721efb2d5db41ff3cb05/src/daemons.c#L79
-func (g *GameState) unconfusePlayer() {
-	player := g.Player
-	flags := player.GetFlags()
-	flags.Unset(foundation.FlagConfused)
-	g.msg(foundation.Msg("you feel less confused now"))
-}
-
-func (g *GameState) unseeMonstersPlayer() {
-	player := g.Player
-	flags := player.GetFlags()
-	flags.Unset(foundation.FlagSeeMonsters)
-	g.msg(foundation.Msg("your senses return to normal"))
-}
-
-func (g *GameState) unhastePlayer() {
-	player := g.Player
-	flags := player.GetFlags()
-	flags.Unset(foundation.FlagHaste)
-	g.msg(foundation.Msg("The world around you speeds up"))
-}
-
-func (g *GameState) makeVisiblePlayer() {
-	player := g.Player
-	flags := player.GetFlags()
-	flags.Unset(foundation.FlagInvisible)
-	g.msg(foundation.Msg("You can see your hands again"))
-}
-func (g *GameState) unslowPlayer() {
-	player := g.Player
-	flags := player.GetFlags()
-	flags.Unset(foundation.FlagSlow)
-	g.msg(foundation.Msg("The world around you slows down"))
-}
-
-func (g *GameState) unseeInvisiblePlayer() {
-	player := g.Player
-	flags := player.GetFlags()
-	flags.Unset(foundation.FlagSeeInvisible)
-	g.msg(foundation.Msg("Your sight returns to normal"))
-}
-
-func (g *GameState) unflyPlayer() {
-	player := g.Player
-	flags := player.GetFlags()
-	flags.Unset(foundation.FlagFly)
-	g.msg(foundation.Msg("You feel gravity's pull"))
-}
-
-func (g *GameState) unblindPlayer() {
-	player := g.Player
-	flags := player.GetFlags()
-	flags.Unset(foundation.FlagBlind)
-	g.msg(foundation.Msg("You can see again"))
-}
-
-func (g *GameState) uncancelPlayer() {
-	player := g.Player
-	flags := player.GetFlags()
-	flags.Unset(foundation.FlagCancel)
-	g.msg(foundation.Msg("You feel your powers return"))
-}
 
 // darkness puts out the lights in the user's room (wraith, ur-vile).
 func darkness(g *GameState, user *Actor) {

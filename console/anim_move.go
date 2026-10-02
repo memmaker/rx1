@@ -107,7 +107,7 @@ func (p *MovementAnimation) quickMoveAnimation() map[geometry.Point]foundation.T
 		} else {
 			black := p.getColor("Black")
 			white := p.getColor("White")
-			percent := util.Clamp(0.1, 1.0, float64(i+1)/float64(len(p.quickMovePath)))
+			percent := min(max(float64(i+1)/float64(len(p.quickMovePath)), 0.1), 1.0)
 			lerpColorRGBA := util.LerpColorRGBA(black, white, percent)
 			drawables[pos] = foundation.TextIcon{
 				Rune: ' ',

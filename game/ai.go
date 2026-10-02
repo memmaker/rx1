@@ -15,7 +15,6 @@ func (g *GameState) aiAct(enemy *Actor) {
 	if enemy.HasFlag(foundation.FlagStun) {
 		stunCounter := enemy.GetFlags().Get(foundation.FlagStun)
 		if stunCounter == 1 {
-			//g.msg(foundation.HiLite("%s is stunned", enemy.Name()))
 			enemy.GetFlags().Increment(foundation.FlagStun)
 			return
 		} else {

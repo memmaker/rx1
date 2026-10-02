@@ -48,22 +48,6 @@ func EncumbranceFromString(s string) Encumbrance {
 		return EncumbranceNone
 	}
 }
-func GetEncumbrance(basicLift int, carriedWeight int) Encumbrance {
-	switch {
-	case carriedWeight <= basicLift:
-		return EncumbranceNone
-	case carriedWeight <= basicLift*2:
-		return EncumbranceLight
-	case carriedWeight <= basicLift*3:
-		return EncumbranceMedium
-	case carriedWeight <= basicLift*6:
-		return EncumbranceHeavy
-	case carriedWeight <= basicLift*10:
-		return EncumbranceExtraHeavy
-	default:
-		return EncumbranceOverloaded
-	}
-}
 
 func GetDistanceModifier(dist int) int {
 	switch {

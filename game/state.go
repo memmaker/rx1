@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"encoding/gob"
 	"fmt"
-	"image/color"
 	"log"
 	"math/rand"
 	"os"
@@ -31,8 +30,6 @@ type GameState struct {
 
 	ui foundation.GameUI
 
-	textIcons []foundation.TextIcon
-
 	logBuffer []foundation.HiLiteString
 
 	gridMap       *gridmap.GridMap[*Actor, *Item, *Object]
@@ -54,9 +51,7 @@ type GameState struct {
 	secretLevelVisited               bool
 	inSecretLevel                    bool
 
-	tileStyle         int
-	defaultBackground color.RGBA
-	defaultForeground color.RGBA
+	tileStyle int
 
 	playerDijkstraMap     map[geometry.Point]int
 	showEverything        bool
@@ -68,7 +63,6 @@ type GameState struct {
 
 	playerFoV               *geometry.FOV
 	visionRange             int
-	genericWallIconIndex    foundation.TextIcon
 	playerIcon              rune
 	playerColor             string
 	config                  *foundation.Configuration
@@ -156,44 +150,6 @@ func (g *GameState) QuickShot() {
 
 func (g *GameState) OpenTacticsMenu() {
 	var menuItems []foundation.MenuItem
-	/*
-		menuItems = append(menuItems, foundation.MenuItem{
-			Name:       "Aimed Attack",
-			Action:     nil,
-			CloseMenus: true,
-		})
-		menuItems = append(menuItems, foundation.MenuItem{
-			Name:       "All-Out Attack",
-			Action:     nil,
-			CloseMenus: true,
-		})
-		menuItems = append(menuItems, foundation.MenuItem{
-			Name:       "All-Out Defense",
-			Action:     nil,
-			CloseMenus: true,
-		})
-		menuItems = append(menuItems, foundation.MenuItem{
-			Name:       "Feint",
-			Action:     nil,
-			CloseMenus: true,
-		})
-
-		menuItems = append(menuItems, foundation.MenuItem{
-			Name:       "Toggle Acrobatic Dodge",
-			Action:     nil,
-			CloseMenus: true,
-		})
-		menuItems = append(menuItems, foundation.MenuItem{
-			Name:       "Defend & Retreat",
-			Action:     nil,
-			CloseMenus: true,
-		})
-		menuItems = append(menuItems, foundation.MenuItem{
-			Name:       "Dive for cover",
-			Action:     nil,
-			CloseMenus: true,
-		})
-	*/
 
 	menuItems = append(menuItems, foundation.MenuItem{
 		Name: "Charge Attack",
@@ -227,42 +183,6 @@ func (g *GameState) OpenTacticsMenu() {
 		})
 
 	}
-	g.ui.OpenMenu(menuItems)
-}
-
-func (g *GameState) OpenHitLocationMenu() {
-	var menuItems []foundation.MenuItem
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "Torso (0)",
-		Action:     nil,
-		CloseMenus: true,
-	})
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "Vitals (-3) -> 3x DMG w/ piercing",
-		Action:     nil,
-		CloseMenus: true,
-	})
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "Skull (-7, +2 DR) -> 4x DMG w/ criticals against head",
-		Action:     nil,
-		CloseMenus: true,
-	})
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "Eye (-9) -> Like skull hit without +2DR",
-		Action:     nil,
-		CloseMenus: true,
-	})
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "Legs (-2) -> limb loss at 1/2 MAX HP DMG",
-		Action:     nil,
-		CloseMenus: true,
-	})
-	menuItems = append(menuItems, foundation.MenuItem{
-		Name:       "Whatever location presents itself",
-		Action:     nil,
-		CloseMenus: true,
-	})
-
 	g.ui.OpenMenu(menuItems)
 }
 
@@ -430,7 +350,6 @@ func (g *GameState) init() {
 	for i := 0; i < 2; i++ {
 		g.giveAndTryEquipItem(g.Player, g.NewItemFromName("food_ration"))
 	}
-	//
 	g.giveAndTryEquipItem(g.Player, g.NewItemFromName("short_bow"))
 	g.giveAndTryEquipItem(g.Player, g.NewItemFromName("torch"))
 
@@ -540,7 +459,6 @@ func (g *GameState) GetVisibleEnemies() []foundation.ActorForUI {
 func (g *GameState) UIReady() {
 	g.moveIntoDungeon()
 	// ADD Banner
-	//g.ui.ShowTextFileFullscreen(path.Join("data","banner.txt"), g.moveIntoDungeon)
 }
 
 func (g *GameState) moveIntoDungeon() {
@@ -922,14 +840,6 @@ func (g *GameState) hasPaidWithCharge(user *Actor, item *Item) bool {
 		}
 	}
 	return true
-}
-
-func (g *GameState) defaultStyleIcon(icon rune) foundation.TextIcon {
-	return foundation.TextIcon{
-		Rune: icon,
-		Fg:   g.defaultForeground,
-		Bg:   g.defaultBackground,
-	}
 }
 
 func (g *GameState) NewEnemyFromDef(def MonsterDef) *Actor {
@@ -1354,7 +1264,7 @@ func (g *GameState) unstableStairs() bool {
 	if g.Player.GetInventory().HasItemWithName("amulet_of_yendor") {
 		return false
 	}
-	chance := util.Clamp(0, 0.9, float64(min(10, g.ascensionsWithoutAmulet))/10.0)
+	chance := min(max(float64(min(10, g.ascensionsWithoutAmulet))/10.0, 0), 0.9)
 	return rand.Float64() < chance
 }
 

@@ -1,5 +1,7 @@
 package geometry
 
+import "container/heap"
+
 // code of this file is a modified version of code from
 // https://github.com/anaseto/gruid, which has the following license:
 //
@@ -27,16 +29,6 @@ type Dijkstra interface {
 	Cost(Point, Point) int
 }
 
-// DijkstraMapAt returns the cost associated to a position in the last computed
-// Dijkstra map. It returns maxCost + 1 if the position is out of range.
-func (pr *PathRange) DijkstraMapAt(p Point) int {
-	n := pr.DijkstraNodes.at(pr, p)
-	if n == nil {
-		return pr.DijkstraUnreachable
-	}
-	return n.Cost
-}
-
 // DijkstraMap computes a dijkstra map given a list of source positions and a
 // maximal cost from those sources. It returns a slice with the nodes of the
 // map, in cost increasing order. The resulting slice is cached for efficiency,
@@ -56,20 +48,20 @@ func (pr *PathRange) DijkstraMap(dij Dijkstra, sources []Point, maxCost int) []N
 	defer checkNodesIdx(nm)
 	nqs := pr.DijkstraQueue[:0]
 	nq := &nqs
-	pqInit(nq)
+	heap.Init(nq)
 	for _, f := range sources {
 		if !f.In(pr.Rg) {
 			continue
 		}
 		n := nm.get(pr, f)
 		n.Open = true
-		pqPush(nq, n)
+		heap.Push(nq, n)
 	}
 	for {
 		if nq.Len() == 0 {
 			return pr.DijkstraIterNodes
 		}
-		n := pqPop(nq)
+		n := heap.Pop(nq).(*node)
 		n.Open = false
 		n.Closed = true
 		pr.DijkstraIterNodes = append(pr.DijkstraIterNodes, Node{P: n.P, Cost: n.Cost})
@@ -85,7 +77,7 @@ func (pr *PathRange) DijkstraMap(dij Dijkstra, sources []Point, maxCost int) []N
 			nbNode := nm.get(pr, q)
 			if cost < nbNode.Cost {
 				if nbNode.Open {
-					pqRemove(nq, nbNode.Idx)
+					heap.Remove(nq, nbNode.Idx)
 				}
 				nbNode.Open = false
 				nbNode.Closed = false
@@ -94,7 +86,7 @@ func (pr *PathRange) DijkstraMap(dij Dijkstra, sources []Point, maxCost int) []N
 				nbNode.Cost = cost
 				nbNode.Open = true
 				nbNode.Rank = cost
-				pqPush(nq, nbNode)
+				heap.Push(nq, nbNode)
 			}
 		}
 	}

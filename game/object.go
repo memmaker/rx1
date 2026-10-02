@@ -84,10 +84,6 @@ func (b *Object) IsAlive() bool {
 	return b.isAlive
 }
 
-func (b *Object) SetDrawOnMap(drawOnMap bool) {
-	b.isDrawn = drawOnMap
-}
-
 func (b *Object) IsDrawn() bool {
 	return b.isDrawn && !b.isHidden
 }

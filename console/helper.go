@@ -1,9 +1,10 @@
 package console
 
 import (
+	"rx1/foundation"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/memmaker/go/cview"
-	"rx1/foundation"
 )
 
 type InputCapturer interface {
@@ -67,7 +68,6 @@ func drawBackgroundAndBorderWithTitleForInventory(screen tcell.Screen, x int, y 
 	vertical := runes[1]
 	topLeft := runes[2]
 	topRight := runes[3]
-	//bottomRight := runes[4]
 	bottomLeft := runes[5]
 	fg, _, _ := style.Decompose()
 	// fill the background
@@ -97,75 +97,5 @@ func drawBackgroundAndBorderWithTitleForInventory(screen tcell.Screen, x int, y 
 	// Draw the vertical borders
 	for i := y + 1; i < y+height-1; i++ {
 		cview.Print(screen, []byte(string(vertical)), x, i, width, cview.AlignLeft, fg)
-	}
-}
-
-func drawBackgroundAndBorderWithTitle(screen tcell.Screen, x int, y int, width int, height int, title string, style tcell.Style, runes []rune) {
-	horizontal := runes[0]
-	vertical := runes[1]
-	topLeft := runes[2]
-	topRight := runes[3]
-	bottomRight := runes[4]
-	bottomLeft := runes[5]
-	fg, _, _ := style.Decompose()
-	// fill the background
-	for i := x; i < x+width; i++ {
-		for j := y; j < y+height; j++ {
-			screen.SetContent(i, j, ' ', nil, style)
-		}
-	}
-
-	// Draw the corners
-	cview.Print(screen, []byte(string(topLeft)), x, y, width, cview.AlignLeft, fg)
-	cview.Print(screen, []byte(string(topRight)), x+width-1, y, width, cview.AlignLeft, fg)
-	cview.Print(screen, []byte(string(bottomRight)), x+width-1, y+height-1, width, cview.AlignLeft, fg)
-	cview.Print(screen, []byte(string(bottomLeft)), x, y+height-1, width, cview.AlignLeft, fg)
-
-	// center title
-	startTitleX := x + 1 + (width-1-len(title))/2
-	endTitleX := startTitleX + len(title)
-	// Draw the horizontal borders
-	for i := x + 1; i < x+width-1; i++ {
-		if title != "" && i >= startTitleX && i < endTitleX {
-			cview.Print(screen, []byte(string(title[i-startTitleX])), i, y, width, cview.AlignLeft, fg)
-		} else {
-			cview.Print(screen, []byte(string(horizontal)), i, y, width, cview.AlignLeft, fg)
-		}
-		cview.Print(screen, []byte(string(horizontal)), i, y+height-1, width, cview.AlignLeft, fg)
-	}
-
-	// Draw the vertical borders
-	for i := y + 1; i < y+height-1; i++ {
-		cview.Print(screen, []byte(string(vertical)), x, i, width, cview.AlignLeft, fg)
-		cview.Print(screen, []byte(string(vertical)), x+width-1, i, width, cview.AlignLeft, fg)
-	}
-}
-
-func iterateBorderTiles(x int, y int, width int, height int, runes []rune, setTile func(r rune, x, y int)) {
-	horizontal := runes[0]
-	vertical := runes[1]
-	topLeft := runes[2]
-	topRight := runes[3]
-	bottomRight := runes[4]
-	bottomLeft := runes[5]
-	// fill the background
-
-	// Draw the corners
-	setTile(topLeft, x, y)
-	setTile(topRight, x+width-1, y)
-	setTile(bottomRight, x+width-1, y+height-1)
-	setTile(bottomLeft, x, y+height-1)
-
-	// center title
-	// Draw the horizontal borders
-	for i := x + 1; i < x+width-1; i++ {
-		setTile(horizontal, i, y)
-		setTile(horizontal, i, y+height-1)
-	}
-
-	// Draw the vertical borders
-	for i := y + 1; i < y+height-1; i++ {
-		setTile(vertical, x, i)
-		setTile(vertical, x+width-1, i)
 	}
 }

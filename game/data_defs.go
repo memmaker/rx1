@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"math/rand"
 	"path"
 	"rx1/foundation"
@@ -13,11 +12,6 @@ import (
 type DataDefinitions struct {
 	Items    map[foundation.ItemCategory][]ItemDef
 	Monsters []MonsterDef
-}
-
-func (d DataDefinitions) HasItems(category foundation.ItemCategory) bool {
-	defines, ok := d.Items[category]
-	return ok && len(defines) > 0
 }
 
 func GetDataDefinitions(rootDir string) DataDefinitions {
@@ -134,21 +128,6 @@ func (d DataDefinitions) PickItemForLevel(random *rand.Rand, level int) ItemDef 
 	return items[random.Intn(len(items))]
 }
 
-func (d DataDefinitions) PickMonsterForLevel(random *rand.Rand, level int) MonsterDef {
-	var filteredMonsters []MonsterDef
-
-	for _, monster := range d.Monsters {
-		if monster.DungeonLevel <= level {
-			filteredMonsters = append(filteredMonsters, monster)
-		}
-	}
-
-	if len(filteredMonsters) == 0 {
-		panic(fmt.Sprintf("No monsters found for level %d", level))
-	}
-	return filteredMonsters[random.Intn(len(filteredMonsters))]
-}
-
 func (d DataDefinitions) RandomMonsterDef() MonsterDef {
 	return d.Monsters[rand.Intn(len(d.Monsters))]
 }
@@ -230,25 +209,4 @@ func mapAndFilterItemDefs(defs []ItemDef, keep func(ItemDef) bool, mapper func(I
 		names = append(names, mapper(def))
 	}
 	return names
-}
-
-func getExperienceTable() []int {
-	eLevels := make([]int, 20)
-	eLevels[0] = 10
-	for i := 1; i < len(eLevels); i++ {
-		eLevels[i] = eLevels[i-1] << 1
-	}
-	return eLevels
-}
-
-func getLevelForExperience(experience int) int {
-	eLevels := getExperienceTable()
-	var i int
-	for i = 0; eLevels[i] != 0; i++ {
-		if eLevels[i] > experience {
-			break
-		}
-		i++
-	}
-	return i
 }

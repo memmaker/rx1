@@ -19,7 +19,6 @@ package geometry
 
 import (
 	"fmt"
-	"math/rand"
 )
 
 // Rect represents a rectangle in a grid that contains all the positions P
@@ -62,39 +61,6 @@ func (rg Rect) Shift(x0, y0, x1, y1 int) Rect {
 	return rg
 }
 
-// Line reduces the range to relative line y, or an empty range if out of
-// bounds.
-func (rg Rect) Line(y int) Rect {
-	if rg.Min.Shift(0, y).In(rg) {
-		rg.Min.Y = rg.Min.Y + y
-		rg.Max.Y = rg.Min.Y + 1
-	} else {
-		rg = Rect{}
-	}
-	return rg
-}
-
-// Lines reduces the range to relative lines between y0 (included) and y1
-// (excluded), or an empty range if out of bounds.
-func (rg Rect) Lines(y0, y1 int) Rect {
-	nrg := rg
-	nrg.Min.Y = rg.Min.Y + y0
-	nrg.Max.Y = rg.Min.Y + y1
-	return rg.Intersect(nrg)
-}
-
-// Column reduces the range to relative column x, or an empty range if out of
-// bounds.
-func (rg Rect) Column(x int) Rect {
-	if rg.Min.Shift(x, 0).In(rg) {
-		rg.Min.X = rg.Min.X + x
-		rg.Max.X = rg.Min.X + 1
-	} else {
-		rg = Rect{}
-	}
-	return rg
-}
-
 // Columns reduces the range to relative columns between x0 (included) and x1
 // (excluded), or an empty range if out of bounds.
 func (rg Rect) Columns(x0, x1 int) Rect {
@@ -107,12 +73,6 @@ func (rg Rect) Columns(x0, x1 int) Rect {
 // Empty reports whether the range contains no positions.
 func (rg Rect) Empty() bool {
 	return rg.Min.X >= rg.Max.X || rg.Min.Y >= rg.Max.Y
-}
-
-// Eq reports whether the two ranges containt the same set of points. All empty
-// ranges are considered equal.
-func (rg Rect) Eq(r Rect) bool {
-	return rg == r || rg.Empty() && r.Empty()
 }
 
 // Sub returns a range of same size translated by -p.
@@ -150,80 +110,13 @@ func (rg Rect) Intersect(r Rect) Rect {
 	return rg
 }
 
-// Union returns the smallest range containing both rg and r.
-func (rg Rect) Union(r Rect) Rect {
-	if rg.Max.X < r.Max.X {
-		rg.Max.X = r.Max.X
-	}
-	if rg.Max.Y < r.Max.Y {
-		rg.Max.Y = r.Max.Y
-	}
-	if rg.Min.X > r.Min.X {
-		rg.Min.X = r.Min.X
-	}
-	if rg.Min.Y > r.Min.Y {
-		rg.Min.Y = r.Min.Y
-	}
-	return rg
-}
-
-// Overlaps reports whether the two ranges have a non-zero intersection.
-func (rg Rect) Overlaps(r Rect) bool {
-	return !rg.Intersect(r).Empty()
-}
-
 // In reports whether range rg is completely contained in range r.
 func (rg Rect) In(r Rect) bool {
 	return rg.Intersect(r) == rg
 }
 
-// Iter calls a given function for all the positions of the range.
-func (rg Rect) Iter(fn func(Point)) {
-	for y := rg.Min.Y; y < rg.Max.Y; y++ {
-		for x := rg.Min.X; x < rg.Max.X; x++ {
-			p := Point{X: x, Y: y}
-			fn(p)
-		}
-	}
-}
-
-func (rg Rect) Mid() Point {
-	return Point{X: (rg.Min.X + rg.Max.X) / 2, Y: (rg.Min.Y + rg.Max.Y) / 2}
-}
-
 func (rg Rect) Contains(position Point) bool {
 	return position.X >= rg.Min.X && position.X < rg.Max.X && position.Y >= rg.Min.Y && position.Y < rg.Max.Y
-}
-
-func (rg Rect) IsOnEdge(position Point) bool {
-	return position.X == rg.Min.X || position.X == rg.Max.X-1 || position.Y == rg.Min.Y || position.Y == rg.Max.Y-1
-}
-
-func (rg Rect) ToHalfWidth() Rect {
-	// the new rect will start at the 2*x position of the old rect
-	// and it will have double the width
-	newWidth := rg.Size().X * 2
-	newXStart := rg.Min.X * 2
-
-	return Rect{
-		Min: Point{X: newXStart, Y: rg.Min.Y},
-		Max: Point{X: newXStart + newWidth, Y: rg.Max.Y},
-	}
-}
-
-func (rg Rect) GetRandomPoint(source *rand.Rand) Point {
-	return Point{
-		X: rg.Min.X + source.Intn(rg.Max.X-rg.Min.X),
-		Y: rg.Min.Y + source.Intn(rg.Max.Y-rg.Min.Y),
-	}
-}
-
-func (rg Rect) BisectAtColumn(col int) (Rect, Rect) {
-	return rg.Columns(0, col), rg.Columns(col, rg.Size().X)
-}
-
-func (rg Rect) BisectAtLine(line int) (Rect, Rect) {
-	return rg.Lines(0, line), rg.Lines(line, rg.Size().Y)
 }
 
 func (rg Rect) Center() Point {
@@ -231,32 +124,6 @@ func (rg Rect) Center() Point {
 		X: rg.Min.X + rg.Size().X/2,
 		Y: rg.Min.Y + rg.Size().Y/2,
 	}
-}
-
-func (rg Rect) GetRandomPointOnEdge(random *rand.Rand, edge CompassDirection) Point {
-	switch edge {
-	case North:
-		return Point{
-			X: rg.Min.X + random.Intn(rg.Size().X),
-			Y: rg.Min.Y,
-		}
-	case South:
-		return Point{
-			X: rg.Min.X + random.Intn(rg.Size().X),
-			Y: rg.Max.Y - 1,
-		}
-	case East:
-		return Point{
-			X: rg.Max.X - 1,
-			Y: rg.Min.Y + random.Intn(rg.Size().Y),
-		}
-	case West:
-		return Point{
-			X: rg.Min.X,
-			Y: rg.Min.Y + random.Intn(rg.Size().Y),
-		}
-	}
-	return Point{}
 }
 
 func (rg Rect) IsOnCorner(position Point) bool {

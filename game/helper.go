@@ -5,14 +5,6 @@ import (
 	"rx1/foundation"
 )
 
-func itemsForUI(stack []*Item) []foundation.ItemForUI {
-	displayStack := make([]foundation.ItemForUI, len(stack))
-	for index, item := range stack {
-		displayStack[index] = item
-	}
-	return displayStack
-}
-
 func itemStacksForUI(stack []*InventoryStack) []foundation.ItemForUI {
 	displayStack := make([]foundation.ItemForUI, len(stack))
 	for index, item := range stack {
@@ -36,30 +28,4 @@ func spread(nm int) int {
 
 func confuseDuration() int {
 	return spread(20)
-}
-
-func strengthDamageBonus(str int) int {
-	add := 6
-	if str < 8 {
-		return str - 7
-	}
-	if str < 31 {
-		add--
-	}
-	if str < 22 {
-		add--
-	}
-	if str < 20 {
-		add--
-	}
-	if str < 18 {
-		add--
-	}
-	if str < 17 {
-		add--
-	}
-	if str < 16 {
-		add--
-	}
-	return add
 }

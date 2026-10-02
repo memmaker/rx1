@@ -131,7 +131,6 @@ func Raycast2D(startX, startY, directionX, directionY float64, shouldStopRay fun
 	}
 
 	wallX -= math.Floor(wallX) // Uns interessieren nur die Nachkommastellen
-	//textureX := (int)(wallX * mWallTextures[textureIndex].Width);
 
 	var hitSide CardinalDirection
 	if eastWestSide {

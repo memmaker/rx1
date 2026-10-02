@@ -27,18 +27,6 @@ func (s Stat) IsDerived() bool {
 		s == MaximumLoad
 }
 
-func (s Stat) CanBeBought() bool {
-	return s == Strength ||
-		s == Dexterity ||
-		s == Intelligence ||
-		s == Health ||
-		s == Will ||
-		s == Perception ||
-		s == BasicSpeed ||
-		s == FatiguePoints ||
-		s == HitPoints
-}
-
 func (s Stat) AdjustmentPerLevel() int {
 	return 1
 }

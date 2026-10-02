@@ -2,14 +2,15 @@ package console
 
 import (
 	"fmt"
-	"github.com/gdamore/tcell/v2"
-	"github.com/memmaker/go/cview"
 	"image/color"
 	"math/rand"
 	"rx1/foundation"
 	"rx1/recfile"
 	"rx1/util"
 	"strings"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/memmaker/go/cview"
 )
 
 type ColorTheme map[string]color.RGBA
@@ -17,14 +18,6 @@ type ColorTheme map[string]color.RGBA
 func (c ColorTheme) GetByName(name string) color.RGBA {
 	name = strings.ToLower(name)
 	return c[name]
-}
-func (c ColorTheme) GetAsFgColorCode(name string) string {
-	name = strings.ToLower(name)
-	return RGBAToFgColorCode(c[name])
-}
-func (c ColorTheme) GetAsBgColorCode(name string) string {
-	name = strings.ToLower(name)
-	return RGBAToBgColorCode(c[name])
 }
 func RGBAToFgColorCode(color color.RGBA) string {
 	hexFormat := fmt.Sprintf("#%02x%02x%02x", color.R, color.G, color.B)
@@ -36,18 +29,12 @@ func RGBAToColorCodes(fg, bg color.RGBA) string {
 
 	return fmt.Sprintf("[%s:%s]", fgHex, bgHex)
 }
-func RGBAToBgColorCode(color color.RGBA) string {
-	hexFormat := fmt.Sprintf("#%02x%02x%02x", color.R, color.G, color.B)
-	return fmt.Sprintf("[:%s]", hexFormat)
-}
 
 type Theme struct {
-	colorDefs  ColorTheme
-	playerIcon foundation.TextIcon
+	colorDefs ColorTheme
 
 	uiColors map[UIColor]color.RGBA
 
-	uiStyles            map[UIStyle]tcell.Style
 	inventoryItemColors map[foundation.ItemCategory]color.RGBA
 
 	uiBorder map[BorderCases]rune

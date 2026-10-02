@@ -104,7 +104,7 @@ func (c *MegaDungeonGenerator) addRooms(m *DungeonMap) {
 		x := makeOdd(c.randomSource, c.randomSource.Intn(max(2, m.width-roomWidth-1))+1)
 		y := makeOdd(c.randomSource, c.randomSource.Intn(max(2, m.height-roomHeight-1))+1)
 
-		room := NewDungeonRoomFromRect(c.randomSource, geometry.NewRect(x, y, x+roomWidth, y+roomHeight))
+		room := NewDungeonRoomFromRect(geometry.NewRect(x, y, x+roomWidth, y+roomHeight))
 		if !m.CanPlaceRoomRestrictive(room) {
 			continue
 		}

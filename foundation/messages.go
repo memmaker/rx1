@@ -14,24 +14,6 @@ func (h HiLiteString) IsEmpty() bool {
 	return h.FormatString == "" && len(h.Value) == 0
 }
 
-func (h HiLiteString) IsHighlighted() bool {
-	return h.FormatString != "" && len(h.Value) != 0
-}
-
-func (h HiLiteString) ToPlainText() string {
-	if h.IsEmpty() {
-		return ""
-	}
-	if h.FormatString == "" {
-		return h.Value[0]
-	}
-	anyValues := make([]interface{}, len(h.Value))
-	for i, v := range h.Value {
-		anyValues[i] = v
-	}
-	return h.AppendRepetitions(fmt.Sprintf(h.FormatString, anyValues...))
-}
-
 func (h HiLiteString) AppendRepetitions(messageString string) string {
 	if h.Repetitions == 0 {
 		return messageString

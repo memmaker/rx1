@@ -34,7 +34,7 @@ func abs(i int) int {
 
 // LightFalloff is the brightness at distance d of a light with radius r
 func LightFalloff(d, r float64) float64 {
-	return util.Clamp(0.16, 1.0, 1-util.EaseInExpo(d/(r+1)))
+	return min(max(1-util.EaseInExpo(d/(r+1)), 0.16), 1.0)
 }
 
 // LightFlicker is the brightness factor of tile (x,y) at time nowMs; the tile offset makes the edge shimmer.
