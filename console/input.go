@@ -199,6 +199,7 @@ func (u *UI) showKeyBindings() {
 	leftColCommands := []string{
 		"help",
 		"show_key_bindings",
+		"commands",
 		"north",
 		"south",
 		"west",
@@ -218,12 +219,10 @@ func (u *UI) showKeyBindings() {
 		"run_direction",
 		"descend",
 		"ascend",
+		"auto_explore",
 		"wait",
 		"inventory",
 		"character",
-		"tactics",
-		"themes",
-		"log",
 	}
 
 	rightColCommands := []string{
@@ -243,9 +242,14 @@ func (u *UI) showKeyBindings() {
 		"overlay_items",
 		"monsters",
 		"items",
+		"log",
+		"tactics",
+		"themes",
 		"gamma_up",
 		"gamma_down",
 		"toggle_cursor",
+		"save",
+		"load",
 		"wizard",
 		"quit",
 	}
