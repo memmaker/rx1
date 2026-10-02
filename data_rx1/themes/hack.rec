@@ -97,14 +97,16 @@ TileCorridorWallCornerBottomRight: #
 TileCorridorWallCornerBottomRight_Colors: Black | Black
 TileCorridorWallCornerBottomLeft: #
 TileCorridorWallCornerBottomLeft_Colors: Black | Black
-TileWallTJunctionTop: |
+TileWallTJunctionTop: ┬
 TileWallTJunctionTop_Colors: LightGray | Black
-TileWallTJunctionRight: -
+TileWallTJunctionRight: ┤
 TileWallTJunctionRight_Colors: LightGray | Black
-TileWallTJunctionBottom: |
+TileWallTJunctionBottom: ┴
 TileWallTJunctionBottom_Colors: LightGray | Black
-TileWallTJunctionLeft: -
+TileWallTJunctionLeft: ├
 TileWallTJunctionLeft_Colors: LightGray | Black
+TileWallCross: ┼
+TileWallCross_Colors: LightGray | Black
 TileDoorOpen: ■
 TileDoorOpen_Colors: LightRed | Black
 TileDoorClosed: ■

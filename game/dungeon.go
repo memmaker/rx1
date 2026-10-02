@@ -282,6 +282,29 @@ func (g *GameState) hideSecretStairs(random *rand.Rand, newMap *gridmap.GridMap[
 	}
 }
 
+// wallByArms is the wall tile for a place in a room's wall, by the directions the wall goes on from there.
+// Rooms of the mega dungeon share walls, so a place can be the corner of one room and the side of another.
+const (
+	armNorth = 1 << iota
+	armEast
+	armSouth
+	armWest
+)
+
+var wallByArms = [16]foundation.TileType{
+	armNorth | armSouth:                     foundation.TileRoomWallVertical,
+	armEast | armWest:                       foundation.TileRoomWallHorizontal,
+	armSouth | armEast:                      foundation.TileRoomWallCornerTopLeft,
+	armSouth | armWest:                      foundation.TileRoomWallCornerTopRight,
+	armNorth | armEast:                      foundation.TileRoomWallCornerBottomLeft,
+	armNorth | armWest:                      foundation.TileRoomWallCornerBottomRight,
+	armEast | armSouth | armWest:            foundation.TileWallTJunctionTop,
+	armNorth | armEast | armWest:            foundation.TileWallTJunctionBottom,
+	armNorth | armEast | armSouth:           foundation.TileWallTJunctionLeft,
+	armNorth | armSouth | armWest:           foundation.TileWallTJunctionRight,
+	armNorth | armEast | armSouth | armWest: foundation.TileWallCross,
+}
+
 func (g *GameState) decorateMapWithTiles(newMap *gridmap.GridMap[*Actor, *Item, *Object], dungeon *dungen.DungeonMap, stairs StairsInLevel) (geometry.Point, geometry.Point) {
 	mapWidth, mapHeight := dungeon.GetSize()
 
@@ -297,46 +320,6 @@ func (g *GameState) decorateMapWithTiles(newMap *gridmap.GridMap[*Actor, *Item, 
 		DefinedDescription: "corridor",
 		IsWalkable:         true,
 		IsTransparent:      true,
-	}
-
-	horizWallTile := gridmap.Tile{
-		Feature:            foundation.TileRoomWallHorizontal,
-		DefinedDescription: "wall",
-		IsWalkable:         false,
-		IsTransparent:      false,
-	}
-
-	vertWallTile := gridmap.Tile{
-		Feature:            foundation.TileRoomWallVertical,
-		DefinedDescription: "wall",
-		IsWalkable:         false,
-		IsTransparent:      false,
-	}
-
-	tlWallTile := gridmap.Tile{
-		Feature:            foundation.TileRoomWallCornerTopLeft,
-		DefinedDescription: "wall",
-		IsWalkable:         false,
-		IsTransparent:      false,
-	}
-
-	trWallTile := gridmap.Tile{
-		Feature:            foundation.TileRoomWallCornerTopRight,
-		DefinedDescription: "wall",
-		IsWalkable:         false,
-		IsTransparent:      false,
-	}
-	blWallTile := gridmap.Tile{
-		Feature:            foundation.TileRoomWallCornerBottomLeft,
-		DefinedDescription: "wall",
-		IsWalkable:         false,
-		IsTransparent:      false,
-	}
-	brWallTile := gridmap.Tile{
-		Feature:            foundation.TileRoomWallCornerBottomRight,
-		DefinedDescription: "wall",
-		IsWalkable:         false,
-		IsTransparent:      false,
 	}
 
 	fakeDoorTile := gridmap.Tile{
@@ -390,38 +373,30 @@ func (g *GameState) decorateMapWithTiles(newMap *gridmap.GridMap[*Actor, *Item, 
 	}
 
 	// decorate walls & light up the rooms
+	wallArms := make(map[geometry.Point]int) // per wall position: where the walls of all its rooms go on, see wallByArms
 	for _, room := range dungeon.AllRooms() {
 		for _, pos := range room.GetWalls() {
-			eastN := pos.Add(geometry.East.ToPoint())
-			westN := pos.Add(geometry.West.ToPoint())
-			if room.FloorContains(eastN) || room.FloorContains(westN) {
-				newMap.SetTile(pos, vertWallTile)
-				continue
-			}
-			northN := pos.Add(geometry.North.ToPoint())
-			southN := pos.Add(geometry.South.ToPoint())
-			if room.FloorContains(northN) || room.FloorContains(southN) {
-				newMap.SetTile(pos, horizWallTile)
-				continue
-			}
-			// corners
-			if room.IsTopLeftWallCorner(pos) {
-				newMap.SetTile(pos, tlWallTile)
-				continue
-			}
-			if room.IsTopRightWallCorner(pos) {
-				newMap.SetTile(pos, trWallTile)
-				continue
-			}
-			if room.IsBottomLeftWallCorner(pos) {
-				newMap.SetTile(pos, blWallTile)
-				continue
-			}
-			if room.IsBottomRightWallCorner(pos) {
-				newMap.SetTile(pos, brWallTile)
-				continue
+			floorAt := func(dx, dy int) bool { return room.FloorContains(pos.Add(geometry.Point{X: dx, Y: dy})) }
+			switch {
+			case floorAt(1, 0) || floorAt(-1, 0):
+				wallArms[pos] |= armNorth | armSouth
+			case floorAt(0, 1) || floorAt(0, -1):
+				wallArms[pos] |= armEast | armWest
+			case floorAt(1, 1): // the corners
+				wallArms[pos] |= armSouth | armEast
+			case floorAt(-1, 1):
+				wallArms[pos] |= armSouth | armWest
+			case floorAt(1, -1):
+				wallArms[pos] |= armNorth | armEast
+			case floorAt(-1, -1):
+				wallArms[pos] |= armNorth | armWest
 			}
 		}
+	}
+	for pos, arms := range wallArms {
+		newMap.SetTile(pos, gridmap.Tile{Feature: wallByArms[arms], DefinedDescription: "wall"})
+	}
+	for _, room := range dungeon.AllRooms() {
 		if room.IsLit() {
 			for _, pos := range room.GetAbsoluteRoomTiles() {
 				newMap.SetLit(pos, true)
