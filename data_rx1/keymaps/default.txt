@@ -25,7 +25,6 @@ v -> throw
 e -> use
 E -> consume
 q -> equip
-f -> launch
 g -> aim
 h -> quick_shot
 , -> pickup

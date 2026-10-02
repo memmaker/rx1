@@ -14,7 +14,6 @@ numpad 1-9     move in all eight directions (5: run in a direction)
 Fighting
 ========
 bump           walk into a monster to attack it
-f              launch (fire your missile weapon)
 g              aim at a target
 h              quick shot at the nearest enemy
 v              throw an item

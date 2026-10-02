@@ -70,7 +70,6 @@ type GameForUI interface {
 	ChooseItemForUse()
 	ChooseItemForConsume()
 	ChooseItemForEquip()
-	ChooseItemForMissileLaunch()
 
 	ChooseItemToTakeOff()
 

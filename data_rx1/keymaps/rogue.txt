@@ -38,7 +38,6 @@ T -> take_off
 r -> read
 z -> use
 
-x -> launch
 c -> aim
 v -> quick_shot
 
@@ -70,5 +69,4 @@ F2 -> help
 
 F3 -> gamma_down
 F4 -> gamma_up
-F5 -> toggle_cursor
 F10 -> wizard
