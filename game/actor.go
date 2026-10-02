@@ -261,10 +261,16 @@ func (a *Actor) AfterTurn() {
 }
 
 func (a *Actor) GetListInfo() string {
-	return fmt.Sprintf("%s HP: %d/%d Dmg: %s AC: %d", a.name, a.stats.HP, a.stats.MaxHP, a.stats.Dmg, a.GetArmorClass())
+	return fmt.Sprintf("%s HP: %d/%d Dmg: %s Armor: %d", a.name, a.stats.HP, a.stats.MaxHP, a.stats.Dmg, a.GetArmor())
+}
+
+// GetArmor is the armor value that is shown, higher is better: how far the armor class is below the unarmored 10.
+func (a *Actor) GetArmor() int {
+	return 10 - a.GetArmorClass()
 }
 
 // GetArmorClass is Rogue's AC, lower is better. Worn armor and rings of protection lower it.
+// It is only used for the to-hit roll, never shown.
 func (a *Actor) GetArmorClass() int {
 	ac := a.stats.Arm
 	for _, armorPiece := range a.GetEquipment().GetArmor() {
@@ -355,7 +361,7 @@ func (a *Actor) GetDetailInfo() []string {
 		fmt.Sprintf("Exp:   %d", s.Exp),
 		fmt.Sprintf("HP:    %d/%d", s.HP, s.MaxHP),
 		fmt.Sprintf("Str:   %d/%d", a.GetStrength(), s.MaxStr),
-		fmt.Sprintf("AC:    %d", a.GetArmorClass()),
+		fmt.Sprintf("Armor: %d", a.GetArmor()),
 	}
 	if s.MaxFP > 0 {
 		result = append(result, fmt.Sprintf("FP:    %d/%d", s.FP, s.MaxFP))

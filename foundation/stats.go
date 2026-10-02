@@ -11,7 +11,7 @@ const (
 	HudFatiguePoints    HudValue = "FatiguePoints"
 	HudFatiguePointsMax HudValue = "FatiguePointsMax"
 	HudStrength         HudValue = "Strength"
-	HudArmorClass       HudValue = "AC"
+	HudArmor            HudValue = "Armor"
 	HudDungeonLevel     HudValue = "Dungeon Level"
 	HudTurnsTaken       HudValue = "Turns Taken"
 )

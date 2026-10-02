@@ -1610,8 +1610,8 @@ func (u *UI) getSingleLineStatus(statusValues map[foundation.HudValue]int, flags
 	str := statusValues[foundation.HudStrength]
 	strStr := u.colorIfDiff(fmt.Sprintf("Str: %-2d", str), foundation.HudStrength, str)
 
-	ac := statusValues[foundation.HudArmorClass]
-	armorStr := u.colorIfDiff(fmt.Sprintf("AC: %-2d", ac), foundation.HudArmorClass, ac)
+	armor := statusValues[foundation.HudArmor]
+	armorStr := u.colorIfDiff(fmt.Sprintf("Armor: %-2d", armor), foundation.HudArmor, armor)
 
 	exp := statusValues[foundation.HudExperience]
 	expStr := u.colorIfDiff(fmt.Sprintf("Exp: %-5d", exp), foundation.HudExperience, exp)
