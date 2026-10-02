@@ -17,7 +17,13 @@ func TestRogueRules(t *testing.T) {
 	if !hit || dmg != 2+0+1 || calls != 3 {
 		t.Fatalf("roll_em off: %d %v %d", dmg, hit, calls)
 	}
-	if StrPlus(16) != 0 || StrPlus(18) != 1 || AddDam(16) != 1 || AddDam(3) != -1 {
+	if StrPlus(16) != 0 || StrPlus(18) != 1 || AddDam(16) != 1 || AddDam(3) != -4 {
 		t.Fatal("strength tables off")
+	}
+	if StrPlus(3) != -4 || StrPlus(21) != 2 || StrPlus(31) != 3 || AddDam(18) != 2 || AddDam(22) != 5 || AddDam(31) != 6 || AddDam(40) != 6 {
+		t.Fatal("5.4 strength tables off")
+	}
+	if LevelForExp(1299) != 8 || LevelForExp(1300) != 9 || LevelForExp(8000000) != 21 {
+		t.Fatal("5.4 experience levels off")
 	}
 }

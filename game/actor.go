@@ -17,6 +17,7 @@ type Stats struct {
 	Arm         int
 	Dmg         string // "1d4", or one roll per attack "1d8/1d8/3d10"
 	FP, MaxFP   int    // fatigue, spent on tactics
+	FoodLeft    int    // Rogue's food_left, only the player digests
 }
 
 type Actor struct {
@@ -50,7 +51,8 @@ func (a *Actor) Color() string {
 // NewPlayer starts like Rogue: Str 16, level 1, 12 hp, AC 10, 1d4 bare-handed.
 func NewPlayer(name string, playerIcon rune, playerColor string) *Actor {
 	player := NewActor(name, playerIcon, playerColor)
-	player.stats = Stats{Str: 16, MaxStr: 16, Lvl: 1, HP: 12, MaxHP: 12, Arm: 10, Dmg: "1d4", FP: 3, MaxFP: 3}
+	player.stats = Stats{Str: 16, MaxStr: 16, Lvl: 1, HP: 12, MaxHP: 12, Arm: 10, Dmg: "1d4", FP: 3, MaxFP: 3,
+		FoodLeft: rpg.HungerTime}
 	return player
 }
 
@@ -213,12 +215,13 @@ func (a *Actor) NeedsHealing() bool {
 }
 
 func (a *Actor) IsHungry() bool {
-	return a.statusFlags.Get(foundation.FlagHunger) > 0
+	return a.stats.FoodLeft < rpg.HungryAt
 }
 
-func (a *Actor) Satiate() {
-	a.statusFlags.Unset(foundation.FlagHunger)
-	a.statusFlags.Unset(foundation.FlagTurnsSinceEating)
+// Eat is Rogue's eat(): a ration is worth 1100-1499 turns, up to a full stomach.
+func (a *Actor) Eat() {
+	a.stats.FoodLeft = min(rpg.StomachSize, max(0, a.stats.FoodLeft)+rpg.HungerTime-rpg.RationSpread/2+rand.Intn(rpg.RationSpread))
+	a.changed()
 }
 
 func (a *Actor) SetSleeping() {
@@ -290,6 +293,20 @@ func (a *Actor) TakeDamage(amount int) {
 
 func (a *Actor) Heal(amount int) {
 	a.stats.HP = min(a.stats.MaxHP, a.stats.HP+amount)
+	a.changed()
+}
+
+// HealPast is Rogue's healing potion: hit points past the maximum raise it by one
+// (extra healing: by two when well past it).
+func (a *Actor) HealPast(amount int, extra bool) {
+	a.stats.HP += amount
+	if a.stats.HP > a.stats.MaxHP {
+		if extra && a.stats.HP > a.stats.MaxHP+a.stats.Lvl+1 {
+			a.stats.MaxHP++
+		}
+		a.stats.MaxHP++
+		a.stats.HP = a.stats.MaxHP
+	}
 	a.changed()
 }
 
@@ -402,7 +419,7 @@ func (a *Actor) GetStrength() int {
 
 // ChangeStrength is Rogue's chg_str: max strength only ever goes up.
 func (a *Actor) ChangeStrength(amount int) {
-	a.stats.Str = min(18, max(3, a.stats.Str+amount))
+	a.stats.Str = min(rpg.MaxStrength, max(3, a.stats.Str+amount))
 	a.stats.MaxStr = max(a.stats.MaxStr, a.stats.Str)
 	a.changed()
 }

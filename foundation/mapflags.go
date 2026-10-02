@@ -61,6 +61,16 @@ func (f ActorFlag) String() string { // Nice strings for display
 		return "Hallucinating"
 	case FlagSlowDigestion:
 		return "Slow Digestion"
+	case FlagHungry:
+		return "Hungry"
+	case FlagWeak:
+		return "Weak"
+	case FlagFaint:
+		return "Faint"
+	case FlagStealth:
+		return "Stealth"
+	case FlagSearching:
+		return "Searching"
 	}
 	return "Unknown"
 }
@@ -121,6 +131,16 @@ func (f ActorFlag) StringShort() string { // short abbreviated strings (2-3 lett
 		return "Hlc"
 	case FlagSlowDigestion:
 		return "SDg"
+	case FlagHungry:
+		return "Hgy"
+	case FlagWeak:
+		return "Wk"
+	case FlagFaint:
+		return "Fnt"
+	case FlagStealth:
+		return "Sth"
+	case FlagSearching:
+		return "Srh"
 	case FlagPoisoned:
 		return "Psn"
 	}
@@ -171,6 +191,11 @@ const (
 	FlagTunnel
 	FlagGazed
 	FlagPoisoned
+	FlagHungry    // shown for the player's food_left, never stored
+	FlagWeak      // same
+	FlagFaint     // counts the turns the player is fainted; shown for starvation too
+	FlagStealth   // ring of stealth
+	FlagSearching // ring of searching
 )
 
 func AllFlagsExceptGoldOrdered() []ActorFlag {
@@ -202,6 +227,11 @@ func AllFlagsExceptGoldOrdered() []ActorFlag {
 		FlagHallucinating,
 		FlagSlowDigestion,
 		FlagPoisoned,
+		FlagHungry,
+		FlagWeak,
+		FlagFaint,
+		FlagStealth,
+		FlagSearching,
 	}
 }
 
@@ -278,6 +308,10 @@ func ActorFlagFromString(flag string) ActorFlag {
 		return FlagTunnel
 	case "poisoned":
 		return FlagPoisoned
+	case "stealth":
+		return FlagStealth
+	case "searching":
+		return FlagSearching
 	}
 	panic("Invalid actor flag: " + flag)
 

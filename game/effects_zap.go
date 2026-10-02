@@ -29,6 +29,12 @@ func GetAllZapEffects() map[string]func(g *GameState, zapper *Actor, aimPos geom
 		"magic_arrow":          magicArrow,
 		"force_descend_target": forceDescendTarget,
 		"hold_target":          holdTarget,
+		"trap_arrow":           trapArrow,
+		"trap_dart":            trapDart,
+		"trap_bear":            trapBear,
+		"trap_sleep":           trapSleep,
+		"trap_rust":            trapRust,
+		"trap_mystery":         trapMystery,
 	}
 	return zapEffects
 }

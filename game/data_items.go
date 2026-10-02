@@ -53,6 +53,7 @@ type ItemDef struct {
 	Name         string
 	InternalName string
 	Chance       int // relative weight within its category (Rogue's o_prob)
+	Worth        int // Rogue's oi_worth, for the score
 
 	Slot foundation.EquipSlot
 
@@ -109,6 +110,8 @@ func NewItemDefFromRecord(record recfile.Record) ItemDef {
 			itemDef.InternalName = field.Value
 		case "chance":
 			itemDef.Chance = field.AsInt()
+		case "worth":
+			itemDef.Worth = field.AsInt()
 		case "category":
 			itemDef.Category = foundation.ItemCategoryFromString(field.Value)
 		case "slot":

@@ -1,8 +1,7 @@
 
 # Missing
 # - Poison (drain strength)
-# - Gain Strength
-# - Restore Strength
+# - Restore Strength (part of gain strength)
 
 name: potion of confusion
 internal_name: potion_confusion
@@ -10,7 +9,7 @@ use_effect: confuse
 category: potions
 charges: 1
 chance: 7
-worth: 140
+worth: 5
 
 name: potion of monster detection
 internal_name: potion_monster_detection
@@ -18,7 +17,7 @@ use_effect: detect_monsters
 category: potions
 charges: 1
 chance: 6
-worth: 140
+worth: 130
 
 name: potion of magic detection
 internal_name: potion_magic_detection
@@ -26,7 +25,7 @@ use_effect: detect_magic
 category: potions
 charges: 1
 chance: 6
-worth: 140
+worth: 105
 
 name: potion of haste
 internal_name: potion_haste
@@ -34,7 +33,7 @@ use_effect: haste
 category: potions
 charges: 1
 chance: 5
-worth: 140
+worth: 190
 always_id_on_use: true
 
 name: potion of blindness
@@ -43,7 +42,7 @@ use_effect: blindness
 category: potions
 charges: 1
 chance: 5
-worth: 140
+worth: 5
 always_id_on_use: true
 
 name: potion of levitation
@@ -52,7 +51,7 @@ use_effect: levitation
 category: potions
 charges: 1
 chance: 6
-worth: 140
+worth: 75
 
 name: potion of see invisible
 internal_name: potion_see_invisible
@@ -60,7 +59,7 @@ use_effect: see_invisible
 category: potions
 charges: 1
 chance: 3
-worth: 140
+worth: 100
 
 name: potion of healing
 internal_name: potion_healing
@@ -68,7 +67,7 @@ use_effect: heal
 category: potions
 charges: 1
 chance: 13
-worth: 140
+worth: 130
 always_id_on_use: true
 
 name: potion of extra healing
@@ -77,7 +76,7 @@ use_effect: extra_heal
 category: potions
 charges: 1
 chance: 5
-worth: 140
+worth: 200
 always_id_on_use: true
 
 name: potion of raise level
@@ -86,7 +85,7 @@ use_effect: raise_level
 category: potions
 charges: 1
 chance: 2
-worth: 140
+worth: 250
 always_id_on_use: true
 
 name: potion of hallucination
@@ -95,9 +94,17 @@ use_effect: hallucination
 category: potions
 charges: 1
 chance: 8
-worth: 140
+worth: 5
 always_id_on_use: true
 
+name: potion of gain strength
+internal_name: potion_gain_strength
+use_effect: gain_strength
+category: potions
+charges: 1
+chance: 13
+worth: 150
+always_id_on_use: true
 
 # never found in the dungeon: sold by the general store
 name: potion of life

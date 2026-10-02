@@ -8,7 +8,7 @@ name: wand of magic missile
 internal_name: wand_magic_missile
 zap_effect: magic_missile
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 10
 worth: 140
 always_id_on_use: true
@@ -17,7 +17,7 @@ name: wand of light
 internal_name: wand_light
 use_effect: light
 category: wands
-charges: 3d10
+charges: 10-19
 chance: 12
 worth: 100
 always_id_on_use: true
@@ -26,7 +26,7 @@ name: wand of polymorph
 internal_name: wand_polymorph
 zap_effect: polymorph
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 15
 worth: 140
 
@@ -34,7 +34,7 @@ name: wand of slow
 internal_name: wand_slow
 zap_effect: slow_target
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 11
 worth: 140
 
@@ -42,7 +42,7 @@ name: wand of haste
 internal_name: wand_haste
 zap_effect: haste_target
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 10
 worth: 140
 
@@ -50,7 +50,7 @@ name: wand of teleport away
 internal_name: wand_teleportation_away
 zap_effect: teleport_target_away
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 6
 worth: 140
 
@@ -58,7 +58,7 @@ name: wand of teleport to
 internal_name: wand_teleportation_to
 zap_effect: teleport_target_to
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 6
 worth: 140
 
@@ -66,7 +66,7 @@ name: wand of invisibility
 internal_name: wand_invisibility
 zap_effect: invisibility_target
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 6
 worth: 140
 
@@ -74,7 +74,7 @@ name: wand of drain life
 internal_name: wand_drain_life
 use_effect: drain_life
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 9
 worth: 140
 
@@ -82,7 +82,7 @@ name: wand of cancellation
 internal_name: wand_cancellation
 zap_effect: cancel_target
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 5
 worth: 140
 
@@ -90,7 +90,7 @@ name: wand of cold
 internal_name: wand_cold
 zap_effect: cold_ray
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 3
 worth: 140
 always_id_on_use: true
@@ -99,7 +99,7 @@ name: wand of fire
 internal_name: wand_fire
 zap_effect: fire_ray
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 3
 worth: 140
 always_id_on_use: true
@@ -108,7 +108,7 @@ name: wand of lightning
 internal_name: wand_lightning
 zap_effect: lightning_ray
 category: wands
-charges: 1d8
+charges: 3-7
 chance: 3
 worth: 140
 always_id_on_use: true

@@ -90,7 +90,7 @@ func (g *GameState) afterPlayerMoved() {
 	}
 
 	if _, isSecret := g.secrets[g.Player.Position()]; isSecret {
-		g.revealSecret(g.Player.Position())
+		g.revealSecret(g.Player.Position(), false)
 	}
 	g.msg(g.GetMapInfoForMovement(g.Player.Position()))
 	switch g.gridMap.GetCell(g.Player.Position()).TileType.Feature {

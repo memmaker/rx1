@@ -31,7 +31,8 @@ category: scrolls
 charges: 1
 chance: 5
 worth: 5
-use_effect: sleep_monsters_in_room
+use_effect: fall_asleep
+always_id_on_use: true
 
 name: identify
 internal_name: identify
@@ -48,7 +49,7 @@ category: scrolls
 charges: 1
 chance: 4
 worth: 200
-use_effect: scare_monsters_in_room
+use_effect: maniacal_laughter
 
 name: food detection
 internal_name: food_detection

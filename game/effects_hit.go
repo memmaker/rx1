@@ -173,7 +173,7 @@ func causeHunger(g *GameState, attacker, defender *Actor) []foundation.Animation
 	if defender != g.Player {
 		return nil
 	}
-	defender.GetFlags().Increment(foundation.FlagHunger)
+	defender.stats.FoodLeft -= rpg.HungryAt
 	g.msg(foundation.Msg("You suddenly feel very hungry"))
 	return nil
 }

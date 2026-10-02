@@ -56,11 +56,24 @@ func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.
 		return geometry.Point{}, false
 	}
 
-	// do_rooms: gold only; monsters spawn via wandering daemon during play
+	// do_rooms: gold, then a sleeping monster in 80% of the gold rooms and 25% of the others
 	for _, room := range rooms {
+		hasGold := false
 		if rnd(random, 2) == 0 && (!hasAmulet || level >= g.deepestDungeonLevelPlayerReached) {
 			if pos, ok := findFloor(room, 0, isFree); ok {
 				newMap.AddItem(g.NewGold(rnd(random, 50+10*level)+2), pos) // GOLDCALC
+				hasGold = true
+			}
+		}
+		chance := 25
+		if hasGold {
+			chance = 80
+		}
+		if !g.inSecretLevel && rnd(random, 100) < chance { // the mega dungeon keeps its own population
+			if pos, ok := findFloor(room, 0, canHoldMonster); ok {
+				monster := g.NewEnemyFromDef(g.rogueRandMonster(random, level, false))
+				monster.GetFlags().Set(foundation.FlagSleep)
+				newMap.AddActor(monster, pos)
 			}
 		}
 	}
@@ -221,6 +234,7 @@ func (g *GameState) rogueNewThing(random *rand.Rand, level int) *Item {
 	r := rnd(random, 100)
 	switch {
 	case item.IsMissile(): // a cursed bundle is only worse, a quiver cannot get stuck
+		item.bundle = rnd(random, 8) + 7 // Rogue's ISMANY group: rnd(8)+8 in all
 		if r < 10 {
 			item.weapon.hitPlus -= rnd(random, 3) + 1
 		} else if r < 15 {
@@ -290,23 +304,33 @@ func pickWeighted(random *rand.Rand, defs []ItemDef) ItemDef {
 	return defs[len(defs)-1]
 }
 
-func (g *GameState) revealSecret(p geometry.Point) {
+func (g *GameState) revealSecret(p geometry.Point, quiet bool) {
 	realTile := g.secrets[p]
 	delete(g.secrets, p)
 	g.gridMap.SetTile(p, realTile)
 	g.gridMap.SetExplored(p)
+	if quiet {
+		if realTile.Feature == foundation.TileDoorClosed {
+			g.setDoorAt(p)
+		}
+		return
+	}
 	switch {
 	case realTile.IsStairsDown():
 		g.msg(foundation.Msg("You found a hidden staircase"))
 	case realTile.Feature == foundation.TileDoorClosed:
-		for _, room := range g.dungeonLayout.AllRooms() {
-			if room.ContainsIncludingWalls(p) {
-				room.SetDoor(p)
-			}
-		}
+		g.setDoorAt(p)
 		g.msg(foundation.Msg("You found a secret door"))
 	default:
 		g.msg(foundation.Msg("You found a secret passage"))
+	}
+}
+
+func (g *GameState) setDoorAt(p geometry.Point) {
+	for _, room := range g.dungeonLayout.AllRooms() {
+		if room.ContainsIncludingWalls(p) {
+			room.SetDoor(p)
+		}
 	}
 }
 
@@ -329,7 +353,7 @@ func (g *GameState) search() {
 			if rand.Intn(odds+probinc) != 0 {
 				continue
 			}
-			g.revealSecret(p)
+			g.revealSecret(p, false)
 			continue
 		}
 		if g.gridMap.IsObjectAt(p) {

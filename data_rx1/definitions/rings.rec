@@ -12,6 +12,7 @@ stat: armor
 stat_bonus: 1d3-1
 chance: 9
 always_id_on_use: true
+worth: 400
 
 name: ring of strength
 internal_name: ring_strength
@@ -21,6 +22,7 @@ stat: strength
 stat_bonus: 1d3-1
 chance: 9
 always_id_on_use: true
+worth: 400
 
 name: ring of dexterity
 internal_name: ring_dexterity
@@ -30,6 +32,7 @@ stat: to_hit
 stat_bonus: 1d3-1
 chance: 8
 always_id_on_use: true
+worth: 440
 
 name: ring of increase damage
 internal_name: ring_increase_damage
@@ -39,6 +42,7 @@ stat: damage
 stat_bonus: 1d3-1
 chance: 8
 always_id_on_use: true
+worth: 400
 
 name: ring of regeneration
 internal_name: ring_regeneration
@@ -48,6 +52,7 @@ equip_flag: regenerating
 chance: 4
 always_id_on_use: true
 charges: 10d3
+worth: 460
 
 name: ring of see invisible
 internal_name: ring_see_invisible
@@ -57,6 +62,7 @@ equip_flag: see_invisible
 chance: 10
 always_id_on_use: true
 charges: -1
+worth: 310
 
 name: ring of teleportation
 internal_name: ring_teleportation
@@ -66,6 +72,7 @@ equip_flag: curse_teleportitis
 chance: 5
 always_id_on_use: true
 charges: -1
+worth: 30
 
 name: ring of slow digestion
 internal_name: ring_slow_digestion
@@ -75,3 +82,24 @@ equip_flag: slow_digestion
 chance: 9
 always_id_on_use: true
 charges: -1
+worth: 240
+
+name: ring of stealth
+internal_name: ring_stealth
+category: rings
+slot: ring
+equip_flag: stealth
+chance: 7
+always_id_on_use: true
+charges: -1
+worth: 470
+
+name: ring of searching
+internal_name: ring_searching
+category: rings
+slot: ring
+equip_flag: searching
+chance: 10
+always_id_on_use: true
+charges: -1
+worth: 420
