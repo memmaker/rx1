@@ -1,7 +1,9 @@
 package game
 
 import (
+	"math/rand"
 	"rx1/foundation"
+	"rx1/rpg"
 )
 
 func (g *GameState) enemyMovement(playerTimeSpent int) {
@@ -45,6 +47,7 @@ var timedEffects = []struct {
 	{foundation.FlagInvisible, "You can see your hands again"},
 	{foundation.FlagBlind, "You can see again"},
 	{foundation.FlagCancel, "You feel your powers return"},
+	{foundation.FlagSleep, "You wake up"},
 }
 
 func (g *GameState) decrementStatusEffects() {
@@ -63,26 +66,17 @@ func (g *GameState) decrementStatusEffects() {
 func (g *GameState) removeDeadAndApplyRegeneration() {
 	// ponytail: Rogue's doctor() heals faster per level; approximated by a shorter interval.
 	healInterval := max(3, 20-2*g.Player.GetLevel())
-	hungerInterval := 300
 
 	g.decrementStatusEffects()
 	g.applyPoison()
 
-	if !g.Player.HasFlag(foundation.FlagSlowDigestion) || g.TurnsTaken%2 == 0 {
-		g.Player.GetFlags().Increment(foundation.FlagTurnsSinceEating)
+	g.digest()
+
+	for i := g.Player.GetEquipment().CountFlag(foundation.FlagSearching); i > 0; i-- {
+		g.search() // Rogue: each ring of searching searches every turn
 	}
 
-	turnsSinceEating := g.Player.GetFlags().Get(foundation.FlagTurnsSinceEating)
-
-	if turnsSinceEating%hungerInterval == 0 {
-		wasHungry := g.Player.IsHungry()
-		g.Player.GetFlags().Increment(foundation.FlagHunger)
-		if g.Player.IsHungry() && !wasHungry {
-			g.msg(foundation.Msg("You are hungry."))
-		}
-	}
-
-	if g.Player.IsHungry() && turnsSinceEating%(healInterval*3) == 0 {
+	if g.Player.IsHungry() && g.TurnsTaken%(healInterval*3) == 0 {
 		g.Player.LooseFatigue(1)
 	}
 
@@ -113,4 +107,33 @@ func (g *GameState) removeDeadAndApplyRegeneration() {
 			g.gridMap.RemoveObject(object)
 		}
 	}
+}
+
+// digest is Rogue's stomach(): food runs out, then the hero faints now and then, and starves.
+func (g *GameState) digest() {
+	stats := &g.Player.stats
+	if stats.FoodLeft <= 0 {
+		stats.FoodLeft--
+		if stats.FoodLeft+1 < -rpg.StarveTime {
+			g.msg(foundation.HiLite("You starve to death"))
+			g.ui.AddAnimations(g.damageActor("starvation", g.Player, g.Player.GetHitPoints()))
+			return
+		}
+		if g.noCommand > 0 || rand.Intn(5) != 0 {
+			return
+		}
+		g.noCommand += rand.Intn(8) + 4
+		g.msg(foundation.HiLite("You faint from lack of food"))
+		g.Player.changed()
+		return
+	}
+	old := stats.FoodLeft
+	stats.FoodLeft -= g.Player.GetEquipment().RingFood() + 1
+	switch {
+	case stats.FoodLeft < rpg.WeakAt && old >= rpg.WeakAt:
+		g.msg(foundation.HiLite("You are starting to feel weak"))
+	case stats.FoodLeft < rpg.HungryAt && old >= rpg.HungryAt:
+		g.msg(foundation.HiLite("You are starting to get hungry"))
+	}
+	g.Player.changed()
 }

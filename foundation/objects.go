@@ -15,10 +15,13 @@ const (
 	ObjectArrowTrap
 	ObjectDescendTrap
 	ObjectBearTrap
+	ObjectSleepTrap
+	ObjectRustTrap
+	ObjectMysteryTrap
 )
 
 func RandomObjectCategory() ObjectCategory {
-	return ObjectCategory(rand.Intn(int(ObjectBearTrap) + 1))
+	return ObjectCategory(rand.Intn(int(ObjectMysteryTrap) + 1))
 }
 
 func GetAllTrapCategories() []ObjectCategory {
@@ -30,6 +33,9 @@ func GetAllTrapCategories() []ObjectCategory {
 		ObjectArrowTrap,
 		ObjectDescendTrap,
 		ObjectBearTrap,
+		ObjectSleepTrap,
+		ObjectRustTrap,
+		ObjectMysteryTrap,
 	}
 }
 
@@ -49,6 +55,12 @@ func (o ObjectCategory) String() string {
 		return "Descend Trap"
 	case ObjectBearTrap:
 		return "Bear Trap"
+	case ObjectSleepTrap:
+		return "Sleeping Gas Trap"
+	case ObjectRustTrap:
+		return "Rust Trap"
+	case ObjectMysteryTrap:
+		return "Mystery Trap"
 
 	default:
 		return "Unknown"
@@ -71,6 +83,12 @@ func ObjectCategoryFromString(s string) ObjectCategory {
 		return ObjectDescendTrap
 	case "BearTrap":
 		return ObjectBearTrap
+	case "SleepTrap":
+		return ObjectSleepTrap
+	case "RustTrap":
+		return ObjectRustTrap
+	case "MysteryTrap":
+		return ObjectMysteryTrap
 	default:
 		return -1
 	}
@@ -85,16 +103,27 @@ func (o ObjectCategory) ZapEffect() string {
 	case ObjectTeleportTrap:
 		return "teleport_target_away"
 	case ObjectDartTrap:
-		return "magic_dart"
+		return "trap_dart"
 	case ObjectArrowTrap:
-		return "magic_arrow"
+		return "trap_arrow"
 	case ObjectDescendTrap:
 		return "force_descend_target"
 	case ObjectBearTrap:
-		return "hold_target"
+		return "trap_bear"
+	case ObjectSleepTrap:
+		return "trap_sleep"
+	case ObjectRustTrap:
+		return "trap_rust"
+	case ObjectMysteryTrap:
+		return "trap_mystery"
 	default:
 		return ""
 	}
+}
+
+// IsRogueTrap: Rogue's traps stay after they fired, rx1's own exploding and slow traps are used up.
+func (o ObjectCategory) IsRogueTrap() bool {
+	return o != ObjectExplodingTrap && o != ObjectSlowTrap
 }
 
 func (o ObjectCategory) IsTrap() bool {

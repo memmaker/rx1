@@ -117,9 +117,20 @@ type Item struct {
 	stuckTurns   int // cursed: cannot be taken off for this many more equipped turns
 	thrownDamage rpg.Dice
 	isKnown      bool
+	found        bool // Rogue ISFOUND: a scare monster scroll that was picked up once
 	text         string
 
 	light foundation.LightInfo // Radius is the full radius, see LightRadius()
+
+	bundle int // missiles lying on the floor with this one, picked up together
+}
+
+// copyOfMissile: one more of the same missile
+func (i *Item) copyOfMissile() *Item {
+	c := *i
+	w := *i.weapon
+	c.weapon, c.bundle = &w, 0
+	return &c
 }
 
 func (i *Item) IsLight() bool {
@@ -160,6 +171,9 @@ func (i *Item) InventoryNameWithColors(colorCode string) string {
 	}
 	if i.IsRing() && i.charges > 1 && i.id.IsItemIdentified(i.internalName) {
 		line = cview.Escape(fmt.Sprintf("%s (%d turns)", i.Name(), i.charges))
+	}
+	if i.IsWand() && i.id.IsItemIdentified(i.internalName) {
+		line = cview.Escape(fmt.Sprintf("%s (%d charges)", i.Name(), i.charges))
 	}
 	if i.IsLight() && i.charges >= 0 {
 		line = cview.Escape(fmt.Sprintf("%s (%d turns)", i.Name(), i.charges))
@@ -264,7 +278,7 @@ func (i *Item) CanStackWith(other *Item) bool {
 		return false
 	}
 
-	if i.charges != other.charges || i.IsMissile() && (i.weapon.hitPlus != other.weapon.hitPlus || i.weapon.damagePlus != other.weapon.damagePlus) {
+	if i.charges != other.charges || i.found != other.found || i.IsMissile() && (i.weapon.hitPlus != other.weapon.hitPlus || i.weapon.damagePlus != other.weapon.damagePlus) {
 		return false
 	}
 
@@ -317,6 +331,10 @@ func (i *Item) IsPotion() bool {
 
 func (i *Item) IsGold() bool {
 	return i.category == foundation.ItemCategoryGold
+}
+
+func (i *Item) IsScareMonster() bool {
+	return i.internalName == "scare_monster"
 }
 
 func (i *Item) GetCharges() int {

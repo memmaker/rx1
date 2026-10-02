@@ -41,11 +41,11 @@ func (g *GameState) aiAct(enemy *Actor) {
 
 	if enemy.IsSleeping() {
 		if sameRoom {
-			if enemy.HasFlag(foundation.FlagMean) && enemy.CanPerceivePlayer() {
+			if enemy.HasFlag(foundation.FlagMean) && g.noticesPlayerAsleep(enemy) {
 				enemy.WakeUp()
 				g.ui.AddAnimations(OneAnimation(g.ui.GetAnimWakeUp(enemy.Position(), nil)))
 				g.msg(foundation.HiLite("%s wakes up", enemy.Name()))
-			} else if !enemy.HasFlag(foundation.FlagMean) && enemy.CanPerceivePlayer() && rand.Intn(10) == 0 {
+			} else if !enemy.HasFlag(foundation.FlagMean) && g.noticesPlayerAsleep(enemy) && rand.Intn(10) == 0 {
 				enemy.WakeUp()
 				g.ui.AddAnimations(OneAnimation(g.ui.GetAnimWakeUp(enemy.Position(), nil)))
 				g.msg(foundation.HiLite("%s wakes up", enemy.Name()))
@@ -173,4 +173,12 @@ func (g *GameState) doesActConfused(enemy *Actor) []foundation.Animation {
 		}
 	}
 	return nil
+}
+
+// noticesPlayerAsleep is the chance a sleeping monster wakes: a ring of stealth halves it.
+func (g *GameState) noticesPlayerAsleep(enemy *Actor) bool {
+	if g.Player.GetEquipment().ContainsFlag(foundation.FlagStealth) && rand.Intn(2) == 0 {
+		return false
+	}
+	return enemy.CanPerceivePlayer()
 }

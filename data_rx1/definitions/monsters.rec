@@ -10,7 +10,7 @@ letter: b
 dlvl: 3
 color: LightGray
 gold: 0
-carry_chance: 1
+carry_chance: 0
 flags: flying | chase | erratic
 
 name: emu
@@ -23,7 +23,7 @@ letter: e
 dlvl: 2
 color: White
 gold: 0
-carry_chance: 1
+carry_chance: 0
 flags: mean | chase
 zap_effect: charge_attack
 
@@ -37,7 +37,7 @@ letter: h
 dlvl: 5
 color: Green
 gold: 5d4
-carry_chance: 35
+carry_chance: 0
 flags: mean | group
 
 name: kestrel
@@ -50,8 +50,8 @@ letter: k
 dlvl: 1
 color: Orange
 gold: 0
-carry_chance: 2
-flags: chase
+carry_chance: 0
+flags: mean | chase
 hit_effect: hit_and_run | 100
 
 name: jackal
@@ -64,8 +64,8 @@ letter: j
 dlvl: 2
 color: Orange
 gold: 0
-carry_chance: 10
-flags: chase | group
+carry_chance: 0
+flags: mean | chase | group
 
 name: floating eye
 level: 1
@@ -77,7 +77,7 @@ letter: e
 dlvl: 6
 color: Red
 gold: 0
-carry_chance: 25
+carry_chance: 0
 struck_effect: freeze | 100
 flags: stationary
 
@@ -91,8 +91,7 @@ letter: i
 dlvl: 6
 color: LightBlue
 gold: 1d6
-carry_chance: 20
-flags: mean
+carry_chance: 0
 hit_effect: freeze | 100
 
 name: slime
@@ -111,7 +110,7 @@ struck_effect: rust_weapon | 30
 
 name: snake
 level: 1
-exp: 3
+exp: 2
 armor: 5
 damage: 1d3
 internal_name: snake
@@ -119,7 +118,8 @@ letter: s
 dlvl: 4
 color: LightGreen
 gold: 0
-carry_chance: 10
+carry_chance: 0
+flags: mean
 hit_effect: poison | 50
 
 name: gnome
@@ -132,7 +132,7 @@ letter: g
 dlvl: 10
 color: White
 gold: 5d5
-carry_chance: 35
+carry_chance: 10
 flags: tunnel
 
 name: orc
@@ -145,7 +145,7 @@ letter: o
 dlvl: 8
 color: LightGreen
 gold: 1d6
-carry_chance: 35
+carry_chance: 15
 zap_effect: charge_attack
 flags: greedy
 
@@ -159,7 +159,8 @@ letter: r
 dlvl: 7
 color: LightGreen
 gold: 0
-carry_chance: 3
+carry_chance: 0
+flags: mean
 hit_effect: poison_strength | 100
 
 name: invisible stalker
@@ -172,12 +173,12 @@ letter: i
 dlvl: 20
 color: White
 gold: 1d8
-carry_chance: 25
+carry_chance: 0
 flags: chase | invisible | erratic
 
 name: rust monster
 level: 5
-exp: 20
+exp: 25
 armor: 2
 damage: 0d0/0d0
 internal_name: rust_monster
@@ -185,12 +186,13 @@ letter: r
 dlvl: 13
 color: Orange
 gold: 2d20
-carry_chance: 65
+carry_chance: 0
+flags: mean
 hit_effect: rust_armor | 100
 
 name: zombie
 level: 2
-exp: 7
+exp: 6
 armor: 8
 damage: 1d8
 internal_name: zombie
@@ -198,8 +200,8 @@ letter: z
 dlvl: 9
 color: Orange
 gold: 1d100
-carry_chance: 85
-flags: chase | slow
+carry_chance: 0
+flags: mean | chase | slow
 hit_effect: hunger | 20
 
 name: giant ant
@@ -212,7 +214,8 @@ letter: a
 dlvl: 7
 color: Red
 gold: 2d4
-carry_chance: 10
+carry_chance: 0
+flags: mean
 hit_effect: poison_strength | 100
 
 name: leprechaun
@@ -225,15 +228,15 @@ letter: l
 dlvl: 10
 color: Cyan
 gold: 5d10
-carry_chance: 50
+carry_chance: 0
 flags: chase
 hit_effect: steal_gold | 100
 
 name: centaur
 level: 4
-exp: 15
+exp: 17
 armor: 4
-damage: 1d6/1d6
+damage: 1d2/1d5/1d5
 internal_name: centaur
 letter: c
 dlvl: 11
@@ -252,7 +255,8 @@ letter: k
 dlvl: 1
 color: Red
 gold: 2d8
-carry_chance: 55
+carry_chance: 0
+flags: mean
 zap_effect: magic_dart
 
 name: aquator
@@ -265,7 +269,7 @@ letter: A
 dlvl: 13
 color: Blue
 gold: 2d12
-carry_chance: 50
+carry_chance: 0
 flags: mean
 hit_effect: rust_armor | 100
 
@@ -279,7 +283,8 @@ letter: U
 dlvl: 12
 color: Gray
 gold: 1d1000
-carry_chance: 90
+carry_chance: 0
+flags: mean
 zap_effect: charge_attack
 use_effect: phase_door
 
@@ -293,7 +298,8 @@ letter: q
 dlvl: 12
 color: White
 gold: 0
-carry_chance: 3
+carry_chance: 0
+flags: mean
 zap_effect: charge_attack
 
 name: nymph
@@ -306,13 +312,13 @@ letter: n
 dlvl: 14
 color: LightMagenta
 gold: 2d20
-carry_chance: 60
+carry_chance: 100
 flags: chase
 hit_effect: steal_item | 100
 
 name: mimic
 level: 7
-exp: 100
+exp: 140
 armor: 7
 damage: 3d4
 internal_name: mimic
@@ -320,7 +326,7 @@ letter: m
 dlvl: 23
 color: White
 gold: 4d4
-carry_chance: 25
+carry_chance: 30
 flags: disguised
 
 name: yeti
@@ -333,7 +339,7 @@ letter: Y
 dlvl: 15
 color: White
 gold: 4d20
-carry_chance: 35
+carry_chance: 30
 flags: haste
 hit_effect: hold | 30
 hit_effect: slow | 50
@@ -346,13 +352,13 @@ damage: 1d8/1d8/2d6
 internal_name: troll
 letter: T
 dlvl: 17
-flags: regenerating | revive
+flags: mean | regenerating | revive
 color: Orange
 gold: 2d10
-carry_chance: 55
+carry_chance: 50
 
 name: violet fungi
-level: 3
+level: 8
 exp: 85
 armor: 3
 damage: 0d0
@@ -361,9 +367,9 @@ letter: f
 dlvl: 19
 color: Magenta
 gold: 3d10
-carry_chance: 55
+carry_chance: 0
 hit_effect: hold | 100
-flags: stationary
+flags: mean | stationary
 
 name: wraith
 level: 5
@@ -375,7 +381,7 @@ letter: w
 dlvl: 18
 color: Red
 gold: 0
-carry_chance: 55
+carry_chance: 0
 hit_effect: drain_level | 15
 use_effect: darkness
 
@@ -389,7 +395,7 @@ letter: f
 dlvl: 16
 color: Green
 gold: 2d20
-carry_chance: 60
+carry_chance: 0
 flags: mean | stationary
 hit_effect: hold | 100
 
@@ -403,12 +409,12 @@ letter: p
 dlvl: 19
 color: LightGray
 gold: 0
-carry_chance: 20
+carry_chance: 0
 flags: invisible | chase | wall_crawler | erratic
 
 name: purple worm
 level: 15
-exp: 4000
+exp: 7000
 armor: 6
 damage: 2d12/2d4
 internal_name: purple_worm
@@ -416,7 +422,7 @@ letter: P
 dlvl: 26
 color: LightMagenta
 gold: 2d80
-carry_chance: 90
+carry_chance: 70
 hit_effect: poison_strength | 30
 flags: tunnel
 
@@ -436,7 +442,7 @@ use_effect: darkness
 
 name: umber hulk
 level: 8
-exp: 200
+exp: 130
 armor: 2
 damage: 3d4/3d4/2d5
 internal_name: umber_hulk
@@ -444,8 +450,8 @@ letter: U
 dlvl: 22
 color: Green
 gold: 2d10
-carry_chance: 65
-flags: tunnel
+carry_chance: 40
+flags: mean | tunnel
 gaze_effect: confuse
 
 name: griffin
@@ -458,7 +464,7 @@ letter: g
 dlvl: 24
 color: Yellow
 gold: 3d10
-carry_chance: 45
+carry_chance: 20
 flags: mean | flying | regenerating
 zap_effect: lightning_ray
 hit_effect: knockback | 30
@@ -474,11 +480,12 @@ dlvl: 22
 color: LightMagenta
 gold: 1d20
 carry_chance: 40
+flags: mean
 gaze_effect: confuse
 
 name: quasit
 level: 3
-exp: 32
+exp: 35
 armor: 2
 damage: 1d2/1d2/1d4
 internal_name: quasit
@@ -486,7 +493,8 @@ letter: Q
 dlvl: 14
 color: Green
 gold: 2d60
-carry_chance: 75
+carry_chance: 30
+flags: mean
 use_effect: phase_door
 hit_effect: poison_strength | 30
 
@@ -500,7 +508,7 @@ letter: x
 dlvl: 20
 color: White
 gold: 2d8
-carry_chance: 25
+carry_chance: 30
 flags: disguised
 
 name: xeroc mk ii
@@ -526,8 +534,8 @@ letter: X
 dlvl: 21
 color: Orange
 gold: 0
-carry_chance: 65
-flags: wall_crawler
+carry_chance: 0
+flags: mean | wall_crawler
 hit_effect: eat_gold | 100
 
 name: vampire
@@ -540,8 +548,8 @@ letter: V
 dlvl: 23
 color: Red
 gold: 0
-carry_chance: 75
-flags: chase | regenerating
+carry_chance: 20
+flags: mean | chase | regenerating
 hit_effect: drain_max_hp | 30
 
 name: jabberwock
@@ -554,13 +562,13 @@ letter: J
 dlvl: 25
 color: Yellow
 gold: 2d100
-carry_chance: 75
+carry_chance: 70
 flags: chase
 gaze_effect: scare
 
 name: dragon
 level: 10
-exp: 6800
+exp: 5000
 armor: -1
 damage: 1d8/1d8/3d10
 internal_name: dragon
@@ -568,7 +576,7 @@ letter: D
 dlvl: 26
 color: Green
 gold: 3d100
-carry_chance: 95
+carry_chance: 100
 flags: mean | flying | regenerating | greedy
 zap_effect: fire_breath
 

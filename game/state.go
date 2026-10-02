@@ -75,6 +75,8 @@ type GameState struct {
 	playerColor          string
 	config               *foundation.Configuration
 	wanderingMonsterTurn int // rollwand state machine: spawn after ~70 turns
+	wanderingCooldown    int // turns left of the quiet period (swander's fuse) after a wanderer
+	noMove, noCommand    int // bear trap and sleeping gas: moves and turns the hero loses
 }
 
 func (g *GameState) GetRandomEnemyName() string {
@@ -502,6 +504,14 @@ func (g *GameState) updateUIStatus() {
 }
 func (g *GameState) GetHudFlags() map[foundation.ActorFlag]int {
 	flagSet := g.Player.GetFlags().UnderlyingCopy()
+	switch food := g.Player.stats.FoodLeft; {
+	case food <= 0:
+		flagSet[foundation.FlagFaint] = 1
+	case food < rpg.WeakAt:
+		flagSet[foundation.FlagWeak] = 1
+	case food < rpg.HungryAt:
+		flagSet[foundation.FlagHungry] = 1
+	}
 	equipFlags := g.Player.GetEquipment().GetAllFlags()
 	for flag, _ := range equipFlags {
 		flagSet[flag] = 1
@@ -885,12 +895,12 @@ func (g *GameState) hasPaidWithCharge(user *Actor, item *Item) bool {
 		return true
 	}
 	if item.charges == 0 {
-		g.msg(foundation.Msg("The item is out of charges"))
+		g.msg(foundation.Msg("You wave it but nothing happens"))
 		return false
 	}
 	if item.charges > 0 {
 		item.charges--
-		if item.charges == 0 { // destroy
+		if item.charges == 0 && !item.IsWand() { // empty wands stay, as in Rogue
 			g.removeItemFromInventory(user, item)
 		}
 	}
@@ -898,6 +908,11 @@ func (g *GameState) hasPaidWithCharge(user *Actor, item *Item) bool {
 }
 
 func (g *GameState) NewEnemyFromDef(def MonsterDef) *Actor {
+	return g.newEnemy(def, true)
+}
+
+// newEnemy makes a monster; carry says whether it may hold an item or gold.
+func (g *GameState) newEnemy(def MonsterDef, carry bool) *Actor {
 	actor := NewActor(def.Name, def.Icon, def.Color)
 	actor.GetFlags().Init(def.Flags.UnderlyingCopy())
 	actor.SetIntrinsicZapEffects(def.ZapEffects)
@@ -917,9 +932,12 @@ func (g *GameState) NewEnemyFromDef(def MonsterDef) *Actor {
 	hp := max(1, rpg.NewDice(lvl, 8, 0).Roll())
 	actor.stats = Stats{Str: 10, MaxStr: 10, Lvl: lvl, HP: hp, MaxHP: hp, Arm: def.Armor - levAdd, Dmg: def.Damage,
 		Exp: def.Exp + levAdd*10 + rpg.ExpAdd(lvl, hp)}
+	if g.currentDungeonLevel > 29 { // Rogue: past level 29 every monster is hasted
+		actor.GetFlags().Set(foundation.FlagHaste)
+	}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
-	if random.Intn(100) < def.CarryChance {
+	if carry && random.Intn(100) < def.CarryChance {
 		if random.Intn(100) < def.CarryChance {
 			actor.GetInventory().Add(g.rogueNewThing(random, max(1, g.currentDungeonLevel)))
 		} else {
@@ -1063,56 +1081,48 @@ func (g *GameState) spawnCrawlerInWall(monsterDef MonsterDef) {
 }
 
 func (g *GameState) wanderingMonsterTick() {
-	// Rogue: every 70 turns (WANDERTIME), every 4 turns roll 1d6, spawn if roll==4
-	// Simplified: every 4 turns, 16.67% chance (roll 1d6==4). ponytail: inline state machine.
+	// Rogue: after a wanderer comes a quiet period of WANDERTIME = spread(70) turns (67..73),
+	// then every 4 turns roll 1d6 and spawn on a 4
+	if g.wanderingCooldown > 0 {
+		g.wanderingCooldown--
+		return
+	}
 	g.wanderingMonsterTurn++
 	if g.wanderingMonsterTurn >= 4 {
-		if rand.Intn(6) == 4 { // roll 1d6, 4 is 0-indexed as 4 of 0-5
-			g.wanderingMonster()
+		if rand.Intn(6) == 3 && g.wanderingMonster() { // roll(1, 6) == 4
+			g.wanderingCooldown = 70 - 70/20 + rand.Intn(70/10)
 		}
 		g.wanderingMonsterTurn = 0
 	}
 }
 
-func (g *GameState) wanderingMonster() {
-	playerRoom := g.getPlayerRoom()
-	if playerRoom == nil {
-		return
+// wanderingMonster is Rogue's wanderer(): a random free floor spot in any room but the hero's
+// (anywhere when the hero is in a corridor), 500 tries. It carries nothing.
+func (g *GameState) wanderingMonster() bool {
+	if g.dungeonLayout == nil {
+		return false
 	}
+	playerRoom := g.getPlayerRoom()
 	rooms := g.dungeonLayout.AllRooms()
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
-	// Pick random room that isn't player's room
-	var spawnRoom *dungen.DungeonRoom
-	for tries := 0; tries < 10; tries++ {
-		r := rooms[random.Intn(len(rooms))]
-		if r != playerRoom {
-			spawnRoom = r
-			break
+	for tries := 0; tries < 500; tries++ {
+		room := rooms[random.Intn(len(rooms))]
+		p := room.GetRandomAbsoluteFloorPosition(random)
+		if room == playerRoom || !g.gridMap.IsTileWalkable(p) || g.gridMap.IsActorAt(p) || g.gridMap.IsTileSpecial(p) {
+			continue
 		}
+		monster := g.newEnemy(g.rogueRandMonster(random, g.currentDungeonLevel, true), false)
+		monster.SetAware() // Rogue wanderers wake up and immediately chase the player
+		g.gridMap.AddActor(monster, p)
+		g.msg(foundation.HiLite("You sense a %s stirring in the dungeon", monster.Name()))
+		return true
 	}
-	if spawnRoom == nil {
-		return
-	}
-	// Find walkable floor tile
-	for tries := 0; tries < 10; tries++ {
-		p := spawnRoom.GetRandomAbsoluteFloorPosition(random)
-		if g.gridMap.IsTileWalkable(p) && !g.gridMap.IsActorAt(p) && !g.gridMap.IsTileSpecial(p) {
-			monster := g.NewEnemyFromDef(g.rogueRandMonster(random, g.currentDungeonLevel, true))
-			// Rogue wanderers wake up and immediately chase the player
-			monster.SetAware()
-			g.gridMap.AddActor(monster, p)
-			g.msg(foundation.HiLite("You sense a %s stirring in the dungeon", monster.Name()))
-			return
-		}
-	}
-}
-func (g *GameState) calculateTotalNetWorth() int {
-	return g.Player.GetGold()
+	return false
 }
 func (g *GameState) gameWon() {
 	scoreInfo := foundation.ScoreInfo{
 		PlayerName:         g.Player.Name(),
-		Gold:               g.calculateTotalNetWorth(),
+		Gold:               g.finalScore(true),
 		MaxLevel:           g.deepestDungeonLevelPlayerReached,
 		DescriptiveMessage: "ESCAPED the dungeon",
 		Escaped:            true,
@@ -1124,7 +1134,7 @@ func (g *GameState) gameWon() {
 func (g *GameState) gameOver(death string) {
 	scoreInfo := foundation.ScoreInfo{
 		PlayerName:         g.Player.Name(),
-		Gold:               g.calculateTotalNetWorth(),
+		Gold:               g.finalScore(false),
 		MaxLevel:           g.deepestDungeonLevelPlayerReached,
 		DescriptiveMessage: death,
 		Escaped:            false,
@@ -1164,6 +1174,15 @@ func (g *GameState) checkPlayerCanAct() {
 	// then check the end condition for this status effect
 	// if it's not reached, we want the UI to show a message about the situation
 	// the player has to confirm it and then we can end the turn
+	if g.Player.HasFlag(foundation.FlagSleep) { // Rogue no_command
+		g.endPlayerTurn()
+		return
+	}
+	if g.noCommand > 0 { // sleeping gas
+		g.noCommand--
+		g.endPlayerTurn()
+		return
+	}
 	if !g.Player.HasFlag(foundation.FlagStun) && !g.Player.HasFlag(foundation.FlagHeld) {
 		return
 	}
@@ -1271,8 +1290,9 @@ func (g *GameState) triggerTileEffectsAfterMovement(actor *Actor, oldPos, newPos
 			playerMoveAnim.RequestMapUpdateOnFinish()
 			animations = append(animations, playerMoveAnim)
 		}
-		triggeredEffectAnimations := objectAt.OnWalkOver()
-		animations = append(animations, triggeredEffectAnimations...)
+		if isPlayer && !g.Player.HasFlag(foundation.FlagFly) { // monsters and levitating heroes never set off a trap
+			animations = append(animations, objectAt.OnWalkOver()...)
+		}
 		return animations
 	}
 	return nil

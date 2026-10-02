@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math/rand"
 	"rx1/foundation"
 	"rx1/rpg"
 )
@@ -236,6 +237,17 @@ func (e *Equipment) ContainsFlag(flag foundation.ActorFlag) bool {
 	return false
 }
 
+// CountFlag is how many worn items give the flag.
+func (e *Equipment) CountFlag(flag foundation.ActorFlag) int {
+	n := 0
+	for _, item := range e.slots {
+		if item.GetEquipFlag() == flag {
+			n++
+		}
+	}
+	return n
+}
+
 func (e *Equipment) GetStatModifier(stat rpg.Stat) int {
 	modifier := 0
 	for _, item := range e.slots {
@@ -289,4 +301,34 @@ func (e *Equipment) GetAllFlags() map[foundation.ActorFlag]int {
 		flags[itemFlags] = 1
 	}
 	return flags
+}
+
+// ringFood is Rogue's ring_eat table (rings.c): extra food a worn ring digests per turn.
+// A negative entry means 1 turn in N; slow digestion gives food back.
+var ringFood = map[string]int{
+	"ring_protection": 1, "ring_strength": 1, "ring_stealth": 1, "ring_regeneration": 2,
+	"ring_searching": -3, "ring_see_invisible": -5, "ring_dexterity": -3, "ring_increase_damage": -3,
+	"ring_slow_digestion": -2,
+}
+
+// RingFood is Rogue's ring_eat for both hands this turn.
+func (e *Equipment) RingFood() int {
+	total := 0
+	for _, item := range e.slots {
+		if !item.IsRing() {
+			continue
+		}
+		eat := ringFood[item.GetInternalName()]
+		if eat < 0 {
+			eat = 0
+			if rand.Intn(-ringFood[item.GetInternalName()]) == 0 {
+				eat = 1
+			}
+		}
+		if item.GetInternalName() == "ring_slow_digestion" {
+			eat = -eat
+		}
+		total += eat
+	}
+	return total
 }

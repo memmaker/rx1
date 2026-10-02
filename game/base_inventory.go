@@ -153,8 +153,29 @@ func (i *Inventory) IsEmpty() bool {
 	return len(i.items) == 0
 }
 
+// IsFull: Rogue's pack holds 23 items; every potion, scroll and food counts, a group of missiles is one
 func (i *Inventory) IsFull() bool {
-	return len(i.StackedItems()) == i.maxItemStacks
+	used := 0
+	for _, stack := range i.StackedItems() {
+		if stack.First().IsMissile() {
+			used++
+		} else {
+			used += len(stack.items)
+		}
+	}
+	return used >= i.maxItemStacks
+}
+
+// CanAdd: a full pack still takes missiles that join a group it already has
+func (i *Inventory) CanAdd(item *Item) bool {
+	if item.IsMissile() {
+		for _, other := range i.items {
+			if other.CanStackWith(item) {
+				return true
+			}
+		}
+	}
+	return !i.IsFull()
 }
 
 func (i *Inventory) SetOnChangeHandler(onChanged func()) {

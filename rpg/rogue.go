@@ -5,37 +5,46 @@ import (
 	"strings"
 )
 
-// Rogue 3.6 combat rules (fight.c, misc.c).
+// Rogue 5.4 combat rules (fight.c, misc.c).
 
 // Swing is Rogue's to-hit roll: d20 + plusses must reach 21 - level - armor class.
 func Swing(atLvl, defArm, wplus int) bool {
 	return rand.Intn(20)+1+wplus >= 21-atLvl-defArm
 }
 
+// Rogue 5.4 strength tables (fight.c), indexed by strength 0..31.
+var strPlus = [32]int{
+	-7, -6, -5, -4, -3, -2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+	1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3,
+}
+
+var addDam = [32]int{
+	-7, -6, -5, -4, -3, -2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3,
+	3, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6,
+}
+
+// MaxStrength is the top of the strength tables.
+const MaxStrength = 31
+
 // StrPlus is the to-hit bonus from strength.
-// ponytail: no 18/xx exceptional strength, 18 is the cap of the table.
 func StrPlus(str int) int {
-	switch {
-	case str >= 17:
-		return 1
-	case str > 6:
-		return 0
-	}
-	return str - 7
+	return strPlus[min(MaxStrength, max(0, str))]
 }
 
 // AddDam is the damage bonus from strength.
 func AddDam(str int) int {
-	switch {
-	case str < 6:
-		return -1
-	case str < 16:
-		return 0
-	case str < 18:
-		return 1
-	}
-	return 2
+	return addDam[min(MaxStrength, max(0, str))]
 }
+
+// Rogue 5.4 hunger (rogue.h): food_left counts down one per turn.
+const (
+	HungerTime   = 1300 // a ration, and the food the hero starts with
+	StomachSize  = 2000
+	HungryAt     = 300 // 2 * MORETIME
+	WeakAt       = 150 // MORETIME
+	StarveTime   = 850 // dead when food_left drops below -StarveTime
+	RationSpread = 400
+)
 
 // Saving throw categories.
 const (
@@ -62,7 +71,7 @@ func RollAttacks(dmg string, hit func() bool, dplus int) (damage int, didHit boo
 }
 
 // ExpLevels are the experience points needed for each new level.
-var ExpLevels = []int{10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240, 20480, 40920, 81920, 163840, 327680, 655360, 1310720, 2621440}
+var ExpLevels = []int{10, 20, 40, 80, 160, 320, 640, 1300, 2600, 5200, 13000, 26000, 50000, 100000, 200000, 400000, 800000, 2000000, 4000000, 8000000}
 
 // LevelForExp is the level a character with exp experience points has.
 func LevelForExp(exp int) int {

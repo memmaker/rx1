@@ -104,6 +104,12 @@ func (g *GameState) tryReachAttack(dir geometry.Point) bool {
 }
 
 func (g *GameState) playerMove(newPos geometry.Point) {
+	if g.noMove > 0 { // caught in a bear trap
+		g.noMove--
+		g.msg(foundation.Msg("You are still stuck in the bear trap"))
+		g.endPlayerTurn()
+		return
+	}
 	directConsequencesOfMove := g.actorMoveAnimated(g.Player, newPos)
 
 	g.afterPlayerMoved()
@@ -164,6 +170,9 @@ func (g *GameState) actorUseItem(user *Actor, item *Item) {
 	}
 
 	if !g.hasPaidWithCharge(user, item) {
+		if user == g.Player && item.IsWand() { // waving an empty wand takes a turn
+			g.endPlayerTurn()
+		}
 		return
 	}
 
@@ -192,7 +201,16 @@ func (g *GameState) actorInvokeUseEffect(user *Actor, useEffectName string) (end
 	}
 	return false, nil
 }
+// scareMonsterAt: monsters will not step onto a scare monster scroll (Rogue 5.4 chase.c)
+func (g *GameState) scareMonsterAt(pos geometry.Point) bool {
+	item, exists := g.gridMap.TryGetItemAt(pos)
+	return exists && item.IsScareMonster()
+}
+
 func (g *GameState) actorMoveAnimated(actor *Actor, newPos geometry.Point) []foundation.Animation {
+	if actor != g.Player && g.scareMonsterAt(newPos) {
+		return nil
+	}
 	oldPos := actor.Position()
 	var moveAnims []foundation.Animation
 	if g.couldPlayerSeeActor(actor) && (g.canPlayerSee(newPos) || g.canPlayerSee(oldPos)) && actor != g.Player {
@@ -397,16 +415,25 @@ func (g *GameState) actorRangedAttack(attacker *Actor, defender *Actor, missile 
 }
 func (g *GameState) PickupItem() {
 	inventory := g.Player.GetInventory()
-	if inventory.IsFull() {
-		g.msg(foundation.Msg("You cannot carry any more items"))
-		return
-	}
 	if item, exists := g.gridMap.TryGetItemAt(g.Player.Position()); exists {
+		if item.IsScareMonster() && item.found { // Rogue pack.c: the second pickup is the last
+			g.gridMap.RemoveItem(item)
+			g.msg(foundation.Msg("the scroll turns to dust as you pick it up"))
+			return
+		}
+		if !item.IsGold() && !inventory.CanAdd(item) {
+			g.msg(foundation.Msg("You cannot carry any more items"))
+			return
+		}
 		g.gridMap.RemoveItem(item)
 		if item.IsGold() {
 			g.Player.AddGold(item.GetCharges())
 		} else {
+			item.found = true
 			inventory.Add(item)
+			for ; item.bundle > 0; item.bundle-- { // Rogue's ISMANY groups lie on the floor as one pile
+				inventory.Add(item.copyOfMissile())
+			}
 		}
 
 		g.msg(foundation.HiLite("You picked up %s", item.Name()))
@@ -504,17 +531,28 @@ func (g *GameState) EquipToggle(uiItem foundation.ItemForUI) {
 	equipment := g.Player.GetEquipment()
 	if equipment.IsEquipped(item) {
 		if equipment.CanUnequip(item) {
-			g.actorUnequipItem(g.Player, item)
+			g.playerUnequip(item)
 		} else {
 			g.msg(foundation.Msg("You cannot remove this item"))
 		}
 	} else {
 		if equipment.CanEquip(item) {
-			g.actorEquipItem(g.Player, item)
+			g.playerEquip(item)
 		} else {
 			g.msg(foundation.Msg("You cannot equip this item"))
 		}
 	}
+}
+
+// Rogue: wielding, wearing, taking off and putting on rings each take a turn
+func (g *GameState) playerEquip(item *Item) {
+	g.actorEquipItem(g.Player, item)
+	g.endPlayerTurn()
+}
+
+func (g *GameState) playerUnequip(item *Item) {
+	g.actorUnequipItem(g.Player, item)
+	g.endPlayerTurn()
 }
 
 func (g *GameState) actorEquipItem(wearer *Actor, item *Item) {
@@ -742,7 +780,7 @@ func (g *GameState) ChooseWeaponForWield() {
 		if !isStack {
 			return
 		}
-		g.actorEquipItem(g.Player, stack.First())
+		g.playerEquip(stack.First())
 		return
 	}
 	g.ui.OpenInventoryForSelection(inventory, "Wield what?", func(itemStack foundation.ItemForUI) {
@@ -751,7 +789,7 @@ func (g *GameState) ChooseWeaponForWield() {
 			return
 		}
 		item := stack.First()
-		g.actorEquipItem(g.Player, item)
+		g.playerEquip(item)
 	})
 }
 
@@ -769,7 +807,7 @@ func (g *GameState) ChooseArmorForWear() {
 		if !isStack {
 			return
 		}
-		g.actorEquipItem(g.Player, stack.First())
+		g.playerEquip(stack.First())
 		return
 	}
 	g.ui.OpenInventoryForSelection(inventory, "Wear what?", func(itemStack foundation.ItemForUI) {
@@ -778,7 +816,7 @@ func (g *GameState) ChooseArmorForWear() {
 			return
 		}
 		item := stack.First()
-		g.actorEquipItem(g.Player, item)
+		g.playerEquip(item)
 	})
 }
 
@@ -796,7 +834,7 @@ func (g *GameState) ChooseRingToPutOn() {
 		if !isStack {
 			return
 		}
-		g.actorEquipItem(g.Player, stack.First())
+		g.playerEquip(stack.First())
 		return
 	}
 	g.ui.OpenInventoryForSelection(inventory, "Put on what?", func(itemStack foundation.ItemForUI) {
@@ -805,7 +843,7 @@ func (g *GameState) ChooseRingToPutOn() {
 			return
 		}
 		item := stack.First()
-		g.actorEquipItem(g.Player, item)
+		g.playerEquip(item)
 	})
 }
 
@@ -824,7 +862,7 @@ func (g *GameState) ChooseArmorToTakeOff() {
 		if !isStack {
 			return
 		}
-		g.actorUnequipItem(g.Player, stack.First())
+		g.playerUnequip(stack.First())
 		return
 	}
 	g.ui.OpenInventoryForSelection(wornArmor, "Take off what?", func(itemStack foundation.ItemForUI) {
@@ -833,7 +871,7 @@ func (g *GameState) ChooseArmorToTakeOff() {
 			return
 		}
 		item := stack.First()
-		g.actorUnequipItem(g.Player, item)
+		g.playerUnequip(item)
 	})
 }
 
@@ -851,7 +889,7 @@ func (g *GameState) ChooseRingToRemove() {
 		if !isStack {
 			return
 		}
-		g.actorUnequipItem(g.Player, stack.First())
+		g.playerUnequip(stack.First())
 		return
 
 	}
@@ -861,6 +899,6 @@ func (g *GameState) ChooseRingToRemove() {
 			return
 		}
 		item := stack.First()
-		g.actorUnequipItem(g.Player, item)
+		g.playerUnequip(item)
 	})
 }

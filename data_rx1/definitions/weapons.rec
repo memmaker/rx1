@@ -15,6 +15,7 @@ slot: one_handed_weapon
 weapon_type: club
 weapon_damage: 2d4
 thrown_damage: 1d3
+worth: 8
 
 name: long sword
 internal_name: long_sword
@@ -24,6 +25,7 @@ chance: 11
 weapon_type: sword
 weapon_damage: 3d4
 thrown_damage: 1d2
+worth: 15
 
 name: short bow
 internal_name: short_bow
@@ -33,6 +35,7 @@ chance: 12
 weapon_type: bow
 weapon_damage: 1d1
 thrown_damage: 1d1
+worth: 15
 
 name: arrow
 internal_name: arrow
@@ -43,6 +46,7 @@ weapon_type: arrow
 weapon_launched_with_type: bow
 weapon_damage: 2d3
 thrown_damage: 1d1
+worth: 1
 
 name: dagger
 internal_name: dagger
@@ -52,6 +56,7 @@ chance: 8
 weapon_type: dagger
 weapon_damage: 1d6
 thrown_damage: 1d4
+worth: 3
 
 name: two handed sword
 internal_name: two_handed_sword
@@ -62,6 +67,7 @@ weapon_type: sword
 flags: two_handed
 weapon_damage: 4d4
 thrown_damage: 1d2
+worth: 75
 
 name: dart
 internal_name: dart
@@ -71,6 +77,7 @@ chance: 12
 weapon_type: dart
 weapon_damage: 1d1
 thrown_damage: 1d3
+worth: 2
 
 name: crossbow
 internal_name: crossbow
@@ -99,6 +106,7 @@ chance: 12
 weapon_type: spear
 weapon_damage: 2d3
 thrown_damage: 1d6
+worth: 5
 
 name: overkill
 internal_name: overkill

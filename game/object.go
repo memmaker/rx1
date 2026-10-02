@@ -21,7 +21,8 @@ func (g *GameState) NewTrap(trapType foundation.ObjectCategory) *Object {
 	trap := NewObject(trapType)
 	triggerEffect := func() []foundation.Animation {
 		if trap.isAlive {
-			trap.isAlive = false
+			trap.isHidden = false
+			trap.isAlive = trapType.IsRogueTrap() // Rogue's traps stay
 			zapEffect := ZapEffectFromName(trapType.ZapEffect())
 			consequences := zapEffect(g, nil, trap.Position())
 			return consequences

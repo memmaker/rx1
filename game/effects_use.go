@@ -22,8 +22,8 @@ func GetAllUseEffects() map[string]func(g *GameState, user *Actor) (bool, []foun
 		"confuse_monster_on_next_attack": endTurn(true, noAnim(confuseEnemyOnNextAttack)),
 		"reveal_map":                     endTurn(true, revealMap),
 		"freeze_monsters_in_room":        endTurn(true, holdAllVisibleMonsters),
-		"sleep_monsters_in_room":         endTurn(true, sleepAllVisibleMonsters),
-		"scare_monsters_in_room":         endTurn(true, scareAllVisibleMonsters),
+		"fall_asleep":                    endTurn(true, noAnim(fallAsleep)),
+		"maniacal_laughter":              endTurn(true, noAnim(maniacalLaughter)),
 		"enchant_armor":                  endTurn(false, playerEnchantArmor),
 		"enchant_weapon":                 endTurn(false, playerEnchantWeapon),
 		"aggravate_monsters":             endTurn(true, aggroMonsters),
@@ -36,6 +36,7 @@ func GetAllUseEffects() map[string]func(g *GameState, user *Actor) (bool, []foun
 		"drain_life":                     endTurn(true, drainLife),
 		"heal":                           endTurn(true, heal),
 		"extra_heal":                     endTurn(true, extraHeal),
+		"gain_strength":                  endTurn(true, gainStrength),
 		"gain_max_hp":                    endTurn(true, gainMaxHP),
 		"raise_level":                    endTurn(true, noAnim(raiseLevel)),
 		"uncloak":                        endTurn(true, uncloak),
@@ -79,17 +80,36 @@ func raiseLevel(g *GameState, user *Actor) {
 	g.msg(foundation.HiLite("Welcome to level %d", fmt.Sprint(g.Player.RaiseLevel())))
 }
 
+// healBy is Rogue's healing potions: roll(lvl, sides) hit points; past the maximum the maximum grows.
+// Both potions clear blindness (sight()), the extra one also hallucination (come_down()).
+func healBy(g *GameState, actor *Actor, sides int, extra bool) {
+	amount := rpg.NewDice(actor.GetLevel(), sides, 0).Roll()
+	actor.HealPast(amount, extra)
+	if actor.IsBlind() {
+		actor.GetFlags().Unset(foundation.FlagBlind)
+		g.msg(foundation.Msg("You can see again"))
+	}
+	if extra {
+		actor.GetFlags().Unset(foundation.FlagHallucinating)
+	}
+}
+
 func heal(g *GameState, actor *Actor) []foundation.Animation {
-	amount := actor.GetHitPointsMax() / 2
-	actor.Heal(amount)
+	healBy(g, actor, 4, false)
 	g.msg(foundation.Msg("you begin to feel better"))
 	return nil
 }
 
 func extraHeal(g *GameState, actor *Actor) []foundation.Animation {
-	amount := actor.GetHitPointsMax()
-	actor.Heal(amount)
+	healBy(g, actor, 8, true)
 	g.msg(foundation.Msg("you begin to feel much better"))
+	return nil
+}
+
+func gainStrength(g *GameState, actor *Actor) []foundation.Animation {
+	actor.RestoreStrength()
+	actor.ChangeStrength(1)
+	g.msg(foundation.Msg("you feel stronger, now.  What bulging muscles!"))
 	return nil
 }
 
@@ -101,8 +121,13 @@ func gainMaxHP(g *GameState, actor *Actor) []foundation.Animation {
 }
 
 func satiateFully(g *GameState, actor *Actor) []foundation.Animation {
-	actor.Satiate()
-	g.msg(foundation.Msg("you don't feel hungry anymore"))
+	actor.Eat()
+	if rand.Intn(100) > 70 {
+		actor.AddExperience(1)
+		g.msg(foundation.Msg("yuk, this food tastes awful"))
+	} else {
+		g.msg(foundation.Msg("yum, that tasted good"))
+	}
 	return nil
 }
 
@@ -213,7 +238,7 @@ func genocide(g *GameState, user *Actor) []foundation.Animation {
 
 func createMonster(g *GameState, user *Actor) {
 	freePositions := g.gridMap.GetFilteredNeighbors(user.Position(), func(point geometry.Point) bool {
-		return g.gridMap.CanPlaceActorHere(point)
+		return g.gridMap.CanPlaceActorHere(point) && !g.scareMonsterAt(point)
 	})
 
 	if len(freePositions) == 0 {
@@ -359,15 +384,20 @@ func aggroMonsters(g *GameState, actor *Actor) []foundation.Animation {
 		return g.gridMap.Contains(point)
 	})
 	waveEffect := g.ui.GetAnimRadialAlert(actor.Position(), dMap, nil)
+	aggravate(g)
+	return []foundation.Animation{waveEffect}
+}
 
+func aggravate(g *GameState) {
 	for _, monster := range g.gridMap.Actors() {
 		if monster == g.Player {
 			continue
 		}
-		monster.GetFlags().Unset(foundation.FlagSleep)
+		monster.SetAware() // Rogue runto: wakes, runs at the hero, breaks holds
+		monster.GetFlags().Set(foundation.FlagChase)
+		monster.GetFlags().Unset(foundation.FlagHeld)
 	}
-	g.msg(foundation.Msg("You hear a loud noise"))
-	return []foundation.Animation{waveEffect}
+	g.msg(foundation.Msg("you hear a high pitched humming noise"))
 }
 
 func playerIdentifyItem(g *GameState, actor *Actor) []foundation.Animation {
@@ -591,6 +621,11 @@ func confuseEnemyOnNextAttack(g *GameState, user *Actor) {
 	g.msg(msg)
 }
 func revealMap(g *GameState, user *Actor) []foundation.Animation {
+	for p, tile := range g.secrets { // Rogue's magic mapping shows secret doors and passages, not the hidden stairs
+		if !tile.IsStairsDown() {
+			g.revealSecret(p, true)
+		}
+	}
 	dMap := g.gridMap.GetDijkstraMap(user.Position(), 1000, func(point geometry.Point) bool {
 		return g.gridMap.IsTileWalkable(point) || g.gridMap.HasWalkableNeighbor(point)
 	})
@@ -625,48 +660,15 @@ func holdAllVisibleMonsters(g *GameState, user *Actor) []foundation.Animation {
 
 	return animations
 }
-func sleepAllVisibleMonsters(g *GameState, user *Actor) []foundation.Animation {
-	affectedMonsters := g.playerVisibleEnemiesByDistance()
 
-	for _, actor := range affectedMonsters {
-		if actor == g.Player {
-			continue
-		}
-		actor.SetSleeping()
-	}
-	if len(affectedMonsters) > 0 && user == g.Player && !g.Player.IsBlind() {
-		g.identification.EffectWitnessed()
-	}
-	var animations []foundation.Animation
-	for _, actor := range affectedMonsters {
-
-		flightAnim, _ := g.ui.GetAnimProjectile('Z', "Yellow", user.Position(), actor.Position(), nil)
-		animations = append(animations, flightAnim)
-	}
-
-	return animations
+// fallAsleep is Rogue 5.4's S_SLEEP: no_command += rnd(5)+4, checked in checkPlayerCanAct
+func fallAsleep(g *GameState, user *Actor) {
+	user.GetFlags().Increase(foundation.FlagSleep, rand.Intn(5)+5) // +1: the reading turn itself counts down once
+	g.msg(foundation.Msg("you fall asleep"))
 }
 
-func scareAllVisibleMonsters(g *GameState, user *Actor) []foundation.Animation {
-	affectedMonsters := g.playerVisibleEnemiesByDistance()
-
-	for _, actor := range affectedMonsters {
-		if actor == g.Player {
-			continue
-		}
-		actor.GetFlags().Set(foundation.FlagScared)
-	}
-	if len(affectedMonsters) > 0 && user == g.Player && !g.Player.IsBlind() {
-		g.identification.EffectWitnessed()
-	}
-	var animations []foundation.Animation
-	for _, actor := range affectedMonsters {
-
-		flightAnim, _ := g.ui.GetAnimProjectile('☼', "Red", user.Position(), actor.Position(), nil)
-		animations = append(animations, flightAnim)
-	}
-
-	return animations
+func maniacalLaughter(g *GameState, user *Actor) {
+	g.msg(foundation.Msg("you hear maniacal laughter in the distance"))
 }
 
 // Adapted from: https://github.com/memmaker/rogue-pc-modern-C/blob/582340fcaef32dd91595721efb2d5db41ff3cb05/src/potions.c#L47
