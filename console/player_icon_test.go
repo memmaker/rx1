@@ -29,7 +29,7 @@ func TestThemeSetsThePlayerIcon(t *testing.T) {
 	theme := NewThemeFromFile("../data_rx1/themes/cp437.rec")
 	player, other := &atActor{}, &atActor{}
 	u := &UI{game: playerGame{player: player}, currentTheme: theme}
-	if icon := u.getIconForActor(player); icon.Rune != '☻' || icon.Fg != theme.GetColorByName("Yellow") {
+	if icon := u.getIconForActor(player); icon.Rune != '☺' || icon.Fg != theme.GetColorByName("Yellow") {
 		t.Fatalf("player: %c %v", icon.Rune, icon.Fg)
 	}
 	if icon := u.getIconForActor(other); icon.Rune != '@' {
