@@ -77,7 +77,7 @@ func GetDataDefinitions(rootDir string) DataDefinitions {
 		items[foundation.ItemCategoryAmulets] = ItemDefsFromRecords(amuletRecords)
 	}
 	if len(lightRecords) > 0 {
-		items[foundation.ItemCategoryOther] = ItemDefsFromRecords(lightRecords)
+		items[foundation.ItemCategoryLight] = ItemDefsFromRecords(lightRecords)
 	}
 	if len(foodRecords) > 0 {
 		items[foundation.ItemCategoryFood] = ItemDefsFromRecords(foodRecords)

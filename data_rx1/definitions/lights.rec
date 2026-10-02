@@ -4,7 +4,7 @@
 
 name: torch
 internal_name: torch
-category: other
+category: light
 slot: light_source
 charges: 800
 light_radius: 1
@@ -14,7 +14,7 @@ light_flicker_frame_delay: 125
 
 name: lantern
 internal_name: lantern
-category: other
+category: light
 slot: light_source
 charges: 1000-1200
 light_radius: 2
@@ -24,7 +24,7 @@ light_flicker_frame_delay: 125
 
 name: brass lantern
 internal_name: brass_lantern
-category: other
+category: light
 slot: light_source
 charges: 1000-1200
 light_radius: 3
@@ -34,7 +34,7 @@ light_flicker_frame_delay: 125
 
 name: the Star-Glass
 internal_name: star_glass
-category: other
+category: light
 slot: light_source
 light_radius: 4
 light_color: 5 250 255
@@ -43,7 +43,7 @@ light_flicker_frame_delay: 125
 
 name: the Morning Star
 internal_name: morning_star
-category: other
+category: light
 slot: light_source
 light_radius: 12
 light_color: 255 248 207
