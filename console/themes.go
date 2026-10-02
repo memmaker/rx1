@@ -44,8 +44,9 @@ type Theme struct {
 	iconsForMap          map[foundation.TileType]foundation.TextIcon
 	defaultStyle         tcell.Style
 	isMonoChrome         bool
-	phosphorTint         *color.RGBA // optional %rec: phosphor, tints the whole screen
-	hiddenTrapBrightness float64     // optional %rec: hidden_trap, the foreground brightness of the floor over a trap not found yet
+	phosphorTint         *color.RGBA         // optional %rec: phosphor, tints the whole screen
+	playerIcon           foundation.TextIcon // %rec: player, the rune and the foreground colour of the player
+	hiddenTrapBrightness float64             // optional %rec: hidden_trap, the foreground brightness of the floor over a trap not found yet
 }
 
 func (t Theme) GetIconForItem(category foundation.ItemCategory) foundation.TextIcon {
@@ -97,6 +98,16 @@ func NewThemeFromFile(filename string) Theme {
 		}
 	}
 
+	var playerIcon foundation.TextIcon
+	for _, field := range records["player"][0] {
+		switch field.Name {
+		case "Player":
+			playerIcon.Rune = []rune(field.Value)[0]
+		case "Player_Color":
+			playerIcon.Fg = colors.GetByName(field.Value)
+		}
+	}
+
 	hiddenTrapBrightness := 0.4
 	if rec, ok := records["hidden_trap"]; ok && len(rec) > 0 {
 		for _, field := range rec[0] {
@@ -109,6 +120,7 @@ func NewThemeFromFile(filename string) Theme {
 	return Theme{
 		phosphorTint:         phosphorTint,
 		hiddenTrapBrightness: hiddenTrapBrightness,
+		playerIcon:           playerIcon,
 		colorDefs:            colors,
 
 		uiColors: uiColors,
