@@ -95,27 +95,6 @@ func (m *DungeonMap) SetDoor(x int, y int) {
 	m.tiles[x+y*m.width] = Door
 }
 
-func (m *DungeonMap) CanPlaceRoomRestrictive(room *DungeonRoom) bool {
-	nb := geometry.Neighbors{}
-	absoluteFloorTiles := room.GetAbsoluteFloorTiles()
-	for _, tile := range absoluteFloorTiles {
-		if !m.Contains(tile) {
-			return false
-		}
-		tileAt := m.GetTileAt(tile)
-		if tileAt != Wall {
-			return false
-		}
-		unusableNeighborTiles := nb.All(tile, func(pos geometry.Point) bool {
-			return !m.Contains(pos) || m.GetTileAt(pos) != Wall
-		})
-		if len(unusableNeighborTiles) > 0 {
-			return false
-		}
-	}
-	return true
-}
-
 func (m *DungeonMap) Contains(pos geometry.Point) bool {
 	return pos.X >= 0 && pos.X < m.width && pos.Y >= 0 && pos.Y < m.height
 }

@@ -104,14 +104,32 @@ func (c *MegaDungeonGenerator) addRooms(m *DungeonMap) {
 		x := makeOdd(c.randomSource, c.randomSource.Intn(max(2, m.width-roomWidth-1))+1)
 		y := makeOdd(c.randomSource, c.randomSource.Intn(max(2, m.height-roomHeight-1))+1)
 
-		room := NewDungeonRoomFromRect(geometry.NewRect(x, y, x+roomWidth, y+roomHeight))
-		if !m.CanPlaceRoomRestrictive(room) {
+		if !hasSpaceForRoom(m, x, y, roomWidth, roomHeight) {
 			continue
 		}
+		room := NewDungeonRoomFromRect(geometry.NewRect(x, y, x+roomWidth, y+roomHeight))
 		room.SetLit(c.randomSource.Intn(4) == 0)
 		m.AddRoomAndSetTiles(room)
 		c.addRegion(m, room, room.GetAbsoluteFloorTiles())
 	}
+}
+
+// hasSpaceForRoom: the room lies inside the wall around the map and has rock for a wall, a corridor
+// and another wall between itself and every other room. So rooms never share a wall.
+// The reference (Hauberk) only keeps rooms from touching and lets them share one.
+func hasSpaceForRoom(m *DungeonMap, x, y, width, height int) bool {
+	if x < 1 || y < 1 || x+width > m.width-1 || y+height > m.height-1 {
+		return false
+	}
+	// rooms begin and end on odd coordinates, so two tiles of rock mean there are three
+	for ny := max(0, y-2); ny < min(m.height, y+height+2); ny++ {
+		for nx := max(0, x-2); nx < min(m.width, x+width+2); nx++ {
+			if m.tiles[nx+ny*m.width] != Wall {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 // addCorridors grows a maze from every spot that is still solid rock. One pass is enough:
