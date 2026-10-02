@@ -60,6 +60,7 @@ Player_Color: Yellow
 Black: 0 | 0 | 0
 DarkGray: 85 | 85 | 85
 ChasmEdge: 16 | 16 | 57
+Gray: 128 | 128 | 128
 VeryDarkGray: 40 | 40 | 40
 Blue: 0 | 64 | 255
 LightBlue: 85 | 85 | 255
@@ -72,6 +73,7 @@ Red: 192 | 0 | 0
 LightRed: 255 | 85 | 85
 Magenta: 170 | 0 | 170
 LightMagenta: 255 | 85 | 255
+Orange: 227 | 114 | 0
 Brown: 170 | 85 | 0
 LightBrown: 192 | 128 | 64
 Yellow: 255 | 255 | 85
