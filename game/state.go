@@ -66,14 +66,13 @@ type GameState struct {
 	identification        *IdentificationKnowledge
 	afterAnimationActions []func()
 
-	playerFoV               *geometry.FOV
-	glowing                 map[geometry.Point]color.RGBA // the added up light of lava and fungus (Brogue levels)
-	visionRange             int
-	playerIcon              rune
-	playerColor             string
-	config                  *foundation.Configuration
-	ascensionsWithoutAmulet int
-	wanderingMonsterTurn    int // rollwand state machine: spawn after ~70 turns
+	playerFoV            *geometry.FOV
+	glowing              map[geometry.Point]color.RGBA // the added up light of lava and fungus (Brogue levels)
+	visionRange          int
+	playerIcon           rune
+	playerColor          string
+	config               *foundation.Configuration
+	wanderingMonsterTurn int // rollwand state machine: spawn after ~70 turns
 }
 
 func (g *GameState) GetRandomEnemyName() string {
@@ -514,7 +513,7 @@ func (g *GameState) GetHudStats() map[foundation.HudValue]int {
 	uiStats[foundation.HudFatiguePointsMax] = g.Player.GetFatiguePointsMax()
 
 	uiStats[foundation.HudStrength] = g.Player.GetStrength()
-	uiStats[foundation.HudArmorClass] = g.Player.GetArmorClass()
+	uiStats[foundation.HudArmor] = g.Player.GetArmor()
 	uiStats[foundation.HudLevel] = g.Player.GetLevel()
 	uiStats[foundation.HudExperience] = g.Player.GetExperience()
 
@@ -1323,17 +1322,6 @@ func (g *GameState) startSprint(actor *Actor) {
 	}
 	actor.LooseFatigue(1)
 	haste(g, actor)
-}
-
-func (g *GameState) unstableStairs() bool {
-	if g.currentDungeonLevel >= 26 {
-		return false
-	}
-	if g.Player.GetInventory().HasItemWithName("amulet_of_yendor") {
-		return false
-	}
-	chance := min(max(float64(min(10, g.ascensionsWithoutAmulet))/10.0, 0), 0.9)
-	return rand.Float64() < chance
 }
 
 func (g *GameState) AddCurseToEquippable(item *Item) {

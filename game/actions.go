@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"math/rand"
 	"rx1/foundation"
 	"rx1/geometry"
 	"rx1/rpg"
@@ -283,33 +282,11 @@ func (g *GameState) PlayerTryAscend() {
 			g.GotoDungeonLevel(g.currentDungeonLevel, StairsBoth, false)
 			return
 		}
-		if g.currentDungeonLevel == 1 {
-			if g.Player.GetInventory().HasItemWithName("amulet_of_yendor") {
-				g.gameWon()
-			} else {
-				g.ascendWithStairs(stairs)
-			}
-		} else {
-			g.ascendWithStairs(stairs)
-			if !g.Player.GetInventory().HasItemWithName("amulet_of_yendor") {
-				if g.unstableStairs() {
-					if g.currentDungeonLevel < 26 {
-						stairs = StairsDownOnly
-					}
-					if rand.Intn(10) == 0 {
-						g.msg(foundation.Msg("the stairs are crumbling beneath you, you fall deep down."))
-						g.GotoDungeonLevel(g.currentDungeonLevel+2, stairs, true)
-					} else {
-						g.msg(foundation.Msg("the stairs are crumbling beneath you, you fall down."))
-						g.descendWithStairs(stairs)
-					}
-
-					return
-				}
-				g.ascensionsWithoutAmulet++
-				g.msg(foundation.Msg("you feel that the dungeon becomes unstable."))
-			}
+		if g.currentDungeonLevel == 1 && g.Player.GetInventory().HasItemWithName("amulet_of_yendor") {
+			g.gameWon()
+			return
 		}
+		g.ascendWithStairs(stairs)
 	}
 }
 func (g *GameState) Descend() {
