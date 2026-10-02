@@ -55,7 +55,7 @@ Rogue duration units are command rounds (fuses tick once per round after the `nt
 | Effect | 3.6 | 5.4 | rx1 | Verdict |
 |---|---|---|---|---|
 | Healing | `roll(lvl,4)`; if over max, `++max_hp`; `sight()` cures blindness (potions.c `quaff`) | same | heals `maxHP/2`; no max HP gain; does not cure blindness (effects_use.go) | DIFFERENT |
-| Extra healing | `roll(lvl,8)`; over max => `++max_hp` | `roll(lvl,8)`; `++max_hp` extra; `come_down` ends hallucination | heals to full `maxHP`; no max HP gain | DIFFERENT |
+| Extra healing | `roll(lvl,8)`; over max => `++max_hp` | `roll(lvl,8)`; `++max_hp` once, twice if the overshoot exceeds `lvl+1` (corrected); `come_down` ends hallucination | heals to full `maxHP`; no max HP gain | DIFFERENT |
 | Confusion | `rnd(8)+20` = 20..27, lengthens | `spread(20)` = 19..20, lengthens | `Increase(rand.Intn(8)+confuseDuration())`, `confuseDuration = spread(20)` (rx1 spread is +-10%: 18..21), so 18..28; stacks | DIFFERENT (close to 3.6 range) |
 | Hallucination | absent | `spread(850)` (808..892) | 8..15 player actions | DIFFERENT (duration far shorter) |
 | Blindness | `fuse(sight, 850)` if not blind | `spread(850)`, lengthens | 8..15 actions (+1) | DIFFERENT (850 vs ~12) |
@@ -154,13 +154,13 @@ rx1 follows 5.4 (invisibility, no striking, no nothing).
 | Zero charges | "Nothing happens", item stays | same | item is destroyed at 0 charges (`hasPaidWithCharge`, state.go:883) | DIFFERENT |
 | No direction given | random direction | random | n/a | n/a |
 | Light | lights room | same | lights room | SAME |
-| Magic missile | bolt `1d4`, hplus 100, dplus 1 => 2..5; monster `save_throw(VS_MAGIC)` avoids; always known | same, plus wielded weapon's plusses (`o_launch`) | `damageLocation(..., 0)` = 0 damage (likely bug) | DIFFERENT, likely defect |
+| Magic missile (corrected) | bolt `1d4`, hplus 100, dplus 1 => 2..5; monster `save_throw(VS_MAGIC)` avoids; always known | same, plus wielded weapon's plusses (`o_launch`) | `magicMissile` (effects_zap.go): `damageLocation(..., rand.Intn(4)+2)` = 2..5 at the first thing on the path, no save, no weapon plusses (the earlier 0-damage defect is fixed in the working tree) | SAME damage range; no save |
 | Fire / lightning / cold | 6d6, BOLT_LENGTH 6, bounces, monster save, can hit hero (`save(VS_MAGIC)`) | same (`fire_bolt`, dragon bounces fire) | cold `Spread(8,0.35)` 6..10, target Held (frozen), no save, 1/7 bounce. Fire `Spread(10,0.8)` 2..17, 1/20 bounce. Lightning `Spread(7,0.5)` 4..10, chains 50%, 1/20 bounce | DIFFERENT |
 | Polymorph | random monster letter, keeps hp ratio | same | `RandomMonsterDef`, no pack retention | similar |
 | Teleport away | random room floor | `find_floor`, not hero's position | `phaseDoor` (target also confused) | DIFFERENT detail |
 | Teleport to | monster placed next to hero | same | random free cell near zapper | SAME |
 | Cancellation | ISCANC, clears ISINVIS | also clears CANHUH, resets disguise | `FlagCancel` (timed for player) | DIFFERENT detail |
-| Haste monster | clears ISSLOW if slow, else sets ISHASTE | same | `haste()` unsets `FlagHaste` instead of `FlagSlow` when target is slowed (bug) | DIFFERENT, defect |
+| Haste monster (corrected) | clears ISSLOW if slow, else sets ISHASTE | same | `hasteTarget` -> `haste()` (effects_use.go): clears `FlagSlow` if slowed, else sets `FlagHaste`; `slow()` is the mirror | SAME (the earlier claim of a wrong-flag bug was wrong) |
 | Slow monster | converse, then `runto` | same | correct | SAME |
 | Drain life | needs hp >= 2; `cnt = hp/num` before halving => total = full HP (3.6); | halves hero HP first, then `cnt = hp/num` => total = half | user loses `max(1, hp/2)`; each monster in room (or adjacent in corridor) takes `max(1, dmg/n)`; no "too weak" check, can kill the user at 1 HP | 5.4 idea, DIFFERENT safety |
 | Striking | adjacent only; 1/20 3d8+9 else 1d8+3 | absent | absent | 3.6 only |
@@ -241,8 +241,8 @@ rx1 chances follow 5.4. 5.4 worth also adds a per-stone value at init.
 ## 9. Main rx1 differences and probable defects
 
 1. Heal potions restore a fixed fraction (1/2 and full) instead of `roll(lvl,4/8)`, and never raise max HP or cure blindness.
-2. Magic missile wand deals 0 damage (`damageLocation(..., 0)`), versus 2..5 plus save.
-3. `haste()` on a slowed target unsets the wrong flag; slowed monsters stay slowed.
+2. (corrected) Magic missile wand deals 2..5 (`rand.Intn(4)+2`) like Rogue, but monsters get no `save_throw` and weapon plusses are ignored.
+3. (corrected) `haste()`/`slow()` correctly cancel each other; no defect here.
 4. Drain life has no "too weak" guard and can kill a 1 HP user.
 5. Empty wands are destroyed; charges are 1..8 (light 3..30) instead of 3..7 (10..19).
 6. Sleep scroll, scare scroll and aggravate scroll have inverted or reduced semantics; no scare-scroll floor mechanic.
