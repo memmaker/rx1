@@ -43,6 +43,7 @@ type GameState struct {
 	deepestDungeonLevelPlayerReached int
 	levelsWithoutFood                int // Rogue's no_food
 	lightsRolledUpTo                 int
+	exploreSeen                      map[any]bool            // items and traps auto-explore has already stopped for
 	exploreVisited                   map[geometry.Point]bool // tiles auto explore stood on, for exploreVisitedMap
 	exploreVisitedMap                *gridmap.GridMap[*Actor, *Item, *Object]
 	starGlassSpawned                 bool

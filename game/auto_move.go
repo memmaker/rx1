@@ -106,14 +106,44 @@ func (g *GameState) AutoExploreStep() bool {
 	}
 	m := g.gridMap
 	if g.exploreVisitedMap != m {
-		g.exploreVisited, g.exploreVisitedMap = map[geometry.Point]bool{}, m
+		g.exploreVisited, g.exploreVisitedMap, g.exploreSeen = map[geometry.Point]bool{}, m, nil
 	}
 	g.exploreVisited[player.Position()] = true
+	g.spotNewThings() // what is in view when exploring starts is not a discovery
 	isFrontier := func(p geometry.Point) bool {
 		// a tile we stood on without revealing its neighbours never will; skipping it stops the back-and-forth
 		return !g.exploreVisited[p] && len(m.NeighborsAll(p, func(n geometry.Point) bool { return m.Contains(n) && !m.IsExplored(n) })) > 0
 	}
-	return g.autoMoveToward(isFrontier, true)
+	if !g.autoMoveToward(isFrontier, true) {
+		return false
+	}
+	if g.spotNewThings() || len(g.GetVisibleEnemies()) > 0 {
+		g.msg(foundation.Msg("You stop exploring: you spot something"))
+		return false
+	}
+	return true
+}
+
+// spotNewThings remembers the items and visible traps in view; true if any of them were not seen before.
+func (g *GameState) spotNewThings() bool {
+	if g.exploreSeen == nil {
+		g.exploreSeen = map[any]bool{}
+	}
+	found := false
+	spot := func(thing any) {
+		if !g.exploreSeen[thing] {
+			g.exploreSeen[thing], found = true, true
+		}
+	}
+	for _, item := range g.playerVisibleItemsByDistance() {
+		spot(item)
+	}
+	for _, object := range g.gridMap.Objects() {
+		if !object.IsHidden() && g.canPlayerSee(object.Position()) {
+			spot(object)
+		}
+	}
+	return found
 }
 
 // autoMoveToward takes one step along a known-floor path to the nearest goal tile; false if none is reachable.
