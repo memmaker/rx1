@@ -124,6 +124,20 @@ func TestTorchShowsTheRoomCorner(t *testing.T) {
 				if r := g.playerLightRadius(); r != 1 || !g.canPlayerSee(corner) || !g.gridMap.IsExplored(corner) {
 					t.Fatalf("radius %d: the corner %v is not seen from %v", r, corner, here)
 				}
+				// a light that reaches further shows the corner from further away
+				below := here.Add(geometry.Point{Y: 1})
+				if !room.FloorContains(below) {
+					continue
+				}
+				g.Player.SetPosition(below)
+				g.exploreMap()
+				if g.canPlayerSee(corner) {
+					t.Fatalf("the torch lights the corner %v from %v", corner, below)
+				}
+				g.actorEquipItem(g.Player, g.NewItemFromName("brass_lantern"))
+				if !g.canPlayerSee(corner) {
+					t.Fatalf("the brass lantern does not light the corner %v from %v", corner, below)
+				}
 				return
 			}
 		}
