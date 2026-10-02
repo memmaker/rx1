@@ -259,3 +259,7 @@ UIBorder_TopLeftFocus: ┌
 UIBorder_TopRightFocus: ┐
 UIBorder_BottomLeftFocus: └
 UIBorder_BottomRightFocus: ┘
+
+%rec: hidden_trap
+
+Dim: 0.7

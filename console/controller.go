@@ -2287,9 +2287,9 @@ func (u *UI) visibleLookup(loc geometry.Point) (foundation.TextIcon, bool) {
 		return u.getIconForObject(object), true
 	}
 	icon := u.getIconForMap(u.game.MapAt(loc))
-	if u.game.ObjectAt(loc) != -1 { // a trap not found yet: the foreground of its floor is 40% darker
+	if u.game.ObjectAt(loc) != -1 { // a trap not found yet: the foreground of its floor is darker
 		bg := icon.Bg
-		icon = scaleIcon(icon, 0.6, color.RGBA{255, 255, 255, 255})
+		icon = scaleIcon(icon, u.currentTheme.hiddenTrapDim, color.RGBA{255, 255, 255, 255})
 		icon.Bg = bg
 	}
 	return icon, true
