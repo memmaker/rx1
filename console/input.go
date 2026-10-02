@@ -114,10 +114,6 @@ func (u *UI) setupCommandTable() {
 		u.Print(foundation.Msg(fmt.Sprintf("Gamma: %.1f", u.gamma)))
 	}
 
-	u.commandTable["toggle_cursor"] = func() {
-		u.SetShowCursor(!u.showCursor)
-	}
-
 	u.commandTable["throw"] = u.game.ChooseItemForThrow
 	u.commandTable["read"] = u.game.ChooseItemForRead
 	u.commandTable["use"] = u.game.ChooseItemForUse
@@ -126,7 +122,6 @@ func (u *UI) setupCommandTable() {
 	u.commandTable["take_off"] = u.game.ChooseItemToTakeOff
 	u.commandTable["drop"] = u.game.ChooseItemForDrop
 
-	u.commandTable["launch"] = u.game.ChooseItemForMissileLaunch
 	u.commandTable["aim"] = u.game.AimedShot
 	u.commandTable["quick_shot"] = u.game.QuickShot
 	u.commandTable["pickup"] = u.game.PickupItem
@@ -174,7 +169,6 @@ var friendlyNames = map[string]string{
 	"overlay_items":     "Overlay Items",
 	"gamma_up":          "Gamma Up",
 	"gamma_down":        "Gamma Down",
-	"toggle_cursor":     "Toggle Cursor",
 	"throw":             "Throw",
 	"read":              "Read",
 	"use":               "Use",
@@ -182,7 +176,6 @@ var friendlyNames = map[string]string{
 	"equip":             "Equip",
 	"take_off":          "Take Off",
 	"drop":              "Drop",
-	"launch":            "Launch",
 	"aim":               "Aim",
 	"quick_shot":        "Quick Shot",
 	"pickup":            "Pickup",
@@ -222,7 +215,6 @@ func (u *UI) showKeyBindings() {
 		"auto_explore",
 		"wait",
 		"inventory",
-		"character",
 	}
 
 	rightColCommands := []string{
@@ -234,7 +226,6 @@ func (u *UI) showKeyBindings() {
 		"take_off",
 		"drop",
 		"pickup",
-		"launch",
 		"aim",
 		"quick_shot",
 		"look",
@@ -242,12 +233,12 @@ func (u *UI) showKeyBindings() {
 		"overlay_items",
 		"monsters",
 		"items",
+		"character",
 		"log",
 		"tactics",
 		"themes",
 		"gamma_up",
 		"gamma_down",
-		"toggle_cursor",
 		"save",
 		"load",
 		"wizard",
@@ -489,10 +480,10 @@ var commandMenuGroups = []struct {
 	commands []string
 }{
 	{"Items", []string{"inventory", "pickup", "drop", "use", "consume", "equip", "read", "throw", "take_off"}},
-	{"Combat", []string{"aim", "quick_shot", "launch", "tactics", "look"}},
+	{"Combat", []string{"aim", "quick_shot", "tactics", "look"}},
 	{"Explore", []string{"auto_explore", "descend", "ascend", "wait"}},
 	{"Info", []string{"character", "monsters", "items", "log", "help", "show_key_bindings"}},
-	{"Display", []string{"overlay_monsters", "overlay_items", "themes", "gamma_up", "gamma_down", "toggle_cursor"}},
+	{"Display", []string{"overlay_monsters", "overlay_items", "themes", "gamma_up", "gamma_down"}},
 	{"Game", []string{"save", "load", "wizard", "quit"}},
 }
 

@@ -666,32 +666,6 @@ func (g *GameState) ChooseItemForThrow() {
 	})
 }
 
-func (g *GameState) ChooseItemForMissileLaunch() {
-	equipment := g.Player.GetEquipment()
-	if !equipment.HasMissileLauncherEquipped() {
-		g.msg(foundation.Msg("You are not carrying a missile launcher."))
-		return
-	}
-
-	launcher := equipment.GetMissileLauncher()
-	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		return item.IsMissile() && item.GetWeapon().IsLaunchedWith(launcher.GetWeapon().GetWeaponType())
-	})
-
-	if len(inventory) == 0 {
-		g.msg(foundation.Msg("You are not carrying anything that can be launched with this launcher."))
-		return
-	}
-	g.ui.OpenInventoryForSelection(inventory, "Launch what?", func(itemStack foundation.ItemForUI) {
-		stack, isStack := itemStack.(*InventoryStack)
-		if !isStack {
-			return
-		}
-		item := stack.First()
-		g.startRangedAttackWithMissile(item)
-	})
-}
-
 func (g *GameState) GetInventory() []foundation.ItemForUI {
 	return itemStacksForUI(g.Player.GetInventory().StackedItems())
 }
