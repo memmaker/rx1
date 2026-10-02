@@ -156,7 +156,7 @@ TileWallTJunctionBottom: ╩
 TileWallTJunctionBottom_Colors: Brown | Black
 TileWallTJunctionLeft: ╠
 TileWallTJunctionLeft_Colors: Brown | Black
-TileWallCross: ╫
+TileWallCross: ╬
 TileWallCross_Colors: Brown | Black
 TileDoorOpen: ╬
 TileDoorOpen_Colors: Brown | Black
