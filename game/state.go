@@ -48,7 +48,11 @@ type GameState struct {
 	exploreVisitedMap                *gridmap.GridMap[*Actor, *Item, *Object]
 	starGlassSpawned                 bool
 	morningStarSpawned               bool
-	secrets                          map[geometry.Point]gridmap.Tile // secret doors/passages: the real tile until found
+	secrets                          map[geometry.Point]gridmap.Tile // secret doors/passages/stairs: the real tile until found
+	secretLevelDepth                 int                             // the dungeon level that hides the stairs to the secret level
+	secretStairs                     geometry.Point                  // where they are on the current level
+	secretLevelVisited               bool
+	inSecretLevel                    bool
 
 	tileStyle         int
 	defaultBackground color.RGBA
@@ -274,6 +278,10 @@ func (g *GameState) GetPlayerPosition() geometry.Point {
 	return g.Player.Position()
 }
 
+func (g *GameState) GetMapSize() geometry.Point {
+	return g.gridMap.MapSize()
+}
+
 func (g *GameState) QueueActionAfterAnimation(action func()) {
 	g.afterAnimationActions = append(g.afterAnimationActions, action)
 }
@@ -379,6 +387,11 @@ func (g *GameState) OpenWizardMenu() {
 			Name:   "Create Trap",
 			Action: g.openWizardCreateTrapMenu,
 		},
+		{
+			Name:       "Goto Secret Level",
+			Action:     g.GotoSecretLevel,
+			CloseMenus: true,
+		},
 	})
 }
 
@@ -451,6 +464,8 @@ func (g *GameState) init() {
 	g.lightsRolledUpTo = 0
 	g.starGlassSpawned = false
 	g.morningStarSpawned = false
+	g.secretLevelDepth = 7 + rand.Intn(6)
+	g.secretLevelVisited = false
 	g.showEverything = false
 	g.usedDocuments = make(map[string]bool)
 }

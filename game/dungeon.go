@@ -135,6 +135,9 @@ func (g *GameState) GotoNamedLevel(levelName string) {
 
 	g.dungeonLayout = nil
 	g.currentDungeonLevel = 0
+	g.inSecretLevel = false
+	g.secrets = nil
+	g.secretStairs = geometry.Point{}
 
 	newMap.AddActor(g.Player, spawnPos)
 
@@ -167,11 +170,23 @@ func townGrass(p geometry.Point) foundation.TileType {
 }
 
 func (g *GameState) GotoDungeonLevel(level int, stairs StairsInLevel, placePlayerOnStairs bool) {
+	g.gotoLevel(level, stairs, placePlayerOnStairs, false)
+}
+
+// GotoSecretLevel leads to a huge level beside the current one. Its only stairs lead back.
+func (g *GameState) GotoSecretLevel() {
+	g.secretLevelVisited = true
+	g.gotoLevel(g.currentDungeonLevel, StairsUpOnly, true, true)
+	g.msg(foundation.Msg("You enter a vast, forgotten part of the dungeon."))
+}
+
+func (g *GameState) gotoLevel(level int, stairs StairsInLevel, placePlayerOnStairs bool, secret bool) {
 	if g.gridMap != nil {
 		g.gridMap.RemoveActor(g.Player)
 		g.Player.RemoveLevelStatusEffects()
 	}
-	isDown := level > g.currentDungeonLevel
+	isDown := secret || level > g.currentDungeonLevel
+	g.inSecretLevel = secret
 
 	g.currentDungeonLevel = level
 	if g.deepestDungeonLevelPlayerReached < level {
@@ -182,7 +197,14 @@ func (g *GameState) GotoDungeonLevel(level int, stairs StairsInLevel, placePlaye
 	}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
-	dungeon := dungen.NewRogueGenerator(random, g.config.MapWidth, g.config.MapHeight, level).Generate()
+	var dungeon *dungen.DungeonMap
+	if secret {
+		dungeon = dungen.NewMegaDungeonGenerator(random).Generate(2*g.config.MapWidth, 3*g.config.MapHeight)
+		rooms := dungeon.AllRooms()
+		dungeon.SetStairsUp(rooms[random.Intn(len(rooms))].GetRandomAbsoluteFloorPosition(random))
+	} else {
+		dungeon = dungen.NewRogueGenerator(random, g.config.MapWidth, g.config.MapHeight, level).Generate()
+	}
 	g.levelsWithoutFood++
 
 	mapWidth, mapHeight := dungeon.GetSize()
@@ -194,6 +216,10 @@ func (g *GameState) GotoDungeonLevel(level int, stairs StairsInLevel, placePlaye
 	newMap.SetCardinalMovementOnly(!g.config.DiagonalMovementEnabled)
 
 	stairsUp, stairsDown := g.decorateMapWithTiles(newMap, dungeon, stairs)
+	g.secretStairs = geometry.Point{}
+	if !secret && level == g.secretLevelDepth && !g.secretLevelVisited {
+		g.hideSecretStairs(random, newMap, dungeon)
+	}
 
 	// place player
 	//var otherEndPos geometry.Point
@@ -223,6 +249,33 @@ func (g *GameState) GotoDungeonLevel(level int, stairs StairsInLevel, placePlaye
 		Mode:      foundation.PlayerMoveModeManual,
 	})
 	g.updateUIStatus()
+	if g.secretStairs != (geometry.Point{}) {
+		g.msg(foundation.Msg("You feel a cold draft from below."))
+	}
+}
+
+// hideSecretStairs puts the way to the secret level under a corridor tile:
+// found by walking over it or by searching next to it.
+func (g *GameState) hideSecretStairs(random *rand.Rand, newMap *gridmap.GridMap[*Actor, *Item, *Object], dungeon *dungen.DungeonMap) {
+	var corridors []geometry.Point
+	mapWidth, mapHeight := dungeon.GetSize()
+	for y := 0; y < mapHeight; y++ {
+		for x := 0; x < mapWidth; x++ {
+			if pos := (geometry.Point{X: x, Y: y}); dungeon.GetTile(x, y) == dungen.Corridor && newMap.IsTileWalkable(pos) {
+				corridors = append(corridors, pos)
+			}
+		}
+	}
+	if len(corridors) == 0 {
+		return
+	}
+	g.secretStairs = corridors[random.Intn(len(corridors))]
+	g.secrets[g.secretStairs] = gridmap.Tile{
+		Feature:            foundation.TileStairsDown,
+		DefinedDescription: "hidden stairs down",
+		IsWalkable:         true,
+		IsTransparent:      true,
+	}
 }
 
 func (g *GameState) decorateMapWithTiles(newMap *gridmap.GridMap[*Actor, *Item, *Object], dungeon *dungen.DungeonMap, stairs StairsInLevel) (geometry.Point, geometry.Point) {

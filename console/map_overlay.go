@@ -6,19 +6,15 @@ import (
 	"rx1/geometry"
 )
 
+// Overlay holds labels that are drawn over the map, by map position.
 type Overlay struct {
-	width             int
-	height            int
-	grid              []foundation.TextIcon
+	icons             map[geometry.Point]foundation.TextIcon
 	defaultBackground color.RGBA
 	defaultForeground color.RGBA
 }
 
-func NewOverlay(width int, height int) *Overlay {
-	grid := make([]foundation.TextIcon, width*height)
-	o := &Overlay{width: width, height: height, grid: grid}
-	o.ClearAll()
-	return o
+func NewOverlay() *Overlay {
+	return &Overlay{icons: make(map[geometry.Point]foundation.TextIcon)}
 }
 
 func (o *Overlay) SetDefaultColors(fg, bg color.RGBA) {
@@ -27,37 +23,25 @@ func (o *Overlay) SetDefaultColors(fg, bg color.RGBA) {
 }
 
 func (o *Overlay) Set(x, y int, icon foundation.TextIcon) {
-	o.grid[y*o.width+x] = icon
+	o.icons[geometry.Point{X: x, Y: y}] = icon
 }
 
 func (o *Overlay) ClearAll() {
-	for i := range o.grid {
-		o.grid[i] = foundation.TextIcon{
-			Rune: -1,
-		}
-	}
+	clear(o.icons)
 }
 
 func (o *Overlay) Print(x, y int, text string) {
 	for i, r := range []rune(text) {
-		if x+i >= o.width {
-			break
-		}
-		o.grid[y*o.width+x+i] = foundation.TextIcon{Rune: r, Fg: o.defaultForeground, Bg: o.defaultBackground}
+		o.Set(x+i, y, foundation.TextIcon{Rune: r, Fg: o.defaultForeground, Bg: o.defaultBackground})
 	}
 }
 
-func (o *Overlay) Contains(x, y int) bool {
-	return x >= 0 && x < o.width && y >= 0 && y < o.height
-}
 func (o *Overlay) IsSet(x, y int) bool {
-	if !o.Contains(x, y) {
-		return false
-	}
-	return o.grid[y*o.width+x].Rune != -1
+	_, isSet := o.icons[geometry.Point{X: x, Y: y}]
+	return isSet
 }
 func (o *Overlay) Get(x, y int) foundation.TextIcon {
-	return o.grid[y*o.width+x]
+	return o.icons[geometry.Point{X: x, Y: y}]
 }
 
 func (o *Overlay) AsciiLine(origin geometry.Point, dest geometry.Point, steps []geometry.Point) {

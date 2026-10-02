@@ -30,6 +30,7 @@ func rnd(random *rand.Rand, n int) int {
 
 func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.GridMap[*Actor, *Item, *Object], dungeon *dungen.DungeonMap) {
 	rooms := dungeon.AllRooms()
+	scale := max(1, len(rooms)/9) // the secret level has many more rooms than Rogue's 9
 	hasAmulet := g.Player.GetInventory().HasItemWithName("amulet_of_yendor")
 	noNewStuff := hasAmulet && level < g.deepestDungeonLevelPlayerReached
 
@@ -97,10 +98,17 @@ func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.
 
 	// put_things
 	if !noNewStuff {
+		treasureRooms := 0
 		if rnd(random, rogueTreasRoom) == 0 {
+			treasureRooms = 1
+		}
+		if g.inSecretLevel { // the reward for finding it
+			treasureRooms = 3
+		}
+		for ; treasureRooms > 0; treasureRooms-- {
 			g.rogueTreasureRoom(random, level, rooms[random.Intn(len(rooms))], findFloor, isFree, canHoldMonster, newMap)
 		}
-		for i := 0; i < rogueMaxObj; i++ {
+		for i := 0; i < rogueMaxObj*scale; i++ {
 			if rnd(random, 100) < 36 {
 				if pos, ok := findFloor(nil, 0, isFree); ok {
 					newMap.AddItem(g.rogueNewThing(random, level), pos)
@@ -124,7 +132,7 @@ func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.
 
 	// traps
 	if rnd(random, 10) < level {
-		ntraps := min(rnd(random, level/4)+1, rogueMaxTraps)
+		ntraps := min(rnd(random, level/4)+1, rogueMaxTraps) * scale
 		trapTypes := foundation.GetAllTrapCategories()
 		for ; ntraps > 0; ntraps-- {
 			if pos, ok := findFloor(nil, 0, isFree); ok {
@@ -268,6 +276,26 @@ func pickWeighted(random *rand.Rand, defs []ItemDef) ItemDef {
 	return defs[len(defs)-1]
 }
 
+func (g *GameState) revealSecret(p geometry.Point) {
+	realTile := g.secrets[p]
+	delete(g.secrets, p)
+	g.gridMap.SetTile(p, realTile)
+	g.gridMap.SetExplored(p)
+	switch {
+	case realTile.IsStairsDown():
+		g.msg(foundation.Msg("You found a hidden staircase"))
+	case realTile.Feature == foundation.TileDoorClosed:
+		for _, room := range g.dungeonLayout.AllRooms() {
+			if room.ContainsIncludingWalls(p) {
+				room.SetDoor(p)
+			}
+		}
+		g.msg(foundation.Msg("You found a secret door"))
+	default:
+		g.msg(foundation.Msg("You found a secret passage"))
+	}
+}
+
 // search is Rogue's search(): each adjacent secret door is found 1 in 5,
 // a secret passage 1 in 3 and a hidden trap 1 in 2; harder when blind or hallucinating.
 func (g *GameState) search() {
@@ -280,27 +308,14 @@ func (g *GameState) search() {
 	}
 	for _, p := range g.gridMap.NeighborsAll(g.Player.Position(), g.gridMap.Contains) {
 		if realTile, isSecret := g.secrets[p]; isSecret {
-			isDoor := realTile.Feature == foundation.TileDoorClosed
 			odds := 3
-			if isDoor {
+			if realTile.Feature == foundation.TileDoorClosed {
 				odds = 5
 			}
 			if rand.Intn(odds+probinc) != 0 {
 				continue
 			}
-			delete(g.secrets, p)
-			g.gridMap.SetTile(p, realTile)
-			g.gridMap.SetExplored(p)
-			if isDoor {
-				for _, room := range g.dungeonLayout.AllRooms() {
-					if room.ContainsIncludingWalls(p) {
-						room.SetDoor(p)
-					}
-				}
-				g.msg(foundation.Msg("You found a secret door"))
-			} else {
-				g.msg(foundation.Msg("You found a secret passage"))
-			}
+			g.revealSecret(p)
 			continue
 		}
 		if g.gridMap.IsObjectAt(p) {
