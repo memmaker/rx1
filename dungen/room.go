@@ -74,10 +74,6 @@ func (r *DungeonRoom) IsLit() bool {
 	return r.canBeLit
 }
 
-func (r *DungeonRoom) IsCornerPosition(pos geometry.Point) bool {
-	return r.bounds.IsOnCorner(pos)
-}
-
 func (r *DungeonRoom) GetRandomAbsoluteFloorPosition(random *rand.Rand) geometry.Point {
 	allFloorTiles := r.GetAbsoluteFloorTiles()
 	return allFloorTiles[random.Intn(len(allFloorTiles))]

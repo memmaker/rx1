@@ -3,332 +3,358 @@ package dungen
 import (
 	"math/rand"
 	"rx1/geometry"
+	"slices"
 )
 
-// based on https://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
+// MegaDungeonGenerator is a port of the dungeon generator of Hauberk, see
+// https://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
 // https://github.com/munificent/hauberk/blob/db360d9efa714efb6d937c31953ef849c7394a39/lib/src/content/dungeon.dart
-
-// MegaDungeonGenerator packs the map with rooms, fills the space between them with winding corridors
-// and then opens doors until everything is connected.
+//
+// Starting with solid rock, it works like so:
+//
+//  1. Place a number of randomly sized and positioned rooms. A room that overlaps or touches
+//     an existing room is discarded.
+//  2. Fill the remaining solid areas with mazes.
+//  3. Find every "connector": a solid tile that is adjacent to two unconnected regions.
+//  4. Open random connectors until all regions are joined. Now and then a connector between two
+//     regions that are joined already is opened too, so that the dungeon is not singly connected.
+//  5. Remove the dead ends by filling in every open tile that is closed on three sides.
 type MegaDungeonGenerator struct {
-	randomSource           *rand.Rand
-	roomTries              int
-	minRoomSize            int
-	straightPassageChance  float64
-	imperfectConnectChance float64 // chance per connection for a second way in
-	roomRatioInterval      float64 // rooms are up to 1+interval times longer than wide, or the other way round
-	doorDistance           int     // an extra door keeps this distance to all other doors
+	randomSource *rand.Rand
+	NumRoomTries int
+	// ExtraConnectorChance is the inverse chance of adding a connector between two regions that have
+	// already been joined. Increasing this leads to more loosely connected dungeons.
+	ExtraConnectorChance int
+	RoomExtraSize        int // increasing this allows rooms to be larger
+	WindingPercent       int
 
-	regionOf   []int          // per tile: the room or corridor system it belongs to, 0 for rock
-	regionRoom []*DungeonRoom // per region: its room, nil for corridors
+	m *DungeonMap
+	// regions holds, for each open position, the index of the connected region it is part of, -1 for rock
+	regions       []int
+	currentRegion int            // the index of the current region being carved
+	regionRoom    []*DungeonRoom // per region: its room, nil for a maze
 }
 
-// connector is a wall tile between two regions: a door there connects them.
-type connector struct {
-	pos  geometry.Point
-	a, b int
+var cardinalDirections = []geometry.Point{{Y: -1}, {X: 1}, {Y: 1}, {X: -1}}
+
+// NewMegaDungeonGenerator has the defaults of the reference, which leaves the number of room tries open.
+func NewMegaDungeonGenerator(source *rand.Rand, numRoomTries int) *MegaDungeonGenerator {
+	return &MegaDungeonGenerator{randomSource: source, NumRoomTries: numRoomTries, ExtraConnectorChance: 20}
 }
 
-func NewMegaDungeonGenerator(source *rand.Rand) *MegaDungeonGenerator {
-	return &MegaDungeonGenerator{
-		randomSource:           source,
-		roomTries:              source.Intn(500) + 300,
-		minRoomSize:            source.Intn(4) + 2,
-		straightPassageChance:  source.Float64(),
-		imperfectConnectChance: source.Float64(),
-		doorDistance:           source.Intn(6) + 2,
-		roomRatioInterval:      source.Float64() * 0.5,
-	}
-}
-
+// Generate needs an odd size, an even one is made one smaller.
 func (c *MegaDungeonGenerator) Generate(width, height int) *DungeonMap {
-	// rooms and corridors sit on odd coordinates, with a wall around the map
 	if width%2 == 0 {
 		width--
 	}
 	if height%2 == 0 {
 		height--
 	}
-	m := NewDungeonMap(width, height)
-	c.regionOf = make([]int, width*height)
-	c.regionRoom = []*DungeonRoom{nil} // region 0 is rock
-
-	c.addRooms(m)
-	c.addCorridors(m)
-	doors := c.connectRegions(m)
-	for _, door := range doors {
-		m.SetDoor(door.pos.X, door.pos.Y)
+	c.m = NewDungeonMap(width, height)
+	c.regions = make([]int, width*height)
+	for i := range c.regions {
+		c.regions[i] = -1
 	}
-	// corridors that lead nowhere go, and then the doors that only led to them
-	for removed := true; removed; {
-		m.FillDeadEnds(c.randomSource)
-		removed = false
-		for _, door := range doors {
-			if m.IsDoorAt(door.pos) && len(m.GetFilteredCardinalNeighbours(door.pos, m.IsWalkable)) < 2 {
-				m.SetWall(door.pos.X, door.pos.Y)
-				removed = true
+	c.currentRegion = -1
+	c.regionRoom = nil
+
+	c.addRooms()
+
+	// Fill in all of the empty space with mazes.
+	for y := 1; y < height; y += 2 {
+		for x := 1; x < width; x += 2 {
+			if c.m.GetTile(x, y) == Wall {
+				c.growMaze(geometry.Point{X: x, Y: y})
 			}
 		}
 	}
-	for _, door := range doors {
-		if !m.IsDoorAt(door.pos) {
+
+	junctions := c.connectRegions()
+	c.removeDeadEnds()
+	c.describeRooms(junctions)
+	return c.m
+}
+
+// describeRooms is not part of the reference: it tells the rooms what the game wants to know about them.
+func (c *MegaDungeonGenerator) describeRooms(junctions []geometry.Point) {
+	for _, junction := range junctions {
+		if c.m.IsWallAt(junction) {
 			continue
 		}
-		for _, region := range []int{door.a, door.b} {
-			if room := c.regionRoom[region]; room != nil {
-				room.SetDoor(door.pos) // the room has no wall here
+		for _, dir := range cardinalDirections {
+			if region := c.regionAt(junction.Add(dir)); region >= 0 && c.regionRoom[region] != nil {
+				c.regionRoom[region].SetDoor(junction)
 			}
 		}
 	}
-	return m
-}
-
-func (c *MegaDungeonGenerator) addRegion(m *DungeonMap, room *DungeonRoom, tiles []geometry.Point) {
-	c.regionRoom = append(c.regionRoom, room)
-	for _, pos := range tiles {
-		c.regionOf[pos.X+pos.Y*m.width] = len(c.regionRoom) - 1
-	}
-}
-
-func (c *MegaDungeonGenerator) addRooms(m *DungeonMap) {
-	for i := 0; i < c.roomTries; i++ {
-		roomSize := makeOddForSize(c.randomSource, c.minRoomSize, c.randomSource.Intn(5)+c.minRoomSize)
-		aspectRatio := c.randomSource.Float64()*c.roomRatioInterval + 1
-		roomWidth := roomSize
-		roomHeight := roomSize
-		if c.randomSource.Intn(2) == 0 {
-			roomWidth = makeOddForSize(c.randomSource, c.minRoomSize, int(float64(roomWidth)*aspectRatio))
-		} else {
-			roomHeight = makeOddForSize(c.randomSource, c.minRoomSize, int(float64(roomHeight)*aspectRatio))
-		}
-		x := makeOdd(c.randomSource, c.randomSource.Intn(max(2, m.width-roomWidth-1))+1)
-		y := makeOdd(c.randomSource, c.randomSource.Intn(max(2, m.height-roomHeight-1))+1)
-
-		if !hasSpaceForRoom(m, x, y, roomWidth, roomHeight) {
-			continue
-		}
-		room := NewDungeonRoomFromRect(geometry.NewRect(x, y, x+roomWidth, y+roomHeight))
+	for _, room := range c.m.rooms {
+		// a junction can also open the corner of a room's wall, from one corridor to another
+		room.wallTiles = slices.DeleteFunc(room.wallTiles, func(pos geometry.Point) bool { return !c.m.IsWallAt(pos) })
 		room.SetLit(c.randomSource.Intn(4) == 0)
-		m.AddRoomAndSetTiles(room)
-		c.addRegion(m, room, room.GetAbsoluteFloorTiles())
 	}
 }
 
-// hasSpaceForRoom: the room lies inside the wall around the map and has rock for a wall, a corridor
-// and another wall between itself and every other room. So rooms never share a wall.
-// The reference (Hauberk) only keeps rooms from touching and lets them share one.
-func hasSpaceForRoom(m *DungeonMap, x, y, width, height int) bool {
-	if x < 1 || y < 1 || x+width > m.width-1 || y+height > m.height-1 {
-		return false
+func (c *MegaDungeonGenerator) regionAt(pos geometry.Point) int {
+	return c.regions[pos.X+pos.Y*c.m.width]
+}
+
+// growMaze is the "growing tree" algorithm from http://www.astrolog.org/labyrnth/algrithm.htm
+func (c *MegaDungeonGenerator) growMaze(start geometry.Point) {
+	cells := []geometry.Point{start}
+	var lastDir geometry.Point
+
+	c.startRegion(nil)
+	c.carve(start, Corridor)
+
+	for len(cells) > 0 {
+		cell := cells[len(cells)-1]
+
+		// See which adjacent cells are open.
+		var unmadeCells []geometry.Point
+		for _, dir := range cardinalDirections {
+			if c.canCarve(cell, dir) {
+				unmadeCells = append(unmadeCells, dir)
+			}
+		}
+
+		if len(unmadeCells) == 0 {
+			// No adjacent uncarved cells, this path has ended.
+			cells = cells[:len(cells)-1]
+			lastDir = geometry.Point{}
+			continue
+		}
+		// Based on how "windy" passages are, try to prefer carving in the same direction.
+		dir := lastDir
+		if !slices.Contains(unmadeCells, lastDir) || c.randomSource.Intn(100) <= c.WindingPercent {
+			dir = unmadeCells[c.randomSource.Intn(len(unmadeCells))]
+		}
+		c.carve(cell.Add(dir), Corridor)
+		c.carve(cell.Add(dir).Add(dir), Corridor)
+
+		cells = append(cells, cell.Add(dir).Add(dir))
+		lastDir = dir
 	}
-	// rooms begin and end on odd coordinates, so two tiles of rock mean there are three
-	for ny := max(0, y-2); ny < min(m.height, y+height+2); ny++ {
-		for nx := max(0, x-2); nx < min(m.width, x+width+2); nx++ {
-			if m.tiles[nx+ny*m.width] != Wall {
-				return false
+}
+
+// addRooms places rooms ignoring the existing maze corridors.
+func (c *MegaDungeonGenerator) addRooms() {
+	var rooms []geometry.Rect
+	for i := 0; i < c.NumRoomTries; i++ {
+		// Pick a random room size. The funny math here does two things:
+		// - It makes sure rooms are odd-sized to line up with maze.
+		// - It avoids creating rooms that are too rectangular: too tall and narrow or too wide and flat.
+		size := (1+c.randomSource.Intn(2+c.RoomExtraSize))*2 + 1
+		rectangularity := c.randomSource.Intn(1+size/2) * 2
+		width, height := size, size
+		if c.randomSource.Intn(2) == 0 {
+			width += rectangularity
+		} else {
+			height += rectangularity
+		}
+		if c.m.width-width < 2 || c.m.height-height < 2 {
+			continue // not in the reference: the map is too small for this room
+		}
+
+		x := c.randomSource.Intn((c.m.width-width)/2)*2 + 1
+		y := c.randomSource.Intn((c.m.height-height)/2)*2 + 1
+
+		room := geometry.NewRect(x, y, x+width, y+height)
+		if slices.ContainsFunc(rooms, func(other geometry.Rect) bool { return rectDistance(room, other) <= 0 }) {
+			continue
+		}
+		rooms = append(rooms, room)
+
+		dungeonRoom := NewDungeonRoomFromRect(room)
+		c.m.rooms = append(c.m.rooms, dungeonRoom)
+		c.startRegion(dungeonRoom)
+		for ry := y; ry < y+height; ry++ {
+			for rx := x; rx < x+width; rx++ {
+				c.carve(geometry.Point{X: rx, Y: ry}, Room)
 			}
 		}
 	}
-	return true
 }
 
-// addCorridors grows a maze from every spot that is still solid rock. One pass is enough:
-// rock that is not free now never becomes free again.
-func (c *MegaDungeonGenerator) addCorridors(m *DungeonMap) {
-	m.TraverseTilesRandomly(c.randomSource, func(pos geometry.Point) {
-		if pos.X >= 1 && pos.Y >= 1 && pos.X < m.width-1 && pos.Y < m.height-1 && isCompletelyFree(m, pos) {
-			c.addRegion(m, nil, fillMaze(m, pos, c.straightPassageChance, c.randomSource))
+// rectDistance is the minimum length that a corridor would have to be to go from one rect to the other.
+// If the two are adjacent, it is zero. If they overlap, it is -1.
+func rectDistance(a, b geometry.Rect) int {
+	gap := func(aMin, aMax, bMin, bMax int) int {
+		if aMin >= bMax {
+			return aMin - bMax
 		}
-	})
+		if aMax <= bMin {
+			return bMin - aMax
+		}
+		return -1
+	}
+	vertical, horizontal := gap(a.Min.Y, a.Max.Y, b.Min.Y, b.Max.Y), gap(a.Min.X, a.Max.X, b.Min.X, b.Max.X)
+	if vertical == -1 {
+		return horizontal
+	}
+	if horizontal == -1 {
+		return vertical
+	}
+	return horizontal + vertical
 }
 
-// connectRegions returns the doors that connect everything that can be connected to one random room.
-// What cannot be reached from there is filled up again.
-func (c *MegaDungeonGenerator) connectRegions(m *DungeonMap) []connector {
-	if len(m.rooms) == 0 {
-		return nil
+// connectRegions returns the junctions it opened.
+func (c *MegaDungeonGenerator) connectRegions() []geometry.Point {
+	// Find all of the tiles that can connect two (or more) regions.
+	type connector struct {
+		pos     geometry.Point
+		regions []int
 	}
-	// merged regions share a root
-	root := make([]int, len(c.regionRoom))
-	for i := range root {
-		root[i] = i
-	}
-	find := func(region int) int {
-		for root[region] != region {
-			root[region] = root[root[region]]
-			region = root[region]
-		}
-		return region
-	}
-	start := m.rooms[c.randomSource.Intn(len(m.rooms))].GetAbsoluteFloorTiles()[0]
-	main := c.regionOf[start.X+start.Y*m.width]
-
-	connectors := c.findConnectors(m)
-	var doors []connector
-	isDoor := make(map[geometry.Point]bool)
-	addDoor := func(door connector) {
-		doors = append(doors, door)
-		isDoor[door.pos] = true
-		root[find(door.a)], root[find(door.b)] = main, main
-	}
-	hasDoorNextTo := func(pos geometry.Point) bool {
-		return isDoor[pos.Add(geometry.Point{X: 1})] || isDoor[pos.Add(geometry.Point{X: -1})] ||
-			isDoor[pos.Add(geometry.Point{Y: 1})] || isDoor[pos.Add(geometry.Point{Y: -1})]
-	}
-	var candidates, apart []connector
-	for {
-		// the connectors from what is connected so far to something that is not
-		candidates, apart = candidates[:0], apart[:0]
-		for _, con := range connectors {
-			if (find(con.a) == main) != (find(con.b) == main) {
-				candidates = append(candidates, con)
-				if !hasDoorNextTo(con.pos) {
-					apart = append(apart, con)
-				}
-			}
-		}
-		if len(candidates) == 0 {
-			break
-		}
-		if len(apart) > 0 { // no two doors side by side, if it can be helped
-			candidates = apart
-		}
-		addDoor(candidates[c.randomSource.Intn(len(candidates))])
-		if c.randomSource.Float64() < c.imperfectConnectChance {
-			for tries := 0; tries < 5; tries++ {
-				extra := candidates[c.randomSource.Intn(len(candidates))]
-				if c.hasMinDistToDoors(doors, extra.pos) {
-					addDoor(extra)
-					break
-				}
-			}
-		}
-	}
-
-	for i, region := range c.regionOf {
-		if region != 0 && find(region) != main {
-			m.tiles[i] = Wall
-		}
-	}
-	connectedRooms := m.rooms[:0]
-	for region, room := range c.regionRoom {
-		if room != nil && find(region) == main {
-			connectedRooms = append(connectedRooms, room)
-		}
-	}
-	m.rooms = connectedRooms
-	return doors
-}
-
-// findConnectors returns the wall tiles that have different regions on two opposite sides and wall on the other two.
-func (c *MegaDungeonGenerator) findConnectors(m *DungeonMap) []connector {
 	var connectors []connector
-	side := func(pos geometry.Point) int { // the region there, 0 if a door must not lead there
-		region := c.regionOf[pos.X+pos.Y*m.width]
-		if room := c.regionRoom[region]; room != nil && room.IsCornerPosition(pos) {
-			return 0
-		}
-		return region
-	}
-	for y := 1; y < m.height-1; y++ {
-		for x := 1; x < m.width-1; x++ {
+	for y := 1; y < c.m.height-1; y++ {
+		for x := 1; x < c.m.width-1; x++ {
 			pos := geometry.Point{X: x, Y: y}
-			if c.regionOf[x+y*m.width] != 0 {
+			// Can't already be part of a region.
+			if c.m.GetTile(x, y) != Wall {
 				continue
 			}
-			north, south := side(pos.Add(geometry.Point{Y: -1})), side(pos.Add(geometry.Point{Y: 1}))
-			east, west := side(pos.Add(geometry.Point{X: 1})), side(pos.Add(geometry.Point{X: -1}))
-			if north != 0 && south != 0 && north != south &&
-				m.IsWallAt(pos.Add(geometry.Point{X: 1})) && m.IsWallAt(pos.Add(geometry.Point{X: -1})) {
-				connectors = append(connectors, connector{pos, north, south})
-			} else if east != 0 && west != 0 && east != west &&
-				m.IsWallAt(pos.Add(geometry.Point{Y: 1})) && m.IsWallAt(pos.Add(geometry.Point{Y: -1})) {
-				connectors = append(connectors, connector{pos, east, west})
+			var regions []int
+			for _, dir := range cardinalDirections {
+				if region := c.regionAt(pos.Add(dir)); region >= 0 && !slices.Contains(regions, region) {
+					regions = append(regions, region)
+				}
+			}
+			if len(regions) >= 2 {
+				connectors = append(connectors, connector{pos, regions})
 			}
 		}
 	}
-	return connectors
-}
 
-func (c *MegaDungeonGenerator) hasMinDistToDoors(doors []connector, pos geometry.Point) bool {
-	for _, door := range doors {
-		if geometry.DistanceManhattan(pos, door.pos) < c.doorDistance {
-			return false
-		}
+	// Keep track of which regions have been merged. This maps an original
+	// region index to the one it has been merged to.
+	merged := make([]int, c.currentRegion+1)
+	for i := range merged {
+		merged[i] = i
 	}
-	return true
-}
-
-// fillMaze carves a winding corridor system into the rock around start and returns its tiles.
-func fillMaze(m *DungeonMap, start geometry.Point, straightChance float64, rnd *rand.Rand) []geometry.Point {
-	openList := []geometry.Point{start}
-	carved := []geometry.Point{start}
-	m.SetCorridor(start.X, start.Y)
-	prevDirection := geometry.Point{X: 1, Y: 0}
-	carve := func(from, to geometry.Point) bool {
-		if !isCompletelyFreeForCarving(m, from, to) {
-			return false
+	openRegions := len(merged)
+	// the regions a connector joins by now
+	mergedRegions := func(con connector) []int {
+		var regions []int
+		for _, region := range con.regions {
+			if !slices.Contains(regions, merged[region]) {
+				regions = append(regions, merged[region])
+			}
 		}
-		m.SetCorridor(to.X, to.Y)
-		carved = append(carved, to)
-		openList = append(openList, from, to)
-		prevDirection = to.Sub(from)
-		return true
+		return regions
 	}
-	for len(openList) > 0 {
-		pos := openList[len(openList)-1]
-		openList = openList[:len(openList)-1]
 
-		if rnd.Float64() < straightChance && carve(pos, pos.Add(prevDirection)) {
-			continue
+	var junctions []geometry.Point
+	addJunction := func(pos geometry.Point) {
+		// the reference places closed doors, open doors and bare openings; this game knows one kind of door
+		if c.randomSource.Intn(4) == 0 && c.randomSource.Intn(3) != 0 {
+			c.m.SetCorridor(pos.X, pos.Y)
+		} else {
+			c.m.SetDoor(pos.X, pos.Y)
 		}
-		neighbours := m.GetFilteredCardinalNeighbours(pos, func(p geometry.Point) bool {
-			return p.X > 0 && p.Y > 0 && p.X < m.width-1 && p.Y < m.height-1
+		junctions = append(junctions, pos)
+	}
+
+	// Keep connecting regions until we're down to one.
+	// Not in the reference, which fails then: stop when no connector is left.
+	for openRegions > 1 && len(connectors) > 0 {
+		chosen := connectors[c.randomSource.Intn(len(connectors))]
+
+		// Carve the connection.
+		addJunction(chosen.pos)
+
+		// Merge the connected regions. We'll pick one region (arbitrarily) and
+		// map all of the other regions to its index.
+		// The reference strikes the first region from the open ones too if the connector touches it twice,
+		// and then stops before everything is joined; here every region counts once.
+		regions := mergedRegions(chosen)
+		dest, sources := regions[0], regions[1:]
+
+		// Merge all of the affected regions. We have to look at *all* of the
+		// regions because other regions may have previously been merged with
+		// some of the ones we're merging now.
+		for i := range merged {
+			if slices.Contains(sources, merged[i]) {
+				merged[i] = dest
+			}
+		}
+
+		// The sources are no longer in use.
+		openRegions -= len(sources)
+
+		// Remove any connectors that aren't needed anymore.
+		connectors = slices.DeleteFunc(connectors, func(con connector) bool {
+			// Don't allow connectors right next to each other.
+			if d := chosen.pos.Sub(con.pos); d.X*d.X+d.Y*d.Y < 4 {
+				return true
+			}
+			// If the connector no longer spans different regions, we don't need it.
+			if len(mergedRegions(con)) > 1 {
+				return false
+			}
+			// This connector isn't needed, but connect it occasionally so that the
+			// dungeon isn't singly-connected.
+			if c.randomSource.Intn(c.ExtraConnectorChance) == 0 {
+				addJunction(con.pos)
+			}
+			return true
 		})
-		for _, randomIndex := range rnd.Perm(len(neighbours)) {
-			if carve(pos, neighbours[randomIndex]) {
-				break
+	}
+
+	// Not in the reference: what could not be joined to the first region is filled up again.
+	if openRegions > 1 {
+		for i, region := range c.regions {
+			if region >= 0 && merged[region] != merged[0] {
+				c.m.tiles[i] = Wall
+			}
+		}
+		c.m.rooms = slices.DeleteFunc(c.m.rooms, func(room *DungeonRoom) bool {
+			return c.m.IsWallAt(room.bounds.Min)
+		})
+	}
+	return junctions
+}
+
+func (c *MegaDungeonGenerator) removeDeadEnds() {
+	for done := false; !done; {
+		done = true
+		for y := 1; y < c.m.height-1; y++ {
+			for x := 1; x < c.m.width-1; x++ {
+				if c.m.GetTile(x, y) == Wall {
+					continue
+				}
+				// If it only has one exit, it's a dead end.
+				exits := 0
+				for _, dir := range cardinalDirections {
+					if c.m.GetTile(x+dir.X, y+dir.Y) != Wall {
+						exits++
+					}
+				}
+				if exits != 1 {
+					continue
+				}
+				done = false
+				c.m.SetWall(x, y)
 			}
 		}
 	}
-	return carved
 }
 
-func isCompletelyFree(m *DungeonMap, pos geometry.Point) bool {
-	return m.IsWallAt(pos) && len(m.GetAllFilteredNeighbours(pos, m.IsWallAt)) == 8
-}
-
-// isCompletelyFreeForCarving: stepping from to keeps a wall to everything but from.
-func isCompletelyFreeForCarving(m *DungeonMap, from geometry.Point, to geometry.Point) bool {
-	direction := to.Sub(from)
-	left := direction.RotateLeft()
-	right := direction.RotateRight()
-	for _, pos := range []geometry.Point{to, to.Add(direction), to.Add(left), to.Add(right), to.Add(left).Add(direction), to.Add(right).Add(direction)} {
-		if !m.Contains(pos) || !m.IsWallAt(pos) {
-			return false
-		}
+// canCarve gets whether or not an opening can be carved from the given starting cell at pos
+// to the adjacent cell facing direction: the destination must be in bounds and not open yet.
+func (c *MegaDungeonGenerator) canCarve(pos, direction geometry.Point) bool {
+	// Must end in bounds.
+	if !c.m.Contains(geometry.Point{X: pos.X + direction.X*3, Y: pos.Y + direction.Y*3}) {
+		return false
 	}
-	return true
+	// Destination must not be open.
+	return c.m.GetTile(pos.X+direction.X*2, pos.Y+direction.Y*2) == Wall
 }
 
-func makeOddForSize(rnd *rand.Rand, minValue, value int) int {
-	if value%2 == 0 {
-		if value-1 < minValue || rnd.Intn(2) == 0 {
-			value++
-		} else {
-			value--
-		}
-	}
-	return value
+func (c *MegaDungeonGenerator) startRegion(room *DungeonRoom) {
+	c.currentRegion++
+	c.regionRoom = append(c.regionRoom, room)
 }
 
-func makeOdd(rnd *rand.Rand, value int) int {
-	if value%2 == 0 {
-		if rnd.Intn(2) == 0 {
-			value++
-		} else {
-			value--
-		}
-	}
-	return value
+func (c *MegaDungeonGenerator) carve(pos geometry.Point, tile DungeonTile) {
+	c.m.tiles[pos.X+pos.Y*c.m.width] = tile
+	c.regions[pos.X+pos.Y*c.m.width] = c.currentRegion
 }

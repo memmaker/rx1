@@ -79,20 +79,6 @@ func (p Point) Encode() string {
 	return fmt.Sprintf("(%d,%d)", p.X, p.Y)
 }
 
-func (p Point) RotateLeft() Point {
-	return Point{
-		X: -p.Y,
-		Y: p.X,
-	}
-}
-
-func (p Point) RotateRight() Point {
-	return Point{
-		X: p.Y,
-		Y: -p.X,
-	}
-}
-
 func (p Point) ToDirection() CompassDirection {
 	if p == RelativeNorth {
 		return North

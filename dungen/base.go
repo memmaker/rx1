@@ -1,7 +1,6 @@
 package dungen
 
 import (
-	"math/rand"
 	"rx1/geometry"
 )
 
@@ -99,14 +98,6 @@ func (m *DungeonMap) Contains(pos geometry.Point) bool {
 	return pos.X >= 0 && pos.X < m.width && pos.Y >= 0 && pos.Y < m.height
 }
 
-func (m *DungeonMap) IsEmptySpace(pos geometry.Point) bool {
-	if !m.Contains(pos) {
-		return false
-	}
-	tileAt := m.GetTileAt(pos)
-	return tileAt == Room || tileAt == Corridor
-}
-
 func (m *DungeonMap) IsWalkable(pos geometry.Point) bool {
 	if !m.Contains(pos) {
 		return false
@@ -127,58 +118,6 @@ func (m *DungeonMap) GetRoomAt(posOne geometry.Point) *DungeonRoom {
 	return nil
 }
 
-func (m *DungeonMap) TraverseTilesRandomly(random *rand.Rand, traversalFunc func(pos geometry.Point)) {
-	randomIndices := random.Perm(m.width * m.height)
-	for _, index := range randomIndices {
-		x := index % m.width
-		y := index / m.width
-		traversalFunc(geometry.Point{X: x, Y: y})
-	}
-}
-
-func (m *DungeonMap) FillDeadEnds(random *rand.Rand) {
-	deadEnds := make([]geometry.Point, 0)
-	for y := 0; y < m.height; y++ {
-		for x := 0; x < m.width; x++ {
-			pos := geometry.Point{X: x, Y: y}
-			_, isDeadEnd := m.IsDeadEnd(pos)
-			if isDeadEnd {
-				deadEnds = append(deadEnds, pos)
-			}
-		}
-	}
-
-	for _, pos := range deadEnds {
-		for direction, isDeadEnd := m.IsDeadEnd(pos); isDeadEnd; direction, isDeadEnd = m.IsDeadEnd(pos) {
-			m.SetWall(pos.X, pos.Y)
-			pos = pos.Add(direction.ToPoint())
-		}
-	}
-}
-
-func (m *DungeonMap) IsDeadEnd(pos geometry.Point) (geometry.CompassDirection, bool) {
-	if !m.IsEmptySpace(pos) {
-		return 0, false
-	}
-
-	nb := geometry.Neighbors{}
-	neighoringWalls := nb.Cardinal(pos, func(pos geometry.Point) bool {
-		return m.Contains(pos) && m.GetTileAt(pos) == Wall
-	})
-
-	var openDirection geometry.CompassDirection
-	cardinalDirs := []geometry.CompassDirection{geometry.North, geometry.South, geometry.East, geometry.West}
-
-	for _, dir := range cardinalDirs {
-		if m.IsEmptySpace(pos.Add(dir.ToPoint())) {
-			openDirection = dir
-			break
-		}
-	}
-
-	return openDirection, len(neighoringWalls) == 3
-}
-
 func (m *DungeonMap) GetSize() (int, int) {
 	return m.width, m.height
 }
@@ -188,20 +127,6 @@ func (m *DungeonMap) IsWallAt(pos geometry.Point) bool {
 		return false
 	}
 	return m.GetTileAt(pos) == Wall
-}
-
-func (m *DungeonMap) GetFilteredCardinalNeighbours(pos geometry.Point, filter func(pos geometry.Point) bool) []geometry.Point {
-	neighbors := geometry.Neighbors{}
-	return neighbors.Cardinal(pos, func(pos geometry.Point) bool {
-		return m.Contains(pos) && filter(pos)
-	})
-}
-
-func (m *DungeonMap) GetAllFilteredNeighbours(pos geometry.Point, filter func(pos geometry.Point) bool) []geometry.Point {
-	neighbors := geometry.Neighbors{}
-	return neighbors.All(pos, func(pos geometry.Point) bool {
-		return m.Contains(pos) && filter(pos)
-	})
 }
 
 func (m *DungeonMap) IsCorridor(pos geometry.Point) bool {
