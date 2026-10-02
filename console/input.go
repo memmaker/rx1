@@ -115,7 +115,6 @@ func (u *UI) setupCommandTable() {
 	}
 
 	u.commandTable["throw"] = u.game.ChooseItemForThrow
-	u.commandTable["read"] = u.game.ChooseItemForRead
 	u.commandTable["use"] = u.game.ChooseItemForUse
 	u.commandTable["consume"] = u.game.ChooseItemForConsume
 	u.commandTable["equip"] = u.game.ChooseItemForEquip
@@ -170,7 +169,6 @@ var friendlyNames = map[string]string{
 	"gamma_up":          "Gamma Up",
 	"gamma_down":        "Gamma Down",
 	"throw":             "Throw",
-	"read":              "Read",
 	"use":               "Use",
 	"consume":           "Consume",
 	"equip":             "Equip",
@@ -222,7 +220,6 @@ func (u *UI) showKeyBindings() {
 		"consume",
 		"equip",
 		"throw",
-		"read",
 		"take_off",
 		"drop",
 		"pickup",
@@ -479,7 +476,7 @@ var commandMenuGroups = []struct {
 	name     string
 	commands []string
 }{
-	{"Items", []string{"inventory", "pickup", "drop", "use", "consume", "equip", "read", "throw", "take_off"}},
+	{"Items", []string{"inventory", "pickup", "drop", "use", "consume", "equip", "throw", "take_off"}},
 	{"Combat", []string{"aim", "quick_shot", "tactics", "look"}},
 	{"Explore", []string{"auto_explore", "descend", "ascend", "wait"}},
 	{"Info", []string{"character", "monsters", "items", "log", "help", "show_key_bindings"}},

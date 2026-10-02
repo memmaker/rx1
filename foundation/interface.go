@@ -66,7 +66,6 @@ type GameForUI interface {
 	OpenInventory()
 	ChooseItemForDrop()
 	ChooseItemForThrow()
-	ChooseItemForRead()
 	ChooseItemForUse()
 	ChooseItemForConsume()
 	ChooseItemForEquip()
