@@ -3,8 +3,8 @@ package console
 import (
 	"rx1/foundation"
 
-	"github.com/gdamore/tcell/v2"
-	"github.com/memmaker/go/cview"
+	"codeberg.org/tslocum/cview"
+	"github.com/gdamore/tcell/v3"
 )
 
 type InputCapturer interface {
@@ -69,7 +69,7 @@ func drawBackgroundAndBorderWithTitleForInventory(screen tcell.Screen, x int, y 
 	topLeft := runes[2]
 	topRight := runes[3]
 	bottomLeft := runes[5]
-	fg, _, _ := style.Decompose()
+	fg := style.GetForeground()
 	// fill the background
 	for i := x; i < x+width; i++ {
 		for j := y; j < y+height; j++ {
@@ -98,4 +98,15 @@ func drawBackgroundAndBorderWithTitleForInventory(screen tcell.Screen, x int, y 
 	for i := y + 1; i < y+height-1; i++ {
 		cview.Print(screen, []byte(string(vertical)), x, i, width, cview.AlignLeft, fg)
 	}
+}
+
+// keyRune is v2's EventKey.Rune: Ctrl+A..Z give 1..26, other keys the first rune of Str.
+func keyRune(ev *tcell.EventKey) rune {
+	if k := ev.Key(); k >= tcell.KeyCtrlA && k <= tcell.KeyCtrlZ {
+		return rune(k-tcell.KeyCtrlA) + 1 // v3 numbers KeyCtrlA as 65
+	}
+	for _, r := range ev.Str() {
+		return r
+	}
+	return 0
 }

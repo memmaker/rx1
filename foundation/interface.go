@@ -1,8 +1,8 @@
 package foundation
 
 import (
+	"image/color"
 	"rx1/geometry"
-	"rx1/rpg"
 	"rx1/util"
 )
 
@@ -87,6 +87,8 @@ type GameForUI interface {
 	// Map Drawing
 	IsExplored(loc geometry.Point) bool
 	IsLit(pos geometry.Point) bool
+	// GlowAt is the coloured light of lava and fungus at pos (Brogue levels), false where there is none
+	GlowAt(pos geometry.Point) (color.RGBA, bool)
 	IsVisibleToPlayer(loc geometry.Point) bool
 
 	// TopEntityAt is what to draw at loc if actor stands there (nil: nobody)
@@ -96,10 +98,6 @@ type GameForUI interface {
 	ItemAt(loc geometry.Point) ItemForUI
 	ObjectAt(loc geometry.Point) ObjectCategory
 	ActorAt(loc geometry.Point) ActorForUI
-
-	// Level up choices
-	IncreaseAttributeLevel(stat rpg.Stat)
-	IncreaseSkillLevel(skill rpg.SkillName)
 
 	// Wizard
 	Descend()
@@ -231,6 +229,7 @@ const (
 	TileFloor                                  = "TileFloor"
 	TileWall                                   = "TileWall"
 	TileRoomFloor                              = "TileRoomFloor"
+	TileCaveFloor                              = "TileCaveFloor"
 	TileRoomWallHorizontal                     = "TileRoomWallHorizontal"
 	TileRoomWallVertical                       = "TileRoomWallVertical"
 	TileRoomWallCornerTopLeft                  = "TileRoomWallCornerTopLeft"
@@ -249,6 +248,8 @@ const (
 	TileWallTJunctionRight                     = "TileWallTJunctionRight"  // ┤
 	TileWallTJunctionBottom                    = "TileWallTJunctionBottom" // ┴
 	TileWallTJunctionLeft                      = "TileWallTJunctionLeft"   // ├
+	TileWallFull                               = "TileWallFull"            // optional: a wall with more wall below
+	TileWallHalf                               = "TileWallHalf"            // optional: a wall with open ground below
 	TileWallCross                              = "TileWallCross"           // ┼
 	TileDoorOpen                               = "TileDoorOpen"
 	TileDoorClosed                             = "TileDoorClosed"
@@ -256,6 +257,8 @@ const (
 	TileDoorLocked                             = "TileDoorLocked"
 	TileStairsUp                               = "TileStairsUp"
 	TileStairsDown                             = "TileStairsDown"
+	TileCaveStairsUp                           = "TileCaveStairsUp"
+	TileCaveStairsDown                         = "TileCaveStairsDown"
 	TileTownStairsDown                         = "TileTownStairsDown"
 	TileMountain                               = "TileMountain"
 	TileMountainPeak                           = "TileMountainPeak"
@@ -276,6 +279,11 @@ const (
 	TileWater                                  = "TileWater"
 	TileLava                                   = "TileLava"
 	TileChasm                                  = "TileChasm"
+	TileShallowWater                           = "TileShallowWater"
+	TileChasmEdge                              = "TileChasmEdge"
+	TileBridge                                 = "TileBridge"
+	TileFungus                                 = "TileFungus"
+	TileFungusForest                           = "TileFungusForest"
 	TileVendorGeneral                          = "TileVendorGeneral"
 	TileVendorWeapons                          = "TileVendorWeapons"
 	TileVendorArmor                            = "TileVendorArmor"

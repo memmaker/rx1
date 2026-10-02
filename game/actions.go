@@ -6,10 +6,7 @@ import (
 	"rx1/foundation"
 	"rx1/geometry"
 	"rx1/rpg"
-	"strings"
 )
-
-var NoModifiers []rpg.Modifier
 
 // Wait also searches the surrounding tiles, like Rogue's 's'.
 func (g *GameState) Wait() {
@@ -18,12 +15,93 @@ func (g *GameState) Wait() {
 }
 
 func (g *GameState) playerAttack(defender *Actor) {
-	consequences := g.actorMeleeAttack(g.Player, NoModifiers, defender, NoModifiers)
-	if !g.Player.HasFlag(foundation.FlagInvisible) {
-		defender.GetFlags().Set(foundation.FlagAwareOfPlayer)
-	}
-	g.ui.AddAnimations(consequences)
+	g.ui.AddAnimations(g.playerStrike(defender, false))
 	g.endPlayerTurn()
+	if g.playerWeaponType() == ItemTypeClub && g.Player.IsAlive() {
+		g.endPlayerTurn() // Brogue: maces and hammers attack at half speed
+	}
+}
+
+func (g *GameState) playerWeaponType() WeaponType {
+	if !g.Player.GetEquipment().HasMeleeWeaponEquipped() {
+		return ItemTypeUnknown
+	}
+	return g.Player.GetEquipment().GetMainWeapon(MeleeAttack).GetWeapon().GetWeaponType()
+}
+
+// playerStrike attacks defender with the weapon's Brogue pattern:
+// spears also hit the one behind, axes sweep every adjacent actor.
+func (g *GameState) playerStrike(defender *Actor, lunge bool) []foundation.Animation {
+	targets := []*Actor{defender}
+	pos := g.Player.Position()
+	switch g.playerWeaponType() {
+	case ItemTypeSpear:
+		if behind, ok := g.gridMap.TryGetActorAt(defender.Position().Add(defender.Position().Sub(pos))); ok {
+			targets = append(targets, behind)
+		}
+	case ItemTypeAxe:
+		for dx := -1; dx <= 1; dx++ {
+			for dy := -1; dy <= 1; dy++ {
+				if other, ok := g.gridMap.TryGetActorAt(pos.Add(geometry.Point{X: dx, Y: dy})); ok && other != defender && other != g.Player {
+					targets = append(targets, other)
+				}
+			}
+		}
+	}
+	var anims []foundation.Animation
+	for _, target := range targets {
+		anims = append(anims, g.actorMeleeAttackMult(g.Player, 0, target, g.sneakMultiplier(target, lunge))...)
+		if !g.Player.HasFlag(foundation.FlagInvisible) {
+			target.GetFlags().Set(foundation.FlagAwareOfPlayer)
+		}
+	}
+	return anims
+}
+
+// sneakMultiplier is Brogue's sneak attack: unaware, asleep or held targets and lunges
+// always get hit for triple damage, quintuple with a dagger. 1 means a normal attack.
+func (g *GameState) sneakMultiplier(target *Actor, lunge bool) int {
+	if !lunge && !target.IsSleeping() && !target.HasFlag(foundation.FlagHeld) && target.HasFlag(foundation.FlagAwareOfPlayer) {
+		return 1
+	}
+	if g.playerWeaponType() == ItemTypeDagger {
+		return 5
+	}
+	return 3
+}
+
+// tryReachAttack handles moves into empty tiles: a rapier lunges at an enemy two steps away
+// across a free tile, a whip lashes the first actor up to 5 tiles away in a straight line.
+func (g *GameState) tryReachAttack(dir geometry.Point) bool {
+	pos := g.Player.Position()
+	switch g.playerWeaponType() {
+	case ItemTypeRapier:
+		gap := pos.Add(dir)
+		target, ok := g.gridMap.TryGetActorAt(gap.Add(dir))
+		if !ok || !g.gridMap.IsCurrentlyPassable(gap) || !g.IsVisibleToPlayer(target.Position()) {
+			return false
+		}
+		g.ui.AddAnimations(g.actorMoveAnimated(g.Player, gap))
+		g.afterPlayerMoved()
+		g.ui.AddAnimations(g.playerStrike(target, true))
+		g.endPlayerTurn()
+		return true
+	case ItemTypeWhip:
+		for i, step := 1, pos.Add(dir); i <= 5 && g.gridMap.Contains(step); i, step = i+1, step.Add(dir) {
+			if target, ok := g.gridMap.TryGetActorAt(step); ok {
+				if step == pos.Add(dir) || !g.IsVisibleToPlayer(step) {
+					return false
+				}
+				g.msg(foundation.Msg("You lash out with your whip"))
+				g.playerAttack(target)
+				return true
+			}
+			if !g.canFlyThrough(step) {
+				return false
+			}
+		}
+	}
+	return false
 }
 
 func (g *GameState) playerMove(newPos geometry.Point) {
@@ -261,7 +339,36 @@ func (g *GameState) ascendWithStairs(stairs StairsInLevel) {
 	}
 }
 
-func (g *GameState) actorMeleeAttack(attacker *Actor, attackMod []rpg.Modifier, defender *Actor, defenseMod []rpg.Modifier) []foundation.Animation {
+// rollAttack is Rogue's roll_em: every part of the damage string is its own swing.
+// A defender that is asleep or held is hit at +4.
+func (g *GameState) rollAttack(attacker, defender *Actor, hplus, dplus int, dmg string) (int, bool) {
+	if defender != g.Player && (defender.IsSleeping() || defender.HasFlag(foundation.FlagHeld)) {
+		hplus += 4
+	}
+	str := attacker.GetStrength()
+	if attacker != g.Player {
+		str = 10 // monsters don't get strength bonuses
+	}
+	swing := func() bool {
+		return rpg.Swing(attacker.GetLevel(), defender.GetArmorClass(), hplus+rpg.StrPlus(str))
+	}
+	return rpg.RollAttacks(dmg, swing, dplus+rpg.AddDam(str))
+}
+
+func (g *GameState) attackMessage(attacker, defender *Actor, didHit bool) {
+	verb := "misses"
+	if didHit {
+		verb = "hits"
+	}
+	g.msg(foundation.Msg(fmt.Sprintf("%s %s %s", attacker.Name(), verb, defender.Name())))
+}
+
+func (g *GameState) actorMeleeAttack(attacker *Actor, hitMod int, defender *Actor) []foundation.Animation {
+	return g.actorMeleeAttackMult(attacker, hitMod, defender, 1)
+}
+
+// actorMeleeAttackMult: a damage multiplier above 1 is a sneak attack that never misses.
+func (g *GameState) actorMeleeAttackMult(attacker *Actor, hitMod int, defender *Actor, mult int) []foundation.Animation {
 	if !defender.IsAlive() {
 		return nil
 	}
@@ -274,29 +381,19 @@ func (g *GameState) actorMeleeAttack(attacker *Actor, attackMod []rpg.Modifier, 
 		g.msg(foundation.HiLite("%s stops glowing red", attacker.Name()))
 	}
 
-	attackerMeleeSkill, attackerMeleeDamageDice := attacker.GetMelee(defender.GetInternalName())
-
-	defenseScore := defender.GetActiveDefenseScore()
-
-	attackerMeleeSkill, defenseScore = g.applyAttackAndDefenseMods(attackerMeleeSkill, attackMod, defenseScore, defenseMod)
-
-	if defender.HasFlag(foundation.FlagSleep) {
-		defenseScore = -1
-	}
-
 	g.revealDisguised(defender)
-	outcome := rpg.Attack(attackerMeleeSkill, attackerMeleeDamageDice, defenseScore, defender.GetDamageResistance())
-
-	_, damageDone := outcome.TypeOfHit, outcome.DamageDone
-
-	for _, message := range outcome.String(attacker.Name(), defender.Name()) {
-		g.msg(foundation.Msg(message))
+	hplus, dplus, dmg := attacker.GetMelee(defender.GetInternalName())
+	if mult > 1 {
+		hitMod += 100
 	}
+	damageDone, didHit := g.rollAttack(attacker, defender, hplus+hitMod, dplus, dmg)
+	damageDone *= mult
+	g.attackMessage(attacker, defender, didHit)
 
 	animAttackerIndicator := g.ui.GetAnimBackgroundColor(attacker.Position(), "VeryDarkGray", 4, nil)
 	afterAttackAnimations = append(afterAttackAnimations, animAttackerIndicator)
 
-	if outcome.IsHit() {
+	if didHit {
 		animDamage := g.damageActor(attacker.Name(), defender, damageDone)
 		afterAttackAnimations = append(afterAttackAnimations, animDamage...)
 		afterAttackAnimations = append(afterAttackAnimations, g.applyHitEffects(attacker, defender)...)
@@ -309,61 +406,17 @@ func (g *GameState) actorMeleeAttack(attacker *Actor, attackMod []rpg.Modifier, 
 	return afterAttackAnimations
 }
 
-func (g *GameState) applyAttackAndDefenseMods(attackerMeleeSkill int, attackMod []rpg.Modifier, defenseScore int, defenseMod []rpg.Modifier) (int, int) {
-	// apply situational modifiers
-	var attackModDescriptions []string
-	for _, mod := range rpg.FilterModifiers(attackMod) {
-		attackerMeleeSkill = mod.Apply(attackerMeleeSkill)
-		attackModDescriptions = append(attackModDescriptions, mod.Description())
-	}
-	var defenseModDescriptions []string
-	for _, mod := range rpg.FilterModifiers(defenseMod) {
-		defenseScore = mod.Apply(defenseScore)
-		defenseModDescriptions = append(defenseModDescriptions, mod.Description())
-	}
-	if len(attackModDescriptions) > 0 {
-		g.msg(foundation.HiLite("Attack modifiers\n%s", strings.Join(attackModDescriptions, "\n")))
-	}
-	if len(defenseModDescriptions) > 0 {
-		g.msg(foundation.HiLite("Defense modifiers\n%s", strings.Join(defenseModDescriptions, "\n")))
-	}
-	g.msg(foundation.Msg(fmt.Sprintf("Attacker Effective Skill: %d", attackerMeleeSkill)))
-	g.msg(foundation.Msg(fmt.Sprintf("Defender Effective Skill: %d", defenseScore)))
-	return attackerMeleeSkill, defenseScore
-}
-func (g *GameState) actorRangedAttack(attacker *Actor, attackMod []rpg.Modifier, defender *Actor, defenseMod []rpg.Modifier, missile *Item) []foundation.Animation {
+func (g *GameState) actorRangedAttack(attacker *Actor, defender *Actor, missile *Item) []foundation.Animation {
 	if !defender.IsAlive() {
 		return nil
 	}
-
-	var rangedSkill int
-	var rangedDamage rpg.Dice
-
-	if attacker.IsLaunching(missile) {
-		launcher := attacker.GetEquipment().GetMissileLauncher()
-		rangedSkill, rangedDamage = attacker.GetRanged(defender.GetInternalName(), launcher, missile)
-	} else {
-		rangedSkill, rangedDamage = attacker.GetThrowing(defender.GetInternalName(), missile)
+	hplus, dplus, dmg := attacker.GetThrowing(defender.GetInternalName(), missile)
+	damageDone, didHit := g.rollAttack(attacker, defender, hplus, dplus, dmg)
+	g.attackMessage(attacker, defender, didHit)
+	if !didHit {
+		return nil
 	}
-
-	defenseScore := defender.GetActiveDefenseScore()
-
-	rangedSkill, defenseScore = g.applyAttackAndDefenseMods(rangedSkill, attackMod, defenseScore, defenseMod)
-
-	outcome := rpg.Attack(rangedSkill, rangedDamage, defenseScore, defender.GetDamageResistance())
-	_, damageDone := outcome.TypeOfHit, outcome.DamageDone
-
-	for _, message := range outcome.String(attacker.Name(), defender.Name()) {
-		g.msg(foundation.Msg(message))
-	}
-
-	var afterAttackAnimations []foundation.Animation
-
-	animDamage := g.damageActor(attacker.Name(), defender, damageDone)
-
-	afterAttackAnimations = append(afterAttackAnimations, animDamage...)
-
-	return afterAttackAnimations
+	return g.damageActor(attacker.Name(), defender, damageDone)
 }
 func (g *GameState) PickupItem() {
 	inventory := g.Player.GetInventory()
@@ -416,7 +469,7 @@ func (g *GameState) actorRangedAttackWithMissile(thrower *Actor, missile *Item, 
 		if origin.X == x && origin.Y == y {
 			return true
 		}
-		return g.gridMap.IsCurrentlyPassable(geometry.Point{X: x, Y: y})
+		return g.canFlyThrough(geometry.Point{X: x, Y: y})
 	})
 	if len(pathOfFlight) > 1 {
 		// remove start
@@ -436,7 +489,7 @@ func (g *GameState) actorRangedAttackWithMissile(thrower *Actor, missile *Item, 
 
 	if g.gridMap.IsActorAt(targetPos) {
 		defender := g.gridMap.ActorAt(targetPos)
-		consequenceOfActorHit := g.actorRangedAttack(thrower, ModRangedDefault(thrower.Position(), defender), defender, NoModifiers, missile)
+		consequenceOfActorHit := g.actorRangedAttack(thrower, defender, missile)
 		onHitAnimations = append(onHitAnimations, consequenceOfActorHit...)
 	} else if g.gridMap.IsObjectAt(targetPos) {
 		object := g.gridMap.ObjectAt(targetPos)
@@ -453,27 +506,6 @@ func (g *GameState) actorRangedAttackWithMissile(thrower *Actor, missile *Item, 
 	if thrower == g.Player {
 		g.endPlayerTurn()
 	}
-}
-
-func ModRangedDefault(origin geometry.Point, target *Actor) []rpg.Modifier {
-	// TODO: Light
-	var attackMods []rpg.Modifier
-
-	// step 1. size modifier
-	sizeMod := target.GetSizeModifier()
-	if sizeMod != 0 {
-		attackMods = append(attackMods, ModFlat(sizeMod, "size"))
-	}
-
-	// step 2. range modifier
-	dist := geometry.Distance(origin, target.Position())
-	rangeUsed := int(dist)
-	distMod := rpg.GetDistanceModifier(rangeUsed)
-	if distMod != 0 {
-		attackMods = append(attackMods, ModFlat(distMod, fmt.Sprintf("range(%d)", rangeUsed)))
-	}
-
-	return attackMods
 }
 
 func OneAnimation(anim foundation.Animation) []foundation.Animation {

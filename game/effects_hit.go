@@ -22,7 +22,6 @@ func GetAllHitEffects() map[string]func(g *GameState, attacker, defender *Actor)
 		"slow":            slowDown,
 		"hunger":          causeHunger,
 		"knockback":       knockback,
-		"drain_dex":       drainDex,
 		"poison":          poisonOverTime,
 		"hit_and_run":     hitAndRun,
 		"split":           split,
@@ -79,21 +78,20 @@ func freeze(g *GameState, attacker, defender *Actor) []foundation.Animation {
 }
 
 func poisonStrength(g *GameState, attacker, defender *Actor) []foundation.Animation {
-	if _, result, _ := rpg.SuccessRoll(defender.GetHealth()); result.IsSuccess() {
+	if defender != g.Player || rpg.Save(defender.GetLevel(), rpg.VsPoison) {
 		g.msg(foundation.HiLite("A sting momentarily weakens %s", defender.Name()))
 		return nil
 	}
-	defender.charSheet.AddStatModifier(rpg.Strength, ModFlat(-1, "poisoned"))
+	defender.ChangeStrength(-1)
 	g.msg(foundation.HiLite("%s feels a sting and is weakened", defender.Name()))
 	return nil
 }
 
-// rx1 has no experience levels; losing character points mirrors the raise_level potion.
 func drainLevel(g *GameState, attacker, defender *Actor) []foundation.Animation {
 	if defender != g.Player {
 		return nil
 	}
-	defender.AddCharacterPoints(-rpg.NewDice(1, 10, 0).Roll())
+	defender.DrainLevel()
 	g.msg(foundation.Msg("You suddenly feel weaker."))
 	return nil
 }
@@ -102,8 +100,7 @@ func drainMaxHP(g *GameState, attacker, defender *Actor) []foundation.Animation 
 	if defender.GetHitPointsMax() <= 1 {
 		return nil
 	}
-	defender.charSheet.AddStatModifier(rpg.HitPoints, ModFlat(-1, "drained"))
-	defender.charSheet.DecreaseResourceBy(rpg.HitPoints, 0) // clamp current HP to the new max
+	defender.DrainMaxHP(1)
 	attacker.Heal(1)
 	g.msg(foundation.HiLite("%s suddenly feels weaker", defender.Name()))
 	return nil
@@ -126,7 +123,7 @@ func stealGold(g *GameState, attacker, defender *Actor) []foundation.Animation {
 	}
 	goldCalc := func() int { return rand.Intn(50+10*g.currentDungeonLevel) + 2 }
 	amount := goldCalc()
-	if _, result, _ := rpg.SuccessRoll(defender.GetWillpower()); result.IsFailure() {
+	if !rpg.Save(defender.GetLevel(), rpg.VsMagic) {
 		amount += 4 * goldCalc()
 	}
 	amount = min(amount, defender.GetGold())
@@ -191,20 +188,11 @@ func knockback(g *GameState, attacker, defender *Actor) []foundation.Animation {
 	return g.actorMoveAnimated(defender, dest)
 }
 
-func drainDex(g *GameState, attacker, defender *Actor) []foundation.Animation {
-	if _, result, _ := rpg.SuccessRoll(defender.GetHealth()); result.IsSuccess() {
-		return nil
-	}
-	defender.charSheet.AddStatModifier(rpg.Dexterity, ModFlat(-1, "drained"))
-	g.msg(foundation.HiLite("%s feels clumsier", defender.Name()))
-	return nil
-}
-
 func poisonOverTime(g *GameState, attacker, defender *Actor) []foundation.Animation {
 	if defender != g.Player {
 		return nil
 	}
-	if _, result, _ := rpg.SuccessRoll(defender.GetHealth()); result.IsSuccess() {
+	if rpg.Save(defender.GetLevel(), rpg.VsPoison) {
 		return nil
 	}
 	if !defender.HasFlag(foundation.FlagPoisoned) {

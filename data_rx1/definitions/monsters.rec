@@ -1,6 +1,10 @@
 %rec: default
 
 name: bat
+level: 1
+exp: 1
+armor: 3
+damage: 1d2
 internal_name: bat
 letter: b
 dlvl: 1
@@ -8,21 +12,12 @@ color: LightGray
 gold: 0
 carry_chance: 1
 flags: flying | chase | erratic
-strength: 2
-dexterity: 12
-health: 12
-intelligence: 10
-hp: 7
-will: 10
-perception: 8
-fp: 12
-speed: 11
-size_modifier: -1
-dodge: 9
-dr: 0
-attack: 12 | 1d2 | bite
 
 name: emu
+level: 1
+exp: 2
+armor: 7
+damage: 1d2
 internal_name: emu
 letter: e
 dlvl: 1
@@ -30,23 +25,13 @@ color: White
 gold: 0
 carry_chance: 1
 flags: mean | chase
-strength: 7
-dexterity: 15
-health: 8
-intelligence: 4
-hp: 7
-will: 10
-perception: 6
-fp: 12
-speed: 9
-size_modifier: 2
-dodge: 7
-dr: 0
-attack: 11 | 1d6 | kick
-attack_1: 14 | 1d4 | beak
 zap_effect: charge_attack
 
 name: hobgoblin
+level: 1
+exp: 3
+armor: 5
+damage: 1d8
 internal_name: hobgoblin
 letter: h
 dlvl: 1
@@ -54,21 +39,12 @@ color: Green
 gold: 5d4
 carry_chance: 35
 flags: mean | group
-strength: 5
-dexterity: 13
-health: 12
-intelligence: 9
-hp: 12
-will: 12
-perception: 7
-fp: 12
-speed: 8
-size_modifier: 0
-dodge: 8
-dr: 0
-attack_1: 13 | 1d4+1 | slash
 
 name: kestrel
+level: 1
+exp: 1
+armor: 7
+damage: 1d4
 internal_name: kestrel
 letter: k
 dlvl: 1
@@ -76,22 +52,13 @@ color: Orange
 gold: 0
 carry_chance: 2
 flags: chase
-strength: 5
-dexterity: 13
-health: 12
-intelligence: 3
-hp: 5
-will: 6
-perception: 5
-fp: 9
-speed: 9
-size_modifier: -2
-dodge: 9
-dr: 0
-attack: 10 | 1d4 | beak
 hit_effect: hit_and_run | 100
 
 name: jackal
+level: 1
+exp: 2
+armor: 7
+damage: 1d2
 internal_name: jackal
 letter: j
 dlvl: 2
@@ -99,44 +66,26 @@ color: Orange
 gold: 0
 carry_chance: 10
 flags: chase | group
-strength: 8
-dexterity: 12
-health: 9
-intelligence: 8
-hp: 10
-will: 6
-perception: 7
-fp: 8
-speed: 11
-size_modifier: 0
-dodge: 10
-dr: 0
-attack: 10 | 1d6 | bite
 
 name: floating eye
+level: 1
+exp: 5
+armor: 9
+damage: 0d0
 internal_name: floating_eye
 letter: e
 dlvl: 5
 color: Red
 gold: 0
 carry_chance: 25
-strength: 7
-dexterity: 9
-health: 10
-intelligence: 10
-hp: 10
-will: 8
-perception: 5
-fp: 4
-speed: 9
-size_modifier: -1
-dodge: 9
-dr: 0
-attack: 9 | 1d8 | bite
 struck_effect: freeze | 100
 flags: stationary
 
 name: ice monster
+level: 1
+exp: 5
+armor: 9
+damage: 0d0
 internal_name: ice_monster
 letter: i
 dlvl: 5
@@ -144,134 +93,80 @@ color: LightBlue
 gold: 1d6
 carry_chance: 20
 flags: mean
-strength: 5
-dexterity: 13
-health: 11
-intelligence: 9
-hp: 9
-will: 12
-perception: 12
-fp: 12
-speed: 8
-size_modifier: 0
-dodge: 9
-dr: 0
-attack: 11 | 0d0 | freeze
 hit_effect: freeze | 100
 
 name: slime
+level: 2
+exp: 10
+armor: 8
+damage: 1d3
 internal_name: slime
 letter: s
 dlvl: 6
 color: LightCyan
 gold: 3d6
 carry_chance: 20
-strength: 6
-dexterity: 6
-health: 12
-intelligence: 1
-hp: 20
-will: 4
-perception: 6
-fp: 10
-speed: 6
-size_modifier: 1
-dodge: 6
-dr: 0
-attack: 8 | 1d4 | absorb
 struck_effect: split | 50
 struck_effect: rust_weapon | 30
 
 name: snake
+level: 1
+exp: 3
+armor: 5
+damage: 1d3
 internal_name: snake
 letter: s
 dlvl: 6
 color: LightGreen
 gold: 0
 carry_chance: 10
-strength: 4
-dexterity: 12
-health: 8
-intelligence: 5
-hp: 9
-will: 7
-perception: 8
-fp: 6
-speed: 9
-size_modifier: -2
-dodge: 10
-dr: 0
-attack: 8 | 1d6+2 | bite
 hit_effect: poison | 50
 
 name: gnome
+level: 1
+exp: 8
+armor: 5
+damage: 1d6
 internal_name: gnome
 letter: g
 dlvl: 7
 color: White
 gold: 5d5
 carry_chance: 35
-strength: 9
-dexterity: 11
-health: 10
-intelligence: 12
-hp: 9
-will: 10
-perception: 10
-fp: 6
-speed: 12
-size_modifier: 0
-dodge: 7
-dr: 0
-attack: 11 | 1d8+2 | punch
 flags: tunnel
 
 name: orc
+level: 1
+exp: 5
+armor: 6
+damage: 1d8
 internal_name: orc
 letter: o
 dlvl: 7
 color: LightGreen
 gold: 1d6
 carry_chance: 35
-strength: 13
-dexterity: 9
-health: 12
-intelligence: 8
-hp: 20
-will: 9
-perception: 10
-fp: 12
-speed: 10
-size_modifier: 0
-dodge: 7
-dr: 0
-attack: 12 | 1d6+2 | strike
 zap_effect: charge_attack
 flags: greedy
 
 name: rattlesnake
+level: 2
+exp: 9
+armor: 3
+damage: 1d6
 internal_name: rattlesnake
 letter: r
 dlvl: 8
 color: LightGreen
 gold: 0
 carry_chance: 3
-strength: 8
-dexterity: 12
-health: 12
-intelligence: 3
-hp: 12
-will: 8
-perception: 9
-fp: 8
-speed: 8
-size_modifier: -2
-dodge: 9
-dr: 0
-attack: 10 | 1d6 | bite
 hit_effect: poison_strength | 100
 
 name: invisible stalker
+level: 8
+exp: 120
+armor: 3
+damage: 4d4
 internal_name: invisible_stalker
 letter: i
 dlvl: 9
@@ -279,43 +174,25 @@ color: White
 gold: 1d8
 carry_chance: 25
 flags: chase | invisible | erratic
-strength: 11
-dexterity: 10
-health: 11
-intelligence: 11
-hp: 14
-will: 10
-perception: 12
-fp: 6
-speed: 11
-size_modifier: 0
-dodge: 11
-dr: 0
-attack: 11 | 1d8+2 | punch
 
 name: rust monster
+level: 5
+exp: 20
+armor: 2
+damage: 0d0/0d0
 internal_name: rust_monster
 letter: r
 dlvl: 9
 color: Orange
 gold: 2d20
 carry_chance: 65
-strength: 12
-dexterity: 8
-health: 12
-intelligence: 7
-hp: 14
-will: 13
-perception: 12
-fp: 8
-speed: 8
-size_modifier: 1
-dodge: 7
-dr: 1
-attack: 11 | 0d0 | touch
 hit_effect: rust_armor | 100
 
 name: zombie
+level: 2
+exp: 7
+armor: 8
+damage: 1d8
 internal_name: zombie
 letter: z
 dlvl: 9
@@ -323,44 +200,26 @@ color: Orange
 gold: 1d100
 carry_chance: 85
 flags: chase | slow
-strength: 11
-dexterity: 5
-health: 8
-intelligence: 2
-hp: 8
-will: 4
-perception: 8
-fp: 6
-speed: 6
-size_modifier: 0
-dodge: 5
-dr: 0
-attack: 10 | 1d6 | bite
 hit_effect: hunger | 20
 
 name: giant ant
+level: 2
+exp: 10
+armor: 3
+damage: 1d6
 internal_name: ant
 letter: a
 dlvl: 10
 color: Red
 gold: 2d4
 carry_chance: 10
-strength: 6
-dexterity: 10
-health: 11
-intelligence: 7
-hp: 6
-will: 3
-perception: 11
-fp: 5
-speed: 11
-size_modifier: 1
-dodge: 7
-dr: 1
-attack: 9 | 1d8 | bite
 hit_effect: poison_strength | 100
 
 name: leprechaun
+level: 3
+exp: 10
+armor: 8
+damage: 1d1
 internal_name: leprechaun
 letter: l
 dlvl: 10
@@ -368,66 +227,39 @@ color: Cyan
 gold: 5d10
 carry_chance: 50
 flags: chase
-strength: 11
-dexterity: 11
-health: 12
-intelligence: 13
-hp: 12
-will: 12
-perception: 10
-fp: 9
-speed: 13
-size_modifier: 0
-dodge: 8
-dr: 0
-attack: 11 | 1d8 | punch
 hit_effect: steal_gold | 100
 
 name: centaur
+level: 4
+exp: 15
+armor: 4
+damage: 1d6/1d6
 internal_name: centaur
 letter: c
 dlvl: 11
 color: Orange
 gold: 1d10
 carry_chance: 15
-strength: 18
-dexterity: 10
-health: 12
-intelligence: 9
-hp: 18
-will: 9
-perception: 10
-fp: 12
-speed: 12
-size_modifier: 1
-dodge: 8
-dr: 1
-attack: 12 | 1d6+2 | bite
 zap_effect: magic_arrow
 
 name: kobold
+level: 1
+exp: 1
+armor: 7
+damage: 1d4
 internal_name: kobold
 letter: k
 dlvl: 11
 color: Red
 gold: 2d8
 carry_chance: 55
-strength: 7
-dexterity: 11
-health: 10
-intelligence: 13
-hp: 8
-will: 12
-perception: 9
-fp: 6
-speed: 11
-size_modifier: 0
-dodge: 10
-dr: 0
-attack: 9 | 1d8 | punch
 zap_effect: magic_dart
 
 name: aquator
+level: 5
+exp: 20
+armor: 2
+damage: 0d0/0d0
 internal_name: aquator
 letter: A
 dlvl: 12
@@ -435,67 +267,40 @@ color: Blue
 gold: 2d12
 carry_chance: 50
 flags: mean
-strength: 12
-dexterity: 8
-health: 12
-intelligence: 8
-hp: 12
-will: 8
-perception: 12
-fp: 8
-speed: 8
-size_modifier: 0
-dodge: 9
-dr: 0
-attack: 10 | 0d0 | touch
 hit_effect: rust_armor | 100
 
 name: black unicorn
+level: 7
+exp: 190
+armor: -2
+damage: 1d9/1d9/2d9
 internal_name: black_unicorn
 letter: U
 dlvl: 12
 color: Gray
 gold: 1d1000
 carry_chance: 90
-strength: 12
-dexterity: 10
-health: 13
-intelligence: 11
-hp: 16
-will: 12
-perception: 12
-fp: 8
-speed: 12
-size_modifier: 2
-dodge: 8
-dr: 1
-attack: 13 | 2d6 | kick
 zap_effect: charge_attack
 use_effect: phase_door
 
 name: quagga
+level: 3
+exp: 15
+armor: 3
+damage: 1d5/1d5
 internal_name: quagga
 letter: q
 dlvl: 13
 color: White
 gold: 0
 carry_chance: 3
-strength: 11
-dexterity: 11
-health: 12
-intelligence: 4
-hp: 10
-will: 5
-perception: 8
-fp: 8
-speed: 10
-size_modifier: 2
-dodge: 8
-dr: 0
-attack: 10 | 1d4 | kick
 zap_effect: charge_attack
 
 name: nymph
+level: 3
+exp: 37
+armor: 9
+damage: 0d0
 internal_name: nymph
 letter: n
 dlvl: 14
@@ -503,44 +308,26 @@ color: LightMagenta
 gold: 2d20
 carry_chance: 60
 flags: chase
-strength: 10
-dexterity: 10
-health: 12
-intelligence: 11
-hp: 13
-will: 12
-perception: 11
-fp: 9
-speed: 10
-size_modifier: 0
-dodge: 8
-dr: 0
-attack: 10 | 1d6 | punch
 hit_effect: steal_item | 100
 
 name: mimic
+level: 7
+exp: 100
+armor: 7
+damage: 3d4
 internal_name: mimic
 letter: m
 dlvl: 15
 color: White
 gold: 4d4
 carry_chance: 25
-strength: 5
-dexterity: 9
-health: 10
-intelligence: 11
-hp: 10
-will: 10
-perception: 11
-fp: 8
-speed: 10
-size_modifier: 0
-dodge: 10
-dr: 0
-attack: 9 | 1d8 | punch
 flags: disguised
 
 name: yeti
+level: 4
+exp: 50
+armor: 6
+damage: 1d6/1d6
 internal_name: yeti
 letter: Y
 dlvl: 15
@@ -548,23 +335,14 @@ color: White
 gold: 4d20
 carry_chance: 35
 flags: haste
-strength: 12
-dexterity: 10
-health: 12
-intelligence: 10
-hp: 19
-will: 10
-perception: 12
-fp: 11
-speed: 12
-size_modifier: 1
-dodge: 7
-dr: 1
-attack: 10 | 2d6+2 | crush
 hit_effect: hold | 30
 hit_effect: slow | 50
 
 name: troll
+level: 6
+exp: 120
+armor: 4
+damage: 1d8/1d8/2d6
 internal_name: troll
 letter: T
 dlvl: 16
@@ -572,67 +350,40 @@ flags: regenerating | revive
 color: Orange
 gold: 2d10
 carry_chance: 55
-strength: 18
-dexterity: 9
-health: 12
-intelligence: 9
-hp: 22
-will: 10
-perception: 10
-fp: 14
-speed: 10
-size_modifier: 2
-dodge: 7
-dr: 2
-attack: 10 | 2d6+2 | crush
 
 name: violet fungi
+level: 3
+exp: 85
+armor: 3
+damage: 0d0
 internal_name: violet_fungi
 letter: f
 dlvl: 17
 color: Magenta
 gold: 3d10
 carry_chance: 55
-strength: 8
-dexterity: 6
-health: 11
-intelligence: 3
-hp: 12
-will: 7
-perception: 6
-fp: 6
-speed: 6
-size_modifier: 1
-dodge: 5
-dr: 0
-attack: 12 | 1d6 | bite
 hit_effect: hold | 100
 flags: stationary
 
 name: wraith
+level: 5
+exp: 55
+armor: 4
+damage: 1d6
 internal_name: wraith
 letter: w
 dlvl: 17
 color: Red
 gold: 0
 carry_chance: 55
-strength: 11
-dexterity: 12
-health: 9
-intelligence: 13
-hp: 19
-will: 12
-perception: 11
-fp: 12
-speed: 10
-size_modifier: 0
-dodge: 9
-dr: 1
-attack: 10 | 1d6+2 | strike
 hit_effect: drain_level | 15
 use_effect: darkness
 
 name: venus flytrap
+level: 8
+exp: 80
+armor: 3
+damage: 0d0
 internal_name: venus_flytrap
 letter: f
 dlvl: 18
@@ -640,22 +391,13 @@ color: Green
 gold: 2d20
 carry_chance: 60
 flags: mean | stationary
-strength: 12
-dexterity: 10
-health: 12
-intelligence: 2
-hp: 25
-will: 13
-perception: 10
-fp: 8
-speed: 6
-size_modifier: 1
-dodge: 8
-dr: 0
-attack: 12 | 1d6 | bite
 hit_effect: hold | 100
 
 name: phantom
+level: 8
+exp: 120
+armor: 3
+damage: 4d4
 internal_name: phantom
 letter: p
 dlvl: 19
@@ -663,91 +405,54 @@ color: LightGray
 gold: 0
 carry_chance: 20
 flags: invisible | chase | wall_crawler | erratic
-strength: 10
-dexterity: 10
-health: 7
-intelligence: 10
-hp: 15
-will: 10
-perception: 11
-fp: 10
-speed: 10
-size_modifier: 0
-dodge: 11
-dr: 0
-attack: 10 | 1d6 | punch
 
 name: purple worm
+level: 15
+exp: 4000
+armor: 6
+damage: 2d12/2d4
 internal_name: purple_worm
 letter: P
 dlvl: 19
 color: LightMagenta
 gold: 2d80
 carry_chance: 90
-strength: 25
-dexterity: 7
-health: 16
-intelligence: 1
-hp: 40
-will: 6
-perception: 9
-fp: 8
-speed: 8
-size_modifier: 5
-dodge: 8
-dr: 3
-attack_1: 12 | 3d6+3 | bite
-attack_2: 13 | 3d6+5 | stinger
 hit_effect: poison_strength | 30
 flags: tunnel
 
 name: ur-vile
+level: 7
+exp: 190
+armor: -2
+damage: 1d9/1d9/2d9
 internal_name: ur_vile
 letter: u
 dlvl: 20
 color: White
 gold: 0
 carry_chance: 45
-strength: 13
-dexterity: 11
-health: 14
-intelligence: 11
-hp: 15
-will: 12
-perception: 9
-fp: 10
-speed: 10
-size_modifier: 0
-dodge: 8
-dr: 0
-attack: 11 | 1d8 | punch
 flags: group
 use_effect: darkness
 
 name: umber hulk
+level: 8
+exp: 200
+armor: 2
+damage: 3d4/3d4/2d5
 internal_name: umber_hulk
 letter: U
 dlvl: 20
 color: Green
 gold: 2d10
 carry_chance: 65
-strength: 16
-dexterity: 8
-health: 14
-intelligence: 5
-hp: 18
-will: 11
-perception: 8
-fp: 10
-speed: 9
-size_modifier: 2
-dodge: 6
-dr: 2
-attack: 14 | 2d8+2 | punch
 flags: tunnel
 gaze_effect: confuse
 
 name: griffin
+level: 13
+exp: 2000
+armor: 2
+damage: 4d3/3d5
 internal_name: griffin
 letter: g
 dlvl: 21
@@ -755,91 +460,54 @@ color: Yellow
 gold: 3d10
 carry_chance: 45
 flags: mean | flying | regenerating
-strength: 17
-dexterity: 12
-health: 12
-intelligence: 5
-hp: 17
-will: 11
-perception: 12
-fp: 12
-speed: 12
-size_modifier: 1
-dodge: 10
-dr: 1
-attack_1: 12 | 1d6+3 | kick
 zap_effect: lightning_ray
-attack_2: 14 | 1d6+2 | peck
 hit_effect: knockback | 30
 
 name: medusa
+level: 8
+exp: 200
+armor: 2
+damage: 3d4/3d4/2d5
 internal_name: medusa
 letter: M
 dlvl: 22
 color: LightMagenta
 gold: 1d20
 carry_chance: 40
-strength: 12
-dexterity: 12
-health: 12
-intelligence: 12
-hp: 15
-will: 13
-perception: 11
-fp: 10
-speed: 7
-size_modifier: 0
-dodge: 10
-dr: 1
-attack: 10 | 1d6 | punch
 gaze_effect: confuse
 
 name: quasit
+level: 3
+exp: 32
+armor: 2
+damage: 1d2/1d2/1d4
 internal_name: quasit
 letter: Q
 dlvl: 22
 color: Green
 gold: 2d60
 carry_chance: 75
-strength: 5
-dexterity: 13
-health: 11
-intelligence: 9
-hp: 19
-will: 10
-perception: 9
-fp: 10
-speed: 8
-size_modifier: 0
-dodge: 10
-dr: 0
-attack: 12 | 1d6+2 | claws
 use_effect: phase_door
-hit_effect: drain_dex | 30
+hit_effect: poison_strength | 30
 
 name: xeroc
+level: 7
+exp: 100
+armor: 7
+damage: 4d4
 internal_name: xeroc
 letter: x
 dlvl: 23
 color: White
 gold: 2d8
 carry_chance: 25
-strength: 8
-dexterity: 11
-health: 12
-intelligence: 9
-hp: 13
-will: 8
-perception: 12
-fp: 9
-speed: 10
-size_modifier: -1
-dodge: 8
-dr: 0
-attack: 10 | 1d6 | strike
 flags: disguised
 
 name: xeroc mk ii
+level: 7
+exp: 100
+armor: 7
+damage: 4d4
 internal_name: xeroc_2
 letter: x
 dlvl: 23
@@ -847,44 +515,26 @@ color: White
 gold: 2d8
 carry_chance: 20
 flags: invisible | wall_crawler
-strength: 9
-dexterity: 12
-health: 12
-intelligence: 9
-hp: 13
-will: 9
-perception: 13
-fp: 9
-speed: 10
-size_modifier: -1
-dodge: 9
-dr: 0
-attack: 10 | 1d6+2 | strike
 
 name: xorn
+level: 7
+exp: 120
+armor: -2
+damage: 1d3/1d3/1d3/4d6
 internal_name: xorn
 letter: X
 dlvl: 23
 color: Orange
 gold: 0
 carry_chance: 65
-strength: 15
-dexterity: 10
-health: 13
-intelligence: 8
-hp: 16
-will: 11
-perception: 10
-fp: 10
-speed: 7
-size_modifier: 1
-dodge: 7
-dr: 1
-attack: 12 | 2d8 | punch
 flags: wall_crawler
 hit_effect: eat_gold | 100
 
 name: vampire
+level: 8
+exp: 350
+armor: 1
+damage: 1d10
 internal_name: vampire
 letter: V
 dlvl: 24
@@ -892,22 +542,13 @@ color: Red
 gold: 0
 carry_chance: 75
 flags: chase | regenerating
-strength: 14
-dexterity: 14
-health: 9
-intelligence: 14
-hp: 27
-will: 14
-perception: 12
-fp: 14
-speed: 8
-size_modifier: 0
-dodge: 9
-dr: 1
-attack: 13 | 1d8+2 | claws
 hit_effect: drain_max_hp | 30
 
 name: jabberwock
+level: 15
+exp: 3000
+armor: 6
+damage: 2d12/2d4
 internal_name: jabberwock
 letter: J
 dlvl: 25
@@ -915,22 +556,13 @@ color: Yellow
 gold: 2d100
 carry_chance: 75
 flags: chase
-strength: 20
-dexterity: 11
-health: 12
-intelligence: 12
-hp: 18
-will: 14
-perception: 12
-fp: 12
-speed: 9
-size_modifier: 3
-dodge: 11
-dr: 2
-attack: 13 | 2d6 | claws
 gaze_effect: scare
 
 name: dragon
+level: 10
+exp: 6800
+armor: -1
+damage: 1d8/1d8/3d10
 internal_name: dragon
 letter: D
 dlvl: 26
@@ -938,19 +570,5 @@ color: Green
 gold: 3d100
 carry_chance: 95
 flags: mean | flying | regenerating | greedy
-strength: 35
-dexterity: 14
-health: 15
-intelligence: 14
-hp: 35
-will: 14
-perception: 16
-fp: 15
-speed: 10
-size_modifier: 4
-dodge: 10
-dr: 3
-attack_1: 14 | 4d6+3 | kick
 zap_effect: fire_breath
-attack_2: 16 | 4d6+2 | slash
 

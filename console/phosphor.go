@@ -3,7 +3,7 @@ package console
 import (
 	"image/color"
 
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 // phosphorScreen draws every cell as tint × luminance, so hard-coded colours
@@ -29,7 +29,7 @@ func (p *phosphorScreen) mono(c tcell.Color) tcell.Color {
 }
 
 func (p *phosphorScreen) style(s tcell.Style) tcell.Style {
-	fg, bg, _ := s.Decompose()
+	fg, bg := s.GetForeground(), s.GetBackground()
 	return s.Foreground(p.mono(fg)).Background(p.mono(bg))
 }
 
@@ -40,3 +40,11 @@ func (p *phosphorScreen) SetContent(x, y int, r rune, comb []rune, s tcell.Style
 func (p *phosphorScreen) Fill(r rune, s tcell.Style) { p.Screen.Fill(r, p.style(s)) }
 
 func (p *phosphorScreen) SetStyle(s tcell.Style) { p.Screen.SetStyle(p.style(s)) }
+
+func (p *phosphorScreen) Put(x, y int, str string, s tcell.Style) (string, int) {
+	return p.Screen.Put(x, y, str, p.style(s))
+}
+
+func (p *phosphorScreen) PutStrStyled(x, y int, str string, s tcell.Style) {
+	p.Screen.PutStrStyled(x, y, str, p.style(s))
+}

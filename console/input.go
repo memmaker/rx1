@@ -10,7 +10,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 func (u *UI) executePlayerCommand(command string) {
@@ -154,7 +154,7 @@ var friendlyNames = map[string]string{
 	"log":               "Log",
 	"monsters":          "Monster List",
 	"items":             "Item List",
-	"help":              "Help",
+	"help":              "Game Manual",
 	"show_key_bindings": "Key Bindings",
 	"north":             "North",
 	"south":             "South",
@@ -300,10 +300,10 @@ func (u *UI) showKeyBindings() {
 
 func (u *UI) getPressedKey() UIKey {
 	s := u.application.GetScreen()
-	ev := s.PollEvent()
+	ev := <-s.EventQ()
 	keyEvent, isKeyEvent := ev.(*tcell.EventKey)
 	for !isKeyEvent {
-		ev = s.PollEvent()
+		ev = <-s.EventQ()
 		keyEvent, isKeyEvent = ev.(*tcell.EventKey)
 	}
 	key := toUIKey(keyEvent)
@@ -313,9 +313,9 @@ func (u *UI) getPressedKey() UIKey {
 func toUIKey(keyEvent *tcell.EventKey) UIKey {
 	name := tcell.KeyNames[keyEvent.Key()]
 	if keyEvent.Key() == tcell.KeyRune {
-		name = string(keyEvent.Rune())
+		name = string(keyRune(keyEvent))
 	}
-	ch := keyEvent.Rune()
+	ch := keyRune(keyEvent)
 	if keyEvent.Key() == tcell.KeyEnter || keyEvent.Key() == tcell.KeyTab {
 		ch = rune(keyEvent.Key()) // the keymap stores these with ch 13/9; tcell's web screen reports ch 0
 	}
@@ -486,7 +486,7 @@ func LetterCombo(letter rune, mod tcell.ModMask) UIKey {
 	return UIKey{ch: letter, name: keyName, key: key, mod: mod}
 }
 func CtrlCombo(key tcell.Key) UIKey {
-	return UIKey{ch: rune(key), mod: tcell.ModCtrl, key: key, name: tcell.KeyNames[key]}
+	return UIKey{ch: rune(key-tcell.KeyCtrlA) + 1, mod: tcell.ModCtrl, key: key, name: tcell.KeyNames[key]}
 }
 func NonPrintableKeyCombo(key tcell.Key, mod tcell.ModMask) UIKey {
 	return UIKey{key: key, name: tcell.KeyNames[key], mod: mod}

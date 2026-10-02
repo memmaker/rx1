@@ -1,10 +1,11 @@
 package console
 
 import (
-	"github.com/gdamore/tcell/v2"
-	"github.com/memmaker/go/cview"
 	"rx1/foundation"
 	"rx1/geometry"
+
+	"codeberg.org/tslocum/cview"
+	"github.com/gdamore/tcell/v3"
 )
 
 func (u *UI) SelectTarget(origin geometry.Point, onSelected func(targetPos geometry.Point)) {
@@ -39,7 +40,7 @@ func (u *UI) LookTargeting() {
 }
 func (u *UI) handleDirectionalTargetingInput(origin geometry.Point, allowAdvancedTargeting bool, onSelected func(targetPos geometry.Point)) func(ev *tcell.EventKey) *tcell.EventKey {
 	return func(ev *tcell.EventKey) *tcell.EventKey {
-		//_, _, ch := ev.Modifiers(), ev.Key(), ev.Rune()
+		//_, _, ch := ev.Modifiers(), ev.Key(), keyRune(ev)
 		if ev.Key() == tcell.KeyCtrlC {
 			return ev
 		}
@@ -82,7 +83,7 @@ func (u *UI) handleAdvancedTargetingInput(listOfVisibleEnemies []foundation.Acto
 		u.updateTarget(listOfVisibleEnemies[enemyIndex].Position())
 	}
 	return func(ev *tcell.EventKey) *tcell.EventKey {
-		//mod, key, ch := ev.Modifiers(), ev.Key(), ev.Rune()
+		//mod, key, ch := ev.Modifiers(), ev.Key(), keyRune(ev)
 		if ev.Key() == tcell.KeyCtrlC {
 			return ev
 		}

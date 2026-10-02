@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"encoding/gob"
 	"fmt"
+	"image/color"
 	"log"
 	"math/rand"
 	"os"
@@ -49,6 +50,9 @@ type GameState struct {
 	secretLevelDepth                 int                             // the dungeon level that hides the stairs to the secret level
 	secretStairs                     geometry.Point                  // where they are on the current level
 	secretLevelVisited               bool
+	levelStyles                      []dungen.LevelStyle // the generator of each dungeon level, index 0 is level 1; planned at the start of a game
+	wizardLevelStyle                 *dungen.LevelStyle  // makes the next level of that style, set by the wizard menu
+	levelStyle                       dungen.LevelStyle   // of the current level: picks the lighting rules, see canPlayerSee
 	inSecretLevel                    bool
 
 	tileStyle int
@@ -62,38 +66,17 @@ type GameState struct {
 	afterAnimationActions []func()
 
 	playerFoV               *geometry.FOV
+	glowing                 map[geometry.Point]color.RGBA // the added up light of lava and fungus (Brogue levels)
 	visionRange             int
 	playerIcon              rune
 	playerColor             string
 	config                  *foundation.Configuration
 	ascensionsWithoutAmulet int
+	wanderingMonsterTurn    int // rollwand state machine: spawn after ~70 turns
 }
 
 func (g *GameState) GetRandomEnemyName() string {
 	return g.dataDefinitions.RandomMonsterDef().Name
-}
-
-func (g *GameState) IncreaseSkillLevel(skill rpg.SkillName) {
-	if g.Player.charSheet.HasCharPointsLeft() {
-		g.Player.charSheet.IncreaseSkillLevel(skill)
-	} else {
-		g.msg(foundation.Msg("You have no more character points to spend"))
-	}
-
-	g.updateUIStatus()
-}
-
-func (g *GameState) IncreaseAttributeLevel(stat rpg.Stat) {
-	if stat == rpg.FatiguePoints && g.Player.charSheet.GetLevelAdjustments(rpg.FatiguePoints) >= 7 {
-		g.msg(foundation.Msg("You cannot increase your fatigue points any further"))
-		return
-	}
-	if g.Player.charSheet.HasCharPointsLeft() {
-		g.Player.charSheet.Increment(stat)
-		g.updateUIStatus()
-	} else {
-		g.msg(foundation.Msg("You have no more character points to spend"))
-	}
 }
 
 func (g *GameState) ItemAt(loc geometry.Point) foundation.ItemForUI {
@@ -188,10 +171,7 @@ func (g *GameState) OpenTacticsMenu() {
 
 func (g *GameState) GetCharacterSheet() []string {
 
-	actor := g.Player
-	basicActorInfo := actor.GetDetailInfo()
-
-	return basicActorInfo
+	return append(g.Player.GetDetailInfo(), "", fmt.Sprintf("Gold:  %d", g.Player.GetGold()), fmt.Sprintf("Depth: %d", g.currentDungeonLevel))
 }
 
 func (g *GameState) GetPlayerPosition() geometry.Point {
@@ -206,14 +186,24 @@ func (g *GameState) QueueActionAfterAnimation(action func()) {
 	g.afterAnimationActions = append(g.afterAnimationActions, action)
 }
 func (g *GameState) IsLit(pos geometry.Point) bool {
-	return g.gridMap.IsTileLit(pos)
+	glow := g.glowing[pos]
+	return g.gridMap.IsTileLit(pos) || int(glow.R)+int(glow.G)+int(glow.B) >= visibilityThreshold
+}
+
+// visibilityThreshold is Brogue's VISIBILITY_THRESHOLD, 50 of 100 summed over red, green and blue, on our 0-255 scale:
+// a glow fainter than that does not light a tile enough to be seen.
+const visibilityThreshold = 50 * 255 / 100
+
+func (g *GameState) GlowAt(pos geometry.Point) (color.RGBA, bool) {
+	glow, ok := g.glowing[pos]
+	return glow, ok
 }
 
 func (g *GameState) IsExplored(loc geometry.Point) bool {
 	if !g.gridMap.Contains(loc) {
 		return false
 	}
-	return g.gridMap.IsExplored(loc)
+	return g.showEverything || g.gridMap.IsExplored(loc)
 }
 
 func (g *GameState) IsVisibleToPlayer(loc geometry.Point) bool {
@@ -254,34 +244,24 @@ func (g *GameState) IsVisibleToPlayer(loc geometry.Point) bool {
 }
 
 func (g *GameState) IsSomethingBlockingTargetingAtLoc(point geometry.Point) bool {
-	return !g.gridMap.IsCurrentlyPassable(point)
+	return !g.canFlyThrough(point)
 }
 
 func (g *GameState) OpenWizardMenu() {
 	g.ui.OpenMenu([]foundation.MenuItem{
 		{
-			Name:       "Show Map",
+			Name:       "Toggle Show Map",
 			Action:     g.revealAll,
 			CloseMenus: true,
 		},
 		{
-			Name: "Load Test Map",
-			Action: func() {
-				g.GotoNamedLevel("line_room")
-			},
-			CloseMenus: true,
+			Name:   "Teleport",
+			Action: g.openWizardTeleportMenu,
 		},
 		{
-			Name: "Goto Town",
+			Name: "Raise Level",
 			Action: func() {
-				g.GotoNamedLevel("town")
-			},
-			CloseMenus: true,
-		},
-		{
-			Name: "250 Char Points",
-			Action: func() {
-				g.Player.AddCharacterPoints(250)
+				g.Player.RaiseLevel()
 			},
 		},
 		{
@@ -307,12 +287,44 @@ func (g *GameState) OpenWizardMenu() {
 			Name:   "Create Trap",
 			Action: g.openWizardCreateTrapMenu,
 		},
-		{
-			Name:       "Goto Secret Level",
-			Action:     g.GotoSecretLevel,
-			CloseMenus: true,
-		},
 	})
+}
+
+// openWizardTeleportMenu has every way to jump elsewhere: the town, the test map, the secret level
+// and a new level of each style at the current depth.
+func (g *GameState) openWizardTeleportMenu() {
+	items := []foundation.MenuItem{
+		{Name: "Goto Town", Action: func() { g.GotoNamedLevel("town") }, CloseMenus: true},
+		{Name: "Load Test Map", Action: func() { g.GotoNamedLevel("line_room") }, CloseMenus: true},
+		{Name: "Goto Secret Level", Action: g.GotoSecretLevel, CloseMenus: true},
+		{Name: "Goto Depth", Action: g.openWizardDepthMenu},
+	}
+	for _, s := range dungen.AllLevelStyles {
+		style := s
+		items = append(items, foundation.MenuItem{
+			Name: "New level: " + style.String(),
+			Action: func() {
+				g.wizardLevelStyle = &style
+				g.GotoDungeonLevel(max(1, g.currentDungeonLevel), StairsBoth, false)
+			},
+			CloseMenus: true,
+		})
+	}
+	g.ui.OpenMenu(items)
+}
+
+// openWizardDepthMenu goes to a new level at any depth, of the style planned for it.
+func (g *GameState) openWizardDepthMenu() {
+	var items []foundation.MenuItem
+	for d := 1; d <= g.maximumDungeonLevel; d++ {
+		depth := d
+		items = append(items, foundation.MenuItem{
+			Name:       fmt.Sprintf("Depth %d: %s", depth, g.levelStyles[depth-1]),
+			Action:     func() { g.GotoDungeonLevel(depth, StairsBoth, false) },
+			CloseMenus: true,
+		})
+	}
+	g.ui.OpenMenu(items)
 }
 
 func NewGameState(ui foundation.GameUI, config *foundation.Configuration) *GameState {
@@ -326,7 +338,7 @@ func NewGameState(ui foundation.GameUI, config *foundation.Configuration) *GameS
 		tileStyle:           0,
 		dataDefinitions:     GetDataDefinitions(config.DataRootDir),
 		playerFoV:           geometry.NewFOV(geometry.NewRect(0, 0, config.MapWidth, config.MapHeight)),
-		visionRange:         14,
+		visionRange:         config.MapWidth + config.MapHeight, // no limit: only light limits sight
 	}
 	g.init()
 	ui.SetGame(g)
@@ -357,8 +369,7 @@ func (g *GameState) init() {
 	g.Player.GetFlags().SetOnChangeHandler(func(flag foundation.ActorFlag, value int) {
 		g.ui.UpdateStats()
 	})
-	g.Player.charSheet.SetStatChangedHandler(g.ui.UpdateStats)
-	g.Player.charSheet.SetResourceChangedHandler(g.ui.UpdateStats)
+	g.Player.onChange = g.ui.UpdateStats
 
 	g.Player.GetInventory().SetOnChangeHandler(g.ui.UpdateInventory)
 
@@ -390,6 +401,7 @@ func (g *GameState) init() {
 	g.morningStarSpawned = false
 	g.secretLevelDepth = 7 + rand.Intn(6)
 	g.secretLevelVisited = false
+	g.levelStyles = dungen.PlanLevelStyles(rand.New(rand.NewSource(time.Now().UnixNano())), g.maximumDungeonLevel)
 	g.showEverything = false
 	g.usedDocuments = make(map[string]bool)
 }
@@ -501,11 +513,9 @@ func (g *GameState) GetHudStats() map[foundation.HudValue]int {
 	uiStats[foundation.HudFatiguePointsMax] = g.Player.GetFatiguePointsMax()
 
 	uiStats[foundation.HudStrength] = g.Player.GetStrength()
-	uiStats[foundation.HudDexterity] = g.Player.GetDexterity()
-	uiStats[foundation.HudIntelligence] = g.Player.GetIntelligence()
-	uiStats[foundation.HudMeleeSkill] = g.Player.getMeleeSkillInUse()
-	uiStats[foundation.HudRangedSkill] = g.Player.GetSkill(rpg.SkillNameMissileWeapons)
-	uiStats[foundation.HudDamageResistance] = g.Player.GetDamageResistance()
+	uiStats[foundation.HudArmorClass] = g.Player.GetArmorClass()
+	uiStats[foundation.HudLevel] = g.Player.GetLevel()
+	uiStats[foundation.HudExperience] = g.Player.GetExperience()
 
 	return uiStats
 }
@@ -584,6 +594,7 @@ func (g *GameState) endPlayerTurn() {
 	g.identification.SetCurrentItemInUse("") // reset item in use
 
 	g.TurnsTaken++
+	g.wanderingMonsterTick()
 
 	g.ui.AnimatePending() // the player's actions play first..
 
@@ -764,22 +775,27 @@ func (g *GameState) canPlayerSee(pos geometry.Point) bool {
 	if pos == playerPos {
 		return true
 	}
-	// lit rooms are seen as a whole, everything else only by our own light
-	if playerRoom := g.getPlayerRoom(); playerRoom != nil && playerRoom.IsLit() && playerRoom.ContainsIncludingWalls(pos) {
-		return true
+	// Each style sees by the rules of its game, the carried light added to them:
+	// Rogue: the lit room the player is in is seen as a whole, nothing lit outside of it.
+	// NetHack: lit tiles in line of sight, at any distance.
+	// Brogue: no lit rooms, the light of lava and fungus in line of sight, at any distance.
+	if g.levelStyle == dungen.StyleRogue {
+		if playerRoom := g.getPlayerRoom(); playerRoom != nil && playerRoom.IsLit() && playerRoom.ContainsIncludingWalls(pos) {
+			return true
+		}
+		return g.seenInLight(pos, false)
 	}
-	return g.seenByOwnLight(pos)
+	return g.seenInLight(pos, true)
 }
 
-// seenByOwnLight: in reach of the player's light and in line of sight.
-// SSC also reveals wall tiles beyond the range and the FoV may be stale, so the distance is checked here.
-// It never shows a wall with walls on both sides towards the player, which is every corner of a room seen from
-// inside, so a wall is also seen when a tile diagonally next to it is.
-func (g *GameState) seenByOwnLight(pos geometry.Point) bool {
-	reached := func(p geometry.Point) bool {
-		return foundation.LightReaches(geometry.DistanceSquared(g.Player.Position(), p), g.playerLightRadius())
+// seenInLight: in line of sight, at any distance, and lit: by the player's own light, or by the level if levelLight.
+// SSC never shows a wall with walls on both sides towards the player, which is every corner of a room
+// seen from inside, so a wall is also seen when a tile diagonally next to it is.
+func (g *GameState) seenInLight(pos geometry.Point, levelLight bool) bool {
+	lit := func(p geometry.Point) bool {
+		return levelLight && g.IsLit(p) || foundation.LightReaches(geometry.DistanceSquared(g.Player.Position(), p), g.playerLightRadius())
 	}
-	if !reached(pos) {
+	if !lit(pos) {
 		return false
 	}
 	if g.playerFoV.Visible(pos) {
@@ -789,7 +805,7 @@ func (g *GameState) seenByOwnLight(pos geometry.Point) bool {
 		return false
 	}
 	for _, step := range []geometry.Point{{X: -1, Y: -1}, {X: 1, Y: -1}, {X: -1, Y: 1}, {X: 1, Y: 1}} {
-		if n := pos.Add(step); g.gridMap.Contains(n) && g.gridMap.IsTransparent(n) && reached(n) && g.playerFoV.Visible(n) {
+		if n := pos.Add(step); g.gridMap.Contains(n) && g.gridMap.IsTransparent(n) && g.playerFoV.Visible(n) && lit(n) {
 			return true
 		}
 	}
@@ -804,9 +820,9 @@ func (g *GameState) playerLightRadius() int {
 	return 0
 }
 
-// GetPlayerLight returns false where light does not matter (town)
+// GetPlayerLight returns false where light does not matter (town, or the wizard's show map: all fullbright)
 func (g *GameState) GetPlayerLight() (foundation.LightInfo, bool) {
-	if g.currentDungeonLevel == 0 || g.dungeonLayout == nil {
+	if g.currentDungeonLevel == 0 || g.dungeonLayout == nil || g.showEverything {
 		return foundation.LightInfo{}, false
 	}
 	light := g.Player.GetEquipment().GetBySlot(foundation.SlotNameLightSource)
@@ -881,22 +897,12 @@ func (g *GameState) NewEnemyFromDef(def MonsterDef) *Actor {
 	if actor.HasFlag(foundation.FlagDisguised) {
 		actor.disguise = foundation.RandomItemCategory()
 	}
-	actor.naturalDR = def.DamageResistance
 	actor.SetInternalName(def.InternalName)
 
-	actor.SetSizeModifier(def.SizeModifier)
-
-	actor.charSheet.SetStat(rpg.Strength, def.Strength)
-	actor.charSheet.SetStat(rpg.Dexterity, def.Dexterity)
-	actor.charSheet.SetStat(rpg.Intelligence, def.Intelligence)
-	actor.charSheet.SetStat(rpg.Health, def.Health)
-	actor.charSheet.SetStat(rpg.Will, def.Will)
-	actor.charSheet.SetStat(rpg.Perception, def.Perception)
-	actor.charSheet.SetStat(rpg.FatiguePoints, def.FatiguePoints)
-	actor.charSheet.SetStat(rpg.HitPoints, max(1, def.HitPoints)) // hack to avoid 0 hp actors which would despawn immediately
-	actor.charSheet.SetStat(rpg.BasicSpeed, def.BasicSpeed)
-	actor.charSheet.ResetResources()
-	actor.charSheet.AddStatModifier(rpg.Dodge, ModFlat(def.Dodge-actor.charSheet.GetStat(rpg.Dodge), "natural"))
+	// Rogue's new_monster: level d8 hit points, worth its base experience plus a bit for each hit point
+	hp := max(1, rpg.NewDice(def.Level, 8, 0).Roll())
+	actor.stats = Stats{Str: 10, MaxStr: 10, Lvl: def.Level, HP: hp, MaxHP: hp, Arm: def.Armor, Dmg: def.Damage,
+		Exp: def.Exp + rpg.ExpAdd(def.Level, hp)}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	if random.Intn(100) < def.CarryChance {
@@ -909,7 +915,6 @@ func (g *GameState) NewEnemyFromDef(def MonsterDef) *Actor {
 		}
 	}
 
-	actor.SetIntrinsicAttacks(def.Attacks)
 	return actor
 }
 
@@ -924,6 +929,11 @@ func (g *GameState) actorKilled(causeOfDeath string, victim *Actor) {
 	if g.tryRevive(victim) {
 		return
 	}
+	if causeOfDeath == g.Player.name || causeOfDeath == g.Player.Name() {
+		if lvl, leveledUp := g.Player.AddExperience(victim.GetExperience()); leveledUp {
+			g.msg(foundation.HiLite("Welcome to level %d", fmt.Sprint(lvl)))
+		}
+	}
 	for _, effect := range victim.GetIntrinsicHitEffects() {
 		if effect.Name == "hold" {
 			g.Player.GetFlags().Unset(foundation.FlagHeld)
@@ -933,9 +943,9 @@ func (g *GameState) actorKilled(causeOfDeath string, victim *Actor) {
 	g.dropInventory(victim)
 }
 
+// revealAll toggles seeing the whole map without exploring it.
 func (g *GameState) revealAll() {
-	g.gridMap.SetAllExplored()
-	g.showEverything = true
+	g.showEverything = !g.showEverything
 }
 
 func (g *GameState) isInPlayerRoom(position geometry.Point) bool {
@@ -1039,6 +1049,51 @@ func (g *GameState) spawnCrawlerInWall(monsterDef MonsterDef) {
 	newActor := g.NewEnemyFromDef(monsterDef)
 	g.gridMap.ForceSpawnActorInWall(newActor, spawnPos)
 }
+
+func (g *GameState) wanderingMonsterTick() {
+	// Rogue: every 70 turns (WANDERTIME), every 4 turns roll 1d6, spawn if roll==4
+	// Simplified: every 4 turns, 16.67% chance (roll 1d6==4). ponytail: inline state machine.
+	g.wanderingMonsterTurn++
+	if g.wanderingMonsterTurn >= 4 {
+		if rand.Intn(6) == 4 { // roll 1d6, 4 is 0-indexed as 4 of 0-5
+			g.wanderingMonster()
+		}
+		g.wanderingMonsterTurn = 0
+	}
+}
+
+func (g *GameState) wanderingMonster() {
+	playerRoom := g.getPlayerRoom()
+	if playerRoom == nil {
+		return
+	}
+	rooms := g.dungeonLayout.AllRooms()
+	random := rand.New(rand.NewSource(time.Now().UnixNano()))
+	// Pick random room that isn't player's room
+	var spawnRoom *dungen.DungeonRoom
+	for tries := 0; tries < 10; tries++ {
+		r := rooms[random.Intn(len(rooms))]
+		if r != playerRoom {
+			spawnRoom = r
+			break
+		}
+	}
+	if spawnRoom == nil {
+		return
+	}
+	// Find walkable floor tile
+	for tries := 0; tries < 10; tries++ {
+		p := spawnRoom.GetRandomAbsoluteFloorPosition(random)
+		if g.gridMap.IsTileWalkable(p) && !g.gridMap.IsActorAt(p) && !g.gridMap.IsTileSpecial(p) {
+			monster := g.NewEnemyFromDef(g.rogueRandMonster(random, g.currentDungeonLevel))
+			// Rogue wanderers wake up and immediately chase the player
+			monster.SetAware()
+			g.gridMap.AddActor(monster, p)
+			g.msg(foundation.HiLite("You sense a %s stirring in the dungeon", monster.Name()))
+			return
+		}
+	}
+}
 func (g *GameState) calculateTotalNetWorth() int {
 	return g.Player.GetGold()
 }
@@ -1071,7 +1126,16 @@ func (g *GameState) IsFoodAt(loc geometry.Point) bool {
 }
 
 func (g *GameState) IsBlockingRay(point geometry.Point) bool {
-	return !g.gridMap.IsCurrentlyPassable(point)
+	return !g.canFlyThrough(point)
+}
+
+// canFlyThrough: what is thrown, shot or zapped passes where one can walk and over water, lava and chasms.
+func (g *GameState) canFlyThrough(p geometry.Point) bool {
+	if !g.gridMap.Contains(p) || g.gridMap.IsCurrentlyPassable(p) {
+		return g.gridMap.Contains(p)
+	}
+	tile := g.gridMap.GetCell(p).TileType
+	return (tile.IsWater() || tile.IsLava() || tile.IsChasm()) && !g.gridMap.IsActorAt(p) && !g.gridMap.IsObjectAt(p)
 }
 
 func (g *GameState) updatePlayerFoVAndApplyExploration() {
@@ -1093,9 +1157,7 @@ func (g *GameState) checkPlayerCanAct() {
 	}
 
 	if g.Player.HasFlag(foundation.FlagStun) {
-		_, result, _ := rpg.SuccessRoll(g.Player.GetWillpower() + g.Player.GetFlags().Get(foundation.FlagStun) - 1)
-
-		if result.IsSuccess() {
+		if rpg.Save(g.Player.GetLevel()+g.Player.GetFlags().Get(foundation.FlagStun)-1, rpg.VsMagic) {
 			g.msg(foundation.Msg("You shake off the stun"))
 			g.Player.GetFlags().Unset(foundation.FlagStun)
 			return
@@ -1108,18 +1170,10 @@ func (g *GameState) checkPlayerCanAct() {
 		g.endPlayerTurn()
 	}
 	if g.Player.HasFlag(foundation.FlagHeld) {
-		_, result, marginOfSuccess := rpg.SuccessRoll(g.Player.GetStrength())
-
-		if result.IsCriticalSucces() {
+		if rpg.Save(g.Player.GetLevel()+rpg.StrPlus(g.Player.GetStrength()), rpg.VsPoison) {
 			g.msg(foundation.Msg("You break free from the hold"))
 			g.Player.GetFlags().Unset(foundation.FlagHeld)
 			return
-		} else if result.IsSuccess() {
-			g.Player.GetFlags().Decrease(foundation.FlagHeld, marginOfSuccess)
-			if !g.Player.HasFlag(foundation.FlagHeld) {
-				g.msg(foundation.Msg("You break free from the hold"))
-				return
-			}
 		}
 
 		g.msg(foundation.Msg("You are held and cannot act"))
@@ -1232,23 +1286,14 @@ func (g *GameState) buyItemFromVendor(item foundation.ItemForUI, price int) {
 	player.GetInventory().Add(i)
 }
 
-func (g *GameState) newLevelReached(level int) {
-	g.Player.AddCharacterPoints(10)
-	g.msg(foundation.HiLite("You've been awarded 10 character points for reaching level %s", fmt.Sprint(level)))
-}
-
 func (g *GameState) checkTilesForHiddenObjects(tiles []geometry.Point) {
 	var noticedSomething bool
 	for _, tile := range tiles {
 		if g.gridMap.IsObjectAt(tile) {
 			object := g.gridMap.ObjectAt(tile)
 			if object.IsHidden() {
-				perception := g.Player.GetPerception()
-				_, result, _ := rpg.SuccessRoll(perception)
-				if result.IsSuccess() {
-					noticedSomething = true
-				}
-				if result.IsCriticalSucces() {
+				noticedSomething = noticedSomething || rand.Intn(3) == 0
+				if rand.Intn(20) == 0 {
 					object.SetHidden(false)
 				}
 			}
@@ -1350,8 +1395,6 @@ func NewItem(def ItemDef, id *IdentificationKnowledge) *Item {
 		id:           id,
 		stat:         def.Stat,
 		statBonus:    def.StatBonus.Roll(),
-		skill:        def.Skill,
-		skillBonus:   def.SkillBonus.Roll(),
 		equipFlag:    def.EquipFlag,
 		thrownDamage: def.ThrowDamageDice,
 		text:         def.Text,
@@ -1368,16 +1411,14 @@ func NewItem(def ItemDef, id *IdentificationKnowledge) *Item {
 			damageDice:       def.WeaponDef.DamageDice,
 			weaponType:       def.WeaponDef.Type,
 			launchedWithType: def.WeaponDef.LaunchedWithType,
-			skillUsed:        def.WeaponDef.SkillUsed,
 			damagePlus:       0,
 		}
 	}
 
 	if def.IsValidArmor() {
 		item.armor = &ArmorInfo{
-			damageResistance: def.ArmorDef.DamageResistance,
-			plus:             0,
-			encumbrance:      def.ArmorDef.Encumbrance,
+			protection: def.ArmorDef.Protection,
+			plus:       0,
 		}
 	}
 

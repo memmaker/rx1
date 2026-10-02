@@ -43,7 +43,17 @@ func (stubUI) ActorMoved(foundation.ActorForUI, geometry.Point, bool) {
 func (stubUI) EndAnimatedAction(bool)   {}
 func (stubUI) AfterAnimations(f func()) { f() }
 func (stubUI) GetAnimMove(foundation.ActorForUI, geometry.Point, geometry.Point) foundation.Animation {
+	return stubAnim{} // the game always asks a move to update the map
+}
+
+type stubAnim struct{}
+
+func (stubAnim) IsDone() bool                                                 { return true }
+func (stubAnim) SetFollowUp([]foundation.Animation)                           {}
+func (stubAnim) RequestMapUpdateOnFinish()                                    {}
+func (stubUI) GetAnimDamage(geometry.Point, int, func()) foundation.Animation { return nil }
+func (stubUI) GetAnimBackgroundColor(geometry.Point, string, int, func()) foundation.Animation {
 	return nil
 }
-func (stubUI) GetAnimDamage(geometry.Point, int, func()) foundation.Animation { return nil }
 func (stubUI) GetAnimExplosion([]geometry.Point, func()) foundation.Animation { return nil }
+func (stubUI) GetAnimWakeUp(geometry.Point, func()) foundation.Animation      { return nil }

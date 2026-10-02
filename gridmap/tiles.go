@@ -36,11 +36,11 @@ func (t Tile) IsVoid() bool {
 }
 
 func (t Tile) IsStairsUp() bool {
-	return t.Feature == foundation.TileStairsUp
+	return t.Feature == foundation.TileStairsUp || t.Feature == foundation.TileCaveStairsUp
 }
 
 func (t Tile) IsStairsDown() bool {
-	return t.Feature == foundation.TileStairsDown || t.Feature == foundation.TileTownStairsDown
+	return t.Feature == foundation.TileStairsDown || t.Feature == foundation.TileTownStairsDown || t.Feature == foundation.TileCaveStairsDown
 }
 
 func (t Tile) IsChasm() bool {

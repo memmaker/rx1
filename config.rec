@@ -1,6 +1,6 @@
 %rec: default
 
-AnimationDelay: 55
+AnimationDelay: 45
 AnimationsEnabled: true
 AnimateMovement: true
 AnimateProjectiles: true

@@ -5,7 +5,6 @@ slot: one_handed_weapon
 weapon_type: sword
 weapon_damage: 1d4
 thrown_damage: 1d3
-weapon_skill_used: melee
 
 name: mace
 internal_name: mace
@@ -14,16 +13,14 @@ slot: one_handed_weapon
 weapon_type: club
 weapon_damage: 2d4
 thrown_damage: 1d3
-weapon_skill_used: melee
 
 name: long sword
 internal_name: long_sword
 slot: one_handed_weapon
 category: weapons
 weapon_type: sword
-weapon_damage: 3d4
+weapon_damage: 1d10
 thrown_damage: 1d2
-weapon_skill_used: melee
 
 name: short bow
 internal_name: short_bow
@@ -32,7 +29,6 @@ category: weapons
 weapon_type: bow
 weapon_damage: 1d1
 thrown_damage: 1d1
-weapon_skill_used: missile
 
 name: arrow
 internal_name: arrow
@@ -40,18 +36,16 @@ category: weapons
 slot: quiver
 weapon_type: arrow
 weapon_launched_with_type: bow
-weapon_damage: 2d3
+weapon_damage: 1d6
 thrown_damage: 1d1
-weapon_skill_used: missile
 
 name: battle axe
 internal_name: dagger
 slot: one_handed_weapon
 category: weapons
 weapon_type: dagger
-weapon_damage: 1d6+2
-thrown_damage: 1d4+2
-weapon_skill_used: melee
+weapon_damage: 1d6
+thrown_damage: 1d4
 
 name: two handed sword
 internal_name: two_handed_sword
@@ -59,9 +53,8 @@ slot: two_handed_weapon
 category: weapons
 weapon_type: sword
 flags: two_handed
-weapon_damage: 4d4
+weapon_damage: 3d6
 thrown_damage: 1d2
-weapon_skill_used: melee
 
 name: dart
 internal_name: dart
@@ -70,7 +63,6 @@ category: weapons
 weapon_type: dart
 weapon_damage: 1d1
 thrown_damage: 1d3
-weapon_skill_used: missile
 
 name: crossbow
 internal_name: crossbow
@@ -79,7 +71,6 @@ category: weapons
 weapon_type: crossbow
 weapon_damage: 1d1
 thrown_damage: 1d1
-weapon_skill_used: missile
 
 name: crossbow bolt
 internal_name: crossbow_bolt
@@ -87,18 +78,16 @@ slot: quiver
 category: weapons
 weapon_type: bolt
 weapon_launched_with_type: crossbow
-weapon_damage: 1d2
-thrown_damage: 2d5
-weapon_skill_used: missile
+weapon_damage: 1d10
+thrown_damage: 1d2
 
 name: spear
 internal_name: spear
 slot: one_handed_weapon
 category: weapons
 weapon_type: spear
-weapon_damage: 2d3 + 1
+weapon_damage: 1d8
 thrown_damage: 1d6
-weapon_skill_used: melee
 
 name: overkill
 internal_name: overkill
@@ -108,3 +97,34 @@ weapon_type: spear
 weapon_damage: 5d8 + 1
 thrown_damage: 1d6
 weapon_skill_used: melee
+name: club
+internal_name: club
+category: weapons
+slot: one_handed_weapon
+weapon_type: club
+weapon_damage: 1d6
+thrown_damage: 1d3
+
+name: axe
+internal_name: axe
+category: weapons
+slot: one_handed_weapon
+weapon_type: axe
+weapon_damage: 1d8
+thrown_damage: 1d3
+
+name: rapier
+internal_name: rapier
+category: weapons
+slot: one_handed_weapon
+weapon_type: rapier
+weapon_damage: 1d6
+thrown_damage: 1d2
+
+name: whip
+internal_name: whip
+category: weapons
+slot: one_handed_weapon
+weapon_type: whip
+weapon_damage: 1d4
+thrown_damage: 1d1

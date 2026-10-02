@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"math/rand"
 	"rx1/foundation"
 	"rx1/geometry"
@@ -72,8 +73,7 @@ func uncloak(g *GameState, user *Actor) []foundation.Animation {
 }
 
 func raiseLevel(g *GameState, user *Actor) {
-	g.msg(foundation.Msg("you suddenly feel much more skillful"))
-	g.Player.AddCharacterPoints(rpg.NewDice(1, 10, 0).Roll())
+	g.msg(foundation.HiLite("Welcome to level %d", fmt.Sprint(g.Player.RaiseLevel())))
 }
 
 func heal(g *GameState, actor *Actor) []foundation.Animation {

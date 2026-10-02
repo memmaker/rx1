@@ -13,7 +13,19 @@ const (
 	Corridor
 	StairsUp
 	StairsDown
+	// Brogue levels
+	DeepWater
+	ShallowWater
+	Lava
+	Chasm // walkable: a fall to the next level
+	ChasmEdge
+	Bridge
+	Fungus       // luminescent fungus: glows
+	FungusForest // glows and hides what is behind it until trampled
 )
+
+// IsWalkable: everything but wall, deep water and lava.
+func (t DungeonTile) IsWalkable() bool { return t != Wall && t != DeepWater && t != Lava }
 
 type DungeonMap struct {
 	width  int
@@ -75,16 +87,7 @@ func (m *DungeonMap) AllRooms() []*DungeonRoom {
 func (m *DungeonMap) Print() {
 	for y := 0; y < m.height; y++ {
 		for x := 0; x < m.width; x++ {
-			switch m.GetTile(x, y) {
-			case Wall:
-				print("#")
-			case Corridor:
-				print(".")
-			case Room:
-				print(".")
-			case Door:
-				print("+")
-			}
+			print(string("#+..<>~,=:'_\"&"[m.GetTile(x, y)]))
 		}
 		println()
 	}

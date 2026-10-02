@@ -8,6 +8,7 @@ Player_Color: White
 
 Black: 0 | 0 | 0
 DarkGray: 60 | 60 | 60
+ChasmEdge: 16 | 16 | 57
 Gray: 128 | 128 | 128
 VeryDarkGray: 40 | 40 | 40
 Blue: 60 | 183 | 250
@@ -32,6 +33,14 @@ LightGray: 170 | 170 | 170
 TownGrass: 10 | 42 | 10
 GrassShade: 47 | 111 | 47
 GrassDot: 59 | 109 | 17
+CaveDirt: 74 | 52 | 32
+CaveDirtDot: 120 | 88 | 56
+DeepWaterBg: 16 | 40 | 110
+ShallowWaterBg: 40 | 80 | 130
+LavaBg: 150 | 30 | 0
+LavaHi: 255 | 170 | 40
+FungusBg: 20 | 70 | 40
+ForestBg: 10 | 50 | 20
 Rock: 68 | 68 | 65
 RockHi: 136 | 135 | 128
 Peak: 211 | 209 | 199
@@ -79,6 +88,8 @@ TileWall: #
 TileWall_Colors: DirtyBlue | Cyan
 TileRoomFloor: ∙
 TileRoomFloor_Colors: DirtyBlue | Cyan
+TileCaveFloor: ∙
+TileCaveFloor_Colors: CaveDirtDot | CaveDirt
 TileRoomWallHorizontal: ▀
 TileRoomWallHorizontal_Colors: DirtyYellow | DirtyBlue
 TileRoomWallVertical: █
@@ -117,6 +128,10 @@ TileWallTJunctionLeft: █
 TileWallTJunctionLeft_Colors: DirtyYellow | DirtyBlue
 TileWallCross: █
 TileWallCross_Colors: DirtyYellow | DirtyBlue
+TileWallFull: █
+TileWallFull_Colors: DirtyYellow | DirtyBlue
+TileWallHalf: ▀
+TileWallHalf_Colors: DirtyYellow | DirtyBlue
 TileDoorOpen: ╺
 TileDoorOpen_Colors: LightGray | Brown
 TileDoorClosed: ╺
@@ -129,6 +144,10 @@ TileStairsUp: <
 TileStairsUp_Colors: White | Cyan
 TileStairsDown: >
 TileStairsDown_Colors: White | Cyan
+TileCaveStairsUp: <
+TileCaveStairsUp_Colors: White | CaveDirt
+TileCaveStairsDown: >
+TileCaveStairsDown_Colors: White | CaveDirt
 TileTownStairsDown: >
 TileTownStairsDown_Colors: White | TownGrass
 TileMountain: ▓
@@ -164,11 +183,21 @@ TileGrass_Colors: LightGray | Black
 TileTree: §
 TileTree_Colors: LightGray | Black
 TileWater: ≈
-TileWater_Colors: Blue | Black
+TileWater_Colors: Blue | DeepWaterBg
 TileLava: ≈
-TileLava_Colors: Red | Black
+TileLava_Colors: LavaHi | LavaBg
 TileChasm: .
 TileChasm_Colors: DarkGray | Black
+TileShallowWater: ≈
+TileShallowWater_Colors: Blue | ShallowWaterBg
+TileChasmEdge: ∙
+TileChasmEdge_Colors: White | ChasmEdge
+TileBridge: =
+TileBridge_Colors: Brown | Black
+TileFungus: "
+TileFungus_Colors: LightGreen | FungusBg
+TileFungusForest: ♠
+TileFungusForest_Colors: LightGreen | ForestBg
 TileVendorGeneral: 1
 TileVendorGeneral_Colors: Black | Yellow
 TileVendorWeapons: 2

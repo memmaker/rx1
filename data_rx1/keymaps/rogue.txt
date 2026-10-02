@@ -70,8 +70,8 @@ Enter -> map_interaction
 
 ? -> help
 = -> show_key_bindings
-F1 -> help
-F2 -> show_key_bindings
+F1 -> show_key_bindings
+F2 -> help
 
 F3 -> gamma_down
 F4 -> gamma_up

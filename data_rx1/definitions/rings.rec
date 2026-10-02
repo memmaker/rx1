@@ -4,11 +4,11 @@
 # - Damage
 # - Maintain Armor
 
-name: ring of dodging
-internal_name: ring_dodge
+name: ring of protection
+internal_name: ring_protection
 category: rings
 slot: ring
-stat: dodge
+stat: armor
 stat_bonus: 1d6-2
 chance: 20
 always_id_on_use: true
@@ -26,25 +26,16 @@ name: ring of dexterity
 internal_name: ring_dexterity
 category: rings
 slot: ring
-stat: dexterity
+stat: to_hit
 stat_bonus: 1d5-2
 chance: 20
 always_id_on_use: true
 
-name: ring of intelligence
-internal_name: ring_intelligence
+name: ring of increase damage
+internal_name: ring_increase_damage
 category: rings
 slot: ring
-stat: intelligence
-stat_bonus: 1d5-2
-chance: 20
-always_id_on_use: true
-
-name: ring of health
-internal_name: ring_health
-category: rings
-slot: ring
-stat: health
+stat: damage
 stat_bonus: 1d5-2
 chance: 20
 always_id_on_use: true
@@ -76,16 +67,6 @@ chance: 20
 always_id_on_use: true
 charges: -1
 
-name: ring of stealth
-internal_name: ring_stealth
-category: rings
-slot: ring
-skill: stealth
-skill_bonus: 1d6-2
-chance: 20
-always_id_on_use: true
-charges: -1
-
 name: ring of slow digestion
 internal_name: ring_slow_digestion
 category: rings
@@ -94,13 +75,3 @@ equip_flag: slow_digestion
 chance: 20
 always_id_on_use: true
 charges: -1
-
-
-name: ring of perception
-internal_name: ring_perception
-category: rings
-slot: ring
-stat: perception
-stat_bonus: 1d5-2
-chance: 20
-always_id_on_use: true

@@ -150,7 +150,9 @@ func (g *GameState) spotNewThings() bool {
 func (g *GameState) autoMoveToward(isGoal func(geometry.Point) bool, isExploring bool) bool {
 	m := g.gridMap
 	start := g.Player.Position()
-	isKnownFloor := func(p geometry.Point) bool { return m.Contains(p) && m.IsExplored(p) && m.IsWalkable(p) }
+	isKnownFloor := func(p geometry.Point) bool {
+		return m.Contains(p) && m.IsExplored(p) && m.IsWalkable(p) && !m.IsObviousHazardAt(p) // no stroll into a chasm
+	}
 	// breadth-first search; firstStep remembers which neighbour of start each tile was reached through
 	firstStep := map[geometry.Point]geometry.Point{start: start}
 	queue := []geometry.Point{start}

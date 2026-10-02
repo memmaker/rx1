@@ -7,8 +7,9 @@ import (
 	"rx1/foundation"
 	"rx1/geometry"
 	"rx1/rpg"
+	"strings"
 
-	"github.com/memmaker/go/cview"
+	"codeberg.org/tslocum/cview"
 )
 
 type WeaponInfo struct {
@@ -17,7 +18,6 @@ type WeaponInfo struct {
 	weaponType       WeaponType
 	launchedWithType WeaponType
 	vorpalEnemy      string
-	skillUsed        rpg.SkillName
 }
 
 func (i *WeaponInfo) Vorpalize(enemy string) {
@@ -65,22 +65,18 @@ func (i *WeaponInfo) GetWeaponType() WeaponType {
 	return i.weaponType
 }
 
-func (i *WeaponInfo) GetSkillUsed() rpg.SkillName {
-	return i.skillUsed
-}
-
 func (i *WeaponInfo) IsVorpal() bool {
 	return i.vorpalEnemy != ""
 }
 
+// ArmorInfo: protection is how much the armor lowers the AC of 10, like Rogue 5.4 shows it.
 type ArmorInfo struct {
-	damageResistance int
-	plus             int
-	encumbrance      rpg.Encumbrance
+	protection int
+	plus       int
 }
 
-func (i *ArmorInfo) GetDamageResistanceWithPlus() int {
-	return i.damageResistance + i.plus
+func (i *ArmorInfo) GetProtection() int {
+	return i.protection + i.plus
 }
 
 func (i *ArmorInfo) IsEnchantable() bool {
@@ -95,10 +91,6 @@ func (i *ArmorInfo) IsEnchanted() bool {
 	return i.plus > 0
 }
 
-func (i *ArmorInfo) GetEncumbrance() rpg.Encumbrance {
-	return i.encumbrance
-}
-
 type Item struct {
 	name          string
 	internalName  string
@@ -111,11 +103,9 @@ type Item struct {
 	charges       int
 	slot          foundation.EquipSlot
 
-	id         *IdentificationKnowledge
-	stat       rpg.Stat
-	statBonus  int
-	skill      rpg.SkillName
-	skillBonus int
+	id        *IdentificationKnowledge
+	stat      rpg.Stat
+	statBonus int
 
 	equipFlag    foundation.ActorFlag
 	thrownDamage rpg.Dice
@@ -159,7 +149,7 @@ func (i *Item) InventoryNameWithColors(colorCode string) string {
 		line = cview.Escape(fmt.Sprintf("%s (%s)", i.Name(), i.weapon.GetDamageDice().ShortString()))
 	}
 	if i.IsArmor() {
-		line = cview.Escape(fmt.Sprintf("%s [%+d]", i.Name(), i.armor.GetDamageResistanceWithPlus()))
+		line = cview.Escape(fmt.Sprintf("%s [%+d]", i.Name(), i.armor.GetProtection()))
 	}
 	if i.IsRing() && i.charges > 1 && i.id.IsItemIdentified(i.internalName) {
 		line = cview.Escape(fmt.Sprintf("%s (%d turns)", i.Name(), i.charges))
@@ -209,11 +199,7 @@ func (i *Item) Name() string {
 	}
 
 	if i.statBonus != 0 && (i.isKnown || i.id.IsItemIdentified(i.internalName)) {
-		name = fmt.Sprintf("%s [%+d %s]", name, i.statBonus, i.stat.ToShortString())
-	}
-
-	if i.skillBonus != 0 && (i.isKnown || i.id.IsItemIdentified(i.internalName)) {
-		name = fmt.Sprintf("%s [%+d %s]", name, i.skillBonus, i.skill.ToShortString())
+		name = fmt.Sprintf("%s [%+d %s]", name, i.statBonus, strings.ReplaceAll(string(i.stat), "_", " "))
 	}
 
 	return name
@@ -363,12 +349,6 @@ func (i *Item) GetStatBonus(stat rpg.Stat) int {
 	}
 	return 0
 }
-func (i *Item) GetSkillBonus(skill rpg.SkillName) int {
-	if i.skill == skill {
-		return i.skillBonus
-	}
-	return 0
-}
 func (i *Item) GetEquipFlag() foundation.ActorFlag {
 	if i.IsRing() && i.charges == 0 {
 		return foundation.FlagNone
@@ -400,7 +380,7 @@ func (i *Item) IsStuck() bool {
 }
 
 func (i *Item) IsCursed() bool {
-	return i.IsStuck() || i.statBonus < 0 || i.skillBonus < 0
+	return i.IsStuck() || i.statBonus < 0
 }
 
 func (i *Item) RemoveCurse() {
@@ -419,18 +399,11 @@ func (i *Item) RemoveCurse() {
 			i.statBonus = 0
 		}
 	}
-	if i.skillBonus < 0 {
-		if blessing {
-			i.skillBonus = rand.Intn(3) + 1
-		} else {
-			i.skillBonus = 0
-		}
-	}
 }
 
 // Rust lowers the armor's protection by one; returns false if there is nothing left to rust.
 func (i *ArmorInfo) Rust() bool {
-	if i.GetDamageResistanceWithPlus() <= 0 {
+	if i.GetProtection() <= 0 {
 		return false
 	}
 	i.plus--

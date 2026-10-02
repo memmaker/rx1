@@ -32,6 +32,9 @@ func (r *DungeonRoom) GetAbsoluteRoomTiles() []geometry.Point {
 	return result
 }
 
+// Doors are the open doors of the room; a secret door is still part of the wall.
+func (r *DungeonRoom) Doors() map[geometry.Point]bool { return r.doors }
+
 func (r *DungeonRoom) Contains(pos geometry.Point) bool {
 	return r.floorTiles[pos] || r.doors[pos]
 }

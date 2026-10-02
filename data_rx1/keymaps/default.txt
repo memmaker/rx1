@@ -42,17 +42,18 @@ m -> monsters
 x -> look
 I -> items
 ? -> help
-F1 -> help
+F1 -> show_key_bindings
+F2 -> help
 t -> tactics
 
 U -> overlay_monsters
 O -> overlay_items
 
-F2 -> gamma_down
-F3 -> gamma_up
+F3 -> gamma_down
+F4 -> gamma_up
 
-F4 -> wiz_ascend
-F5 -> wiz_descend
+F5 -> wiz_ascend
+F6 -> wiz_descend
 
 Ctrl+T -> themes
 o -> auto_explore

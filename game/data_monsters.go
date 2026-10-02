@@ -1,63 +1,34 @@
 package game
 
 import (
-	"regexp"
 	"rx1/foundation"
 	"rx1/recfile"
 	"rx1/rpg"
 )
 
-/*
-strength: 18
-dexterity: 10
-intelligence: 9
-health: 12
-hp: 18
-will: 9
-perception: 10
-fp: 12
-speed: 6
-size_modifier: 1
-dodge: 8
-dr: 0
-attack: 12 | 1d2 | bite | claw
-*/
-type IntrinsicAttack struct {
-	BaseSkill  int
-	DamageDice rpg.Dice
-	AttackName string
-}
 type HitEffect struct {
 	Name   string
 	Chance int // percent
 }
 
 type MonsterDef struct {
-	Name          string
-	InternalName  string
-	Icon          rune
-	Color         string
-	Strength      int
-	Dexterity     int
-	Intelligence  int
-	Health        int
-	Will          int
-	Perception    int
-	FatiguePoints int
+	Name         string
+	InternalName string
+	Icon         rune
+	Color        string
 
-	HitPoints        int
-	Dodge            int
-	SizeModifier     int
-	BasicSpeed       int
-	Attacks          []IntrinsicAttack
-	DamageResistance int
-	ZapEffects       []string
-	UseEffects       []string
-	HitEffects       []HitEffect
-	StruckEffects    []HitEffect
-	GazeEffects      []string
-	DungeonLevel     int
-	Flags            *foundation.MapFlags
+	// Rogue 3.6 monster stats: hit points are level d8
+	Level         int
+	Armor         int    // armor class, lower is better
+	Damage        string // "1d8/1d8/3d10": one roll per attack
+	Exp           int
+	ZapEffects    []string
+	UseEffects    []string
+	HitEffects    []HitEffect
+	StruckEffects []HitEffect
+	GazeEffects   []string
+	DungeonLevel  int
+	Flags         *foundation.MapFlags
 
 	CarryChance int
 	Gold        rpg.Dice
@@ -76,19 +47,7 @@ func NewMonsterDefFromRecord(record recfile.Record) MonsterDef {
 	monsterDef := MonsterDef{
 		Flags: foundation.NewMapFlags(),
 	}
-	// an attack key looks like this "attack_1", "attack_2", etc..
-	attackRegex, _ := regexp.Compile("attack_([0-9]+)")
 	for _, field := range record {
-		if attackRegex.MatchString(field.Name) {
-			fields := field.AsList("|")
-			monsterDef.Attacks = append(monsterDef.Attacks, IntrinsicAttack{
-				BaseSkill:  fields[0].AsInt(),
-				DamageDice: rpg.ParseDice(fields[1].Value),
-				AttackName: fields[2].Value,
-			})
-			continue
-		}
-
 		switch field.Name {
 		case "name":
 			monsterDef.Name = field.Value
@@ -98,17 +57,14 @@ func NewMonsterDefFromRecord(record recfile.Record) MonsterDef {
 			monsterDef.Icon = []rune(field.Value)[0]
 		case "color":
 			monsterDef.Color = field.Value
-		case "hp":
-			monsterDef.HitPoints = field.AsInt()
-		case "attack":
-			fields := field.AsList("|")
-			monsterDef.Attacks = append(monsterDef.Attacks, IntrinsicAttack{
-				BaseSkill:  fields[0].AsInt(),
-				DamageDice: rpg.ParseDice(fields[1].Value),
-				AttackName: fields[2].Value,
-			})
-		case "dr":
-			monsterDef.DamageResistance = field.AsInt()
+		case "level":
+			monsterDef.Level = field.AsInt()
+		case "armor":
+			monsterDef.Armor = field.AsInt()
+		case "damage":
+			monsterDef.Damage = field.Value
+		case "exp":
+			monsterDef.Exp = field.AsInt()
 		case "zap_effect":
 			monsterDef.ZapEffects = append(monsterDef.ZapEffects, field.Value)
 		case "hit_effect":
@@ -121,26 +77,6 @@ func NewMonsterDefFromRecord(record recfile.Record) MonsterDef {
 			monsterDef.GazeEffects = append(monsterDef.GazeEffects, field.Value)
 		case "use_effect":
 			monsterDef.UseEffects = append(monsterDef.UseEffects, field.Value)
-		case "strength":
-			monsterDef.Strength = field.AsInt()
-		case "dexterity":
-			monsterDef.Dexterity = field.AsInt()
-		case "intelligence":
-			monsterDef.Intelligence = field.AsInt()
-		case "health":
-			monsterDef.Health = field.AsInt()
-		case "will":
-			monsterDef.Will = field.AsInt()
-		case "perception":
-			monsterDef.Perception = field.AsInt()
-		case "fp":
-			monsterDef.FatiguePoints = field.AsInt()
-		case "speed":
-			monsterDef.BasicSpeed = field.AsInt()
-		case "size_modifier":
-			monsterDef.SizeModifier = field.AsInt()
-		case "dodge":
-			monsterDef.Dodge = field.AsInt()
 		case "dlvl":
 			monsterDef.DungeonLevel = field.AsInt()
 		case "gold":

@@ -82,7 +82,7 @@ func charge(g *GameState, zapper *Actor, pos geometry.Point, isHeroic bool, getP
 
 	var hitActor *Actor
 	targetPos := pathOfFlight[len(pathOfFlight)-1]
-	if !g.gridMap.IsCurrentlyPassable(targetPos) && len(pathOfFlight) > 1 {
+	if !g.canFlyThrough(targetPos) && len(pathOfFlight) > 1 {
 		if g.gridMap.IsActorAt(targetPos) {
 			hitActor = g.gridMap.ActorAt(targetPos)
 		}
@@ -93,21 +93,14 @@ func charge(g *GameState, zapper *Actor, pos geometry.Point, isHeroic bool, getP
 	moveAnim := g.ui.GetAnimQuickMove(zapper, pathOfFlight)
 
 	if hitActor != nil {
-		var attackMods []rpg.Modifier
+		hitMod := 0
 		if !isHeroic {
-			attackMods = ModFlatAndCap(-4, 9, "charge attack")
+			hitMod = -4
 		}
-		attackAnims := g.actorMeleeAttack(zapper, attackMods, hitActor, NoModifiers) // TODO: apply -4 to hit, cap effective skill at 9
+		attackAnims := g.actorMeleeAttack(zapper, hitMod, hitActor)
 		moveAnim.SetFollowUp(attackAnims)
 	}
 	return moveAnim, targetPos
-}
-
-func ModFlatAndCap(flatMod int, cap int, reason string) []rpg.Modifier {
-	return []rpg.Modifier{
-		ModFlat(flatMod, reason),
-		ModCap(cap, reason),
-	}
 }
 
 func coldRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.Animation {
@@ -128,9 +121,7 @@ func coldRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.An
 		}
 		return nil
 	}
-	_, result, _ := rpg.SuccessRoll(zapper.GetIntelligence() - 4)
-
-	if rand.Intn(20) == 0 || result.IsSuccess() { // 1 in 20 chance to just bounce off
+	if rand.Intn(7) == 0 { // 1 in 7 chance to just bounce off
 		bounceCount := rand.Intn(30) + 3
 		return g.bouncingRay(zapper, aimPos, bounceCount, trailLead, trailColors, hitEntityHandler)
 	}
@@ -580,7 +571,7 @@ func (g *GameState) getLineOfSight(origin geometry.Point, targetPos geometry.Poi
 		if origin.X == x && origin.Y == y {
 			return true
 		}
-		return g.gridMap.IsCurrentlyPassable(mapPos)
+		return g.canFlyThrough(mapPos)
 	})
 	if len(pathOfFlight) > 1 {
 		// remove start
@@ -612,7 +603,7 @@ func fireBreath(g *GameState, zapper *Actor, pos geometry.Point) []foundation.An
 		if origin.X == x && origin.Y == y {
 			return true
 		}
-		return g.gridMap.IsCurrentlyPassable(geometry.Point{X: x, Y: y})
+		return g.canFlyThrough(geometry.Point{X: x, Y: y})
 	})
 	if len(pathOfFlight) > 1 {
 		// remove start

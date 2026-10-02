@@ -9,7 +9,7 @@ import (
 	"rx1/console"
 	"syscall/js"
 
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v3"
 )
 
 //go:embed data_rx1 config.rec
@@ -44,4 +44,26 @@ func prepareUI(u *console.UI) {
 	}
 	s.SetSize(80, 26)
 	u.SetScreen(s)
+	// RVIP multi-window page: side windows are HTML panes, the terminal is only the map and follows its window's size
+	if pane := js.Global().Get("rvipPane"); pane.Type() == js.TypeFunction {
+		u.SetPanes(webPanes{pane})
+		js.Global().Set("rvipResize", js.FuncOf(func(_ js.Value, a []js.Value) any {
+			s.SetSize(a[0].Int(), a[1].Int())
+			return nil
+		}))
+	}
+}
+
+// webPanes hands each side window to the page as HTML (coloured spans) plus plain text (for the prompt line).
+type webPanes struct{ fn js.Value }
+
+func (w webPanes) Set(name string, p console.Pane) {
+	plain := ""
+	for _, line := range p.Lines() {
+		for _, s := range line {
+			plain += s.Text
+		}
+		plain += "\n"
+	}
+	w.fn.Invoke(name, p.HTML(), plain)
 }
