@@ -7,7 +7,8 @@ import (
 	"time"
 )
 
-// Every mega dungeon is one connected piece without dead ends, and every door leads somewhere.
+// Every mega dungeon is one connected piece without dead ends, every door leads somewhere
+// and no two rooms share a wall.
 func TestMegaDungeonIsConnected(t *testing.T) {
 	var total time.Duration
 	for seed := int64(1); seed <= 40; seed++ {
@@ -46,10 +47,24 @@ func TestMegaDungeonIsConnected(t *testing.T) {
 		if len(seen) != walkable {
 			t.Fatalf("seed %d: reached %d of %d walkable tiles", seed, len(seen), walkable)
 		}
+		roomAt := map[geometry.Point]*DungeonRoom{}
 		for _, room := range m.rooms {
 			for _, wall := range room.GetWalls() {
 				if !m.IsWallAt(wall) {
 					t.Fatalf("seed %d: room wall at %v is not a wall", seed, wall)
+				}
+			}
+			for _, floor := range room.GetAbsoluteFloorTiles() {
+				roomAt[floor] = room
+			}
+		}
+		// no two rooms share a wall: there is always space for a corridor between them
+		for floor, room := range roomAt {
+			for dy := -2; dy <= 2; dy++ {
+				for dx := -2; dx <= 2; dx++ {
+					if other := roomAt[floor.Add(geometry.Point{X: dx, Y: dy})]; other != nil && other != room {
+						t.Fatalf("seed %d: the room at %v shares a wall with another room", seed, floor)
+					}
 				}
 			}
 		}
