@@ -592,10 +592,6 @@ func (g *GameState) chooseItem(filter func(*Item) bool, none, prompt string, act
 			act(stack.First())
 		}
 	}
-	if len(inventory) == 1 {
-		pick(inventory[0])
-		return
-	}
 	g.ui.OpenInventoryForSelection(inventory, prompt, pick)
 }
 

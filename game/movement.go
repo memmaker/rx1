@@ -43,12 +43,9 @@ func (g *GameState) ManualMovePlayer(direction geometry.CompassDirection) {
 			forwardLeft = oldPos.Add(leftDir.ToPoint())
 			forwardRight = oldPos.Add(rightDir.ToPoint())
 
+			// the step is sideways: the diagonal one past the wall in front is never allowed (diag_ok)
 			forwardLeftTest = forwardLeft.Add(direction.ToPoint())
 			forwardRightTest = forwardRight.Add(direction.ToPoint())
-			if g.config.DiagonalMovementEnabled {
-				forwardLeft = forwardLeftTest
-				forwardRight = forwardRightTest
-			}
 		}
 
 		if g.gridMap.IsCurrentlyPassable(forwardLeftTest) && !g.gridMap.IsTileWalkable(forwardRightTest) {
