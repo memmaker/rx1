@@ -1,1 +1,17 @@
 [#FFFFFF]Shrouded in mist, these creatures live by draining away the life essence of their victims.[-]
+
+[#f5e342]Origin[-]
+
+The vampire comes out of Slavic and Balkan folklore, the restless dead who rise from the grave to feed on the living. Its modern form, the aristocrat who drinks blood, comes from 19th-century fiction, above all Bram Stoker's Dracula (1897). Dungeons & Dragons made it the most dreaded of the undead:
+
+    If a vampire scores a hit upon an opponent, its powerful blow causes 5-10 points of damage, and its powerful negative force drains 2 life energy levels from the victim, complete with corresponding losses in hit dice, ability level, attack level, etc.
+    - Monster Manual (1977), p. 99
+
+    Vampires are affected only by magical weapons. They regenerate damage at 3 hit points per melee round.
+    - Monster Manual (1977), p. 99
+
+[#f5e342]Rogue Trivia[-]
+
+Rogue has the vampire since 3.6, and it is the only monster there to steal maximum hit points: in 5.4 a hit has a 30% chance to take one to three for good, with the message "you suddenly feel weaker". It also regenerates, so a vampire that is left alone comes back at full strength. In rx1 each stolen hit point goes to heal the vampire, and it is undead as the book says: cold and holding magic do not touch it, and weapons without magic do only half damage.
+
+The description at the top comes from the Macintosh version of Rogue.

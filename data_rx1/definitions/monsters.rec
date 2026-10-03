@@ -576,7 +576,7 @@ dlvl: 23
 color: Red
 gold: 0
 carry_chance: 20
-flags: mean | chase | regenerating
+flags: mean | chase | regenerating | undead | magic_to_hurt
 hit_effect: drain_max_hp | 30
 
 name: jabberwock
