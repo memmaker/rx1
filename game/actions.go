@@ -372,6 +372,10 @@ func (g *GameState) actorMeleeAttackMult(attacker *Actor, hitMod int, defender *
 			finalBlow(defender, damageDone)
 		}
 		animDamage := g.damageActor(attacker.Name(), defender, damageDone)
+		if damageDone >= severDamage && defender.HasFlag(foundation.FlagBranches) {
+			defender.GetFlags().Decrement(foundation.FlagBranches)
+			g.msg(foundation.HiLite("%s severs a branch of %s", attacker.Name(), defender.Name()))
+		}
 		afterAttackAnimations = append(afterAttackAnimations, animDamage...)
 		afterAttackAnimations = append(afterAttackAnimations, g.applyHitEffects(attacker, defender)...)
 		afterAttackAnimations = append(afterAttackAnimations, g.applyStruckEffects(attacker, defender)...)

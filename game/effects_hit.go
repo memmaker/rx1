@@ -29,6 +29,7 @@ func GetAllHitEffects() map[string]func(g *GameState, attacker, defender *Actor)
 		"hit_and_run":     hitAndRun,
 		"split":           split,
 		"rust_weapon":     rustWeapon,
+		"rot":             rot,
 	}
 }
 
@@ -291,4 +292,16 @@ func splits(a *Actor) bool {
 		}
 	}
 	return false
+}
+
+// rot: D&D violet fungus, its excretion rots flesh unless saved against poison. Healing stops it.
+func rot(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	if rpg.Save(defender.GetLevel(), rpg.VsPoison) {
+		return nil
+	}
+	if defender == g.Player && !defender.HasFlag(foundation.FlagRotting) {
+		g.msg(foundation.Msg("Your flesh begins to rot"))
+	}
+	defender.GetFlags().Increase(foundation.FlagRotting, rand.Intn(4)+1)
+	return nil
 }

@@ -105,6 +105,7 @@ func (g *GameState) removeDeadAndApplyRegeneration() {
 		if !actor.IsAlive() {
 			g.gridMap.RemoveActor(actor)
 		} else {
+			g.applyRot(actor)
 			actor.AfterTurn()
 			if actor.HasFlag(foundation.FlagRegenerating) && actor.NeedsHealing() {
 				actor.Heal(1)

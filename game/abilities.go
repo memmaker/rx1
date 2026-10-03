@@ -197,3 +197,14 @@ func (g *GameState) revealDisguised(actor *Actor) {
 	actor.GetFlags().Unset(foundation.FlagDisguised)
 	g.msg(foundation.HiLite("Wait! That's %s!", actor.Name()))
 }
+
+func (g *GameState) applyRot(actor *Actor) {
+	if !actor.HasFlag(foundation.FlagRotting) {
+		return
+	}
+	actor.GetFlags().Decrement(foundation.FlagRotting)
+	g.ui.AddAnimations(g.damageActor("rot", actor, 1))
+	if actor == g.Player && !actor.HasFlag(foundation.FlagRotting) {
+		g.msg(foundation.Msg("Your flesh stops rotting"))
+	}
+}
