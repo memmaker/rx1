@@ -1,0 +1,16 @@
+Monster pictures for the web build's Visible window (Images mode). One <name>.png per monster, name as in monsters.rec.
+
+CC0, LadyofHats (Wikimedia Commons "DnD *.png" series, used on Wikipedia's List of D&D monsters 1974-76):
+  centaur dragon gnome griffin hobgoblin invisible_stalker kobold medusa orc purple_worm troll vampire
+  black_unicorn (DnD Unicorn, inverted)  slime (DnD Green slime)  wraith (DnD Spectre)
+Public domain:
+  jabberwock     John Tenniel, Through the Looking-Glass (1871)
+  rattlesnake, snake  "A banded rattlesnake and boa constrictor", engraving 1833, Wellcome Collection V0022732
+  jackal         J. G. Keulemans, side-striped jackal (grayscale)
+  emu            C.-A. Lesueur, emus of the Baudin expedition (grayscale)
+  kestrel        Naumann, Naturgeschichte der Vögel Mitteleuropas (grayscale)
+Supplied by Felix (2026-10-03), source/licence not recorded here:
+  zombie (ogmios-creature-zombie-1-pencil.jpg)  nymph (alexandra-stefan-nymph-layer.jpg)
+  umber_hulk (umber.png)  quasit (Quasit-5e.png)  xorn (Xorn5e.png)  bat (latest.png)
+  quagga leprechaun floating_eye ice_monster rust_monster giant_ant aquator mimic yeti violet_fungi
+  venus_flytrap phantom ur-vile xeroc shrieker (Gemini generated)  xeroc_mk_ii (ChatGPT generated)
