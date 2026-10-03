@@ -1,6 +1,6 @@
 name: leather armor
 internal_name: leather_armor
-description: Worn on the torso.
+description: Oil-hardened leather over the vitals, soft leather on the arms and legs. Light troops have worn it since the Bronze Age.
 category: armor
 slot: torso
 armor: 2
@@ -9,7 +9,7 @@ worth: 20
 
 name: ring mail
 internal_name: ring_mail
-description: Worn on the torso.
+description: A leather coat with metal rings sewn on, a cheap imitation of chain mail whose links do not interlock.
 category: armor
 slot: torso
 armor: 3
@@ -18,7 +18,7 @@ worth: 25
 
 name: studded leather armor
 internal_name: studded_leather
-description: Worn on the torso.
+description: Leather strengthened with metal studs or small plates, an old design that foot soldiers kept using for centuries.
 category: armor
 slot: torso
 armor: 3
@@ -27,7 +27,7 @@ worth: 20
 
 name: chain mail
 internal_name: chain_mail
-description: Worn on the torso.
+description: Interlocking iron links from head to foot, the favored armor of the Crusades, an age called the Age of Mail.
 category: armor
 slot: torso
 armor: 5
@@ -36,7 +36,7 @@ worth: 75
 
 name: scale armor
 internal_name: scale_mail
-description: Worn on the torso.
+description: A leather coat with overlapping metal scales riveted to it, an ancient armor of the East.
 category: armor
 slot: torso
 armor: 4
@@ -45,7 +45,7 @@ worth: 30
 
 name: lorica segmentata
 internal_name: banded_mail
-description: Worn on the torso.
+description: Overlapping metal bands over the torso, shoulders and limbs, with mail at the joints, like the Roman legionary's breastplate.
 category: armor
 slot: torso
 armor: 6
@@ -54,7 +54,7 @@ worth: 90
 
 name: steel breastplate
 internal_name: splint_mail
-description: Worn on the torso.
+description: Broad metal strips riveted in overlapping rows between two layers of leather; the samurai's armor was of this kind.
 category: armor
 slot: torso
 armor: 6
@@ -63,7 +63,7 @@ worth: 80
 
 name: plate mail
 internal_name: plate_mail
-description: Worn on the torso.
+description: Steel plates over a suit of chain, the joints left to the mail: the common plate armor of poorer knights and mercenaries.
 category: armor
 slot: torso
 armor: 7
