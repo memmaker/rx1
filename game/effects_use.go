@@ -97,27 +97,27 @@ func healBy(g *GameState, actor *Actor, sides int, extra bool) {
 func heal(g *GameState, actor *Actor) []foundation.Animation {
 	healBy(g, actor, 4, false)
 	g.msg(foundation.Msg("you begin to feel better"))
-	return nil
+	return g.effectAnim("heal", actor.Position(), nil)
 }
 
 func extraHeal(g *GameState, actor *Actor) []foundation.Animation {
 	healBy(g, actor, 8, true)
 	g.msg(foundation.Msg("you begin to feel much better"))
-	return nil
+	return g.effectAnim("extra_heal", actor.Position(), nil)
 }
 
 func gainStrength(g *GameState, actor *Actor) []foundation.Animation {
 	actor.RestoreStrength()
 	actor.ChangeStrength(1)
 	g.msg(foundation.Msg("you feel stronger, now.  What bulging muscles!"))
-	return nil
+	return g.effectAnim("gain_strength", actor.Position(), nil)
 }
 
 func gainMaxHP(g *GameState, actor *Actor) []foundation.Animation {
 	actor.DrainMaxHP(-1)
 	actor.Heal(1)
 	g.msg(foundation.Msg("you feel more alive"))
-	return nil
+	return g.effectAnim("gain_max_hp", actor.Position(), nil)
 }
 
 func satiateFully(g *GameState, actor *Actor) []foundation.Animation {

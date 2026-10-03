@@ -1,6 +1,7 @@
 package console
 
 import (
+	"image/color"
 	"rx1/foundation"
 	"rx1/geometry"
 	"testing"
@@ -32,7 +33,7 @@ func TestNoAnimationRunsDoneAndFollowUpsAtOnce(t *testing.T) {
 func TestEveryEffectDraws(t *testing.T) {
 	u := &UI{game: unseenGame{}, currentTheme: NewThemeFromFile("../data_rx1/themes/fancy.rec"), settings: &foundation.Configuration{AnimationsEnabled: true, AnimateEffects: true}}
 	for _, name := range []string{"haste", "slow", "levitate", "see_invisible", "blind", "hallucinate", "polymorph", "detect_food", "detect_magic",
-		"detect_monsters", "detect_traps", "light", "darkness", "raise_level", "sleep", "laughter", "red_glow", "cancel", "hold", "invisible"} {
+		"detect_monsters", "detect_traps", "light", "darkness", "raise_level", "sleep", "laughter", "red_glow", "cancel", "hold", "invisible", "heal", "extra_heal", "gain_strength", "gain_max_hp"} {
 		anim := u.GetAnimEffect(name, geometry.Point{X: 10, Y: 10}, nil, nil).(*FxAnimation)
 		drew := false
 		for i := 0; !anim.IsDone(); i++ {
@@ -43,6 +44,40 @@ func TestEveryEffectDraws(t *testing.T) {
 		}
 		if !drew || anim.frames < 6 {
 			t.Errorf("%s: drew %v in %d frames", name, drew, anim.frames)
+		}
+	}
+}
+
+// A bolt lights the tiles beside its path in its colour, and nothing where the map shows nothing.
+func TestBoltCastsLight(t *testing.T) {
+	floor := foundation.TextIcon{Rune: '.', Fg: color.RGBA{100, 100, 100, 255}, Bg: color.RGBA{10, 10, 10, 255}}
+	a := NewAnimator()
+	a.lookup = func(p geometry.Point) (foundation.TextIcon, bool) { return floor, p.Y >= 0 }
+	bolt := NewProjectileAnimation([]geometry.Point{{X: 0, Y: 1}, {X: 1, Y: 1}, {X: 2, Y: 1}}, foundation.TextIcon{Rune: '*'}, nil, nil)
+	bolt.SetLight(color.RGBA{255, 0, 0, 255})
+	a.AddAnimation(bolt)
+	a.Flush()
+	a.Tick()
+	beside := a.animationState[geometry.Point{X: 0, Y: 2}]
+	if beside.Bg.R <= floor.Bg.R || beside.Bg.G != floor.Bg.G {
+		t.Fatalf("beside the bolt: %+v", beside)
+	}
+	if _, drawn := a.animationState[geometry.Point{X: 0, Y: -1}]; drawn {
+		t.Fatal("lit a tile the map knows nothing of")
+	}
+}
+
+// Whoever an effect plays on stays in sight, unless changing them is the effect.
+func TestEffectsKeepTheActorInSight(t *testing.T) {
+	u := &UI{game: roomGame{player: &atActor{}}, currentTheme: NewThemeFromFile("../data_rx1/themes/fancy.rec"), settings: &foundation.Configuration{AnimationsEnabled: true, AnimateEffects: true}}
+	for _, name := range []string{"haste", "slow", "levitate", "see_invisible", "blind", "hallucinate", "detect_food", "detect_magic", "detect_monsters", "detect_traps",
+		"light", "darkness", "raise_level", "sleep", "laughter", "red_glow", "cancel", "hold", "heal", "extra_heal", "gain_strength", "gain_max_hp"} {
+		anim := u.GetAnimEffect(name, previewCenter, nil, nil).(*FxAnimation)
+		for f := 0; !anim.IsDone(); f++ {
+			if icon, ok := anim.GetDrawables()[previewCenter]; ok && icon.Rune != '@' {
+				t.Fatalf("%s frame %d covers the actor with %c", name, f, icon.Rune)
+			}
+			anim.NextFrame()
 		}
 	}
 }
