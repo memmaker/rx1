@@ -520,9 +520,8 @@ color: Green
 gold: 2d60
 carry_chance: 30
 gold_chance: 75
-flags: mean
+flags: mean | magic_to_hurt | regenerating
 use_effect: phase_door
-hit_effect: poison_strength | 30
 
 name: xeroc
 level: 7
