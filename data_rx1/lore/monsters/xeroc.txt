@@ -1,1 +1,11 @@
-[#FFFFFF]Another creatured rumored to have been brought by Yendor from another dimension. As you aleady know, they have the ability to disguise themselves as almost anything.[-]
+[#FFFFFF]Another creature rumored to have been brought by Yendor from another dimension. As you already know, they have the ability to disguise themselves as almost anything.[-]
+
+[#f5e342]Origin[-]
+
+The xeroc has no myth behind it. It is the mimic under a new name, and the name is said to be a joke: Xerox, the copier company, whose brand had become the everyday word for making a copy. A xeroc would then be a monster that copies things.
+
+[#f5e342]Rogue Trivia[-]
+
+When Rogue 5.x removed the monsters Dungeons & Dragons invented, the mimic was among them, but its trick was too good to lose. It came back at X as the xeroc, with the same disguise: it sits in a room looking like gold, a potion, a scroll or a staircase, until the hero touches it. The flavor line's "as you already know" assumes the player met it under its old name.
+
+The description at the top comes from the Macintosh version of Rogue.
