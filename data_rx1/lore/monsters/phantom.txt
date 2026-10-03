@@ -1,1 +1,11 @@
-[#FFFFFF]These shadowy finds "live" deep in the Dungeons of Doom. Watch out for them, if you can.[-]
+[#FFFFFF]These shadowy fiends "live" deep in the Dungeons of Doom. Watch out for them, if you can.[-]
+
+[#f5e342]Origin[-]
+
+A phantom is an apparition, something seen but not really there; the word comes through Old French from the Greek phantasma, "an image" or "a ghost". In folklore it is a vaguer thing than a named ghost: a shape glimpsed at the edge of the eye that is gone when you turn.
+
+[#f5e342]Rogue Trivia[-]
+
+The phantom is new in Rogue 5.x. It took the place of 3.6's invisible stalker, a monster Dungeons & Dragons invented, and kept only the invisibility: the monster table gives it no other power. Without a ring of see invisible or a potion of see invisible, all the hero sees of it are the blows.
+
+The description at the top comes from the Macintosh version of Rogue.

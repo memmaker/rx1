@@ -80,6 +80,18 @@ sneak attack. A sneak attack never misses and deals triple damage
 (five times with a dagger). Every monster you strike notices you, unless
 you are invisible.
 
+Magic weapons
+=============
+A weapon is magical when its bonus to hit or to damage is above zero
+(+1,+0 or better). Plain and cursed weapons (+0,+0 or worse) are not.
+Some monsters, like the wraith, take only half damage from anything
+else, fists included. Missiles count on their own: magic arrows shot
+from a plain bow still hurt fully.
+To spot one: read a scroll of identify on it, buy it in a shop, or
+drink a potion of magic detection - magical items on the floor show up
+on the map. Your starting gear is always known. A scroll of enchant
+weapon makes the weapon you hold magical.
+
 Tips
 ====
 - Sneak up on sleeping monsters with a dagger for a quick kill.

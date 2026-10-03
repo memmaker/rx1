@@ -1,1 +1,11 @@
 [#FFFFFF]These prehistoric ancestors of the modern plant once ruled the planet. Now they survive only in the Dungeons of Doom.[-]
+
+[#f5e342]Origin[-]
+
+The Venus flytrap (Dionaea muscipula) is a real carnivorous plant from the bogs of North and South Carolina. Its hinged leaves snap shut in a fraction of a second when an insect brushes their trigger hairs. Charles Darwin, who studied it for years, called it "one of the most wonderful plants in the world".
+
+[#f5e342]Rogue Trivia[-]
+
+The venus flytrap is new in Rogue 5.x, where it took F from the violet fungi, a Dungeons & Dragons creation. Only the name changed: like the fungus, it never moves, and once it has hold of the hero it does not let go until it dies, its grip tightening by one point of damage with every attack, hit or miss. Its damage string in the source is the odd "%%%x0", so that the game can rewrite it as the grip grows.
+
+The description at the top comes from the Macintosh version of Rogue.
