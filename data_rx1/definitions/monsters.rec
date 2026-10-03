@@ -445,7 +445,7 @@ color: LightMagenta
 gold: 2d80
 carry_chance: 70
 gold_chance: 90
-hit_effect: poison_strength | 30
+hit_effect: poison | 10
 flags: tunnel
 
 name: ur-vile
