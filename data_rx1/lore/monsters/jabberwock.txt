@@ -1,1 +1,11 @@
-[#FFFFFF]Yendor was renowned for having the world's larget collection of these pernicious beasts. He was dissapointed when nobody came to see them.[-]
+[#FFFFFF]Yendor was renowned for having the world's largest collection of these pernicious beasts. He was disappointed when nobody came to see them.[-]
+
+[#f5e342]Origin[-]
+
+The Jabberwock comes from "Jabberwocky", the nonsense poem Alice finds in Lewis Carroll's Through the Looking-Glass (1871). A young hero goes out with his vorpal sword and slays the beast, of which the poem warns: "The jaws that bite, the claws that catch!" The poem gave English the words "galumphing" and "chortle", and gave Dungeons & Dragons the vorpal sword.
+
+[#f5e342]Rogue Trivia[-]
+
+The jabberwock is new in Rogue 5.x, and it is the purple worm under a new name: the same level, armor, bite and sting, the same 70% chance to carry an item, only worth 3000 experience instead of 7000. The PC version of Rogue went back to the poem once more for its scroll of vorpalize weapon, which binds a weapon to one kind of monster; reading it without a weapon in hand only brings "maniacal laughter in the distance", and a comment in the source code adds: "If he doesn't have a weapon I get to chortle again!" In rx1 the jabberwock hunts the hero down, and its gaze can freeze them with fear.
+
+The description at the top comes from the Macintosh version of Rogue.
