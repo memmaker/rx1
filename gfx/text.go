@@ -60,7 +60,7 @@ type cellFont struct {
 	face   text.Face
 	main   text.Face // the font itself, without the fallback
 	fb     text.Face // the fallback font at the same size, nil without one
-	tf     text.Face // the tile font at the same size, for tile runes the font lacks; nil without one
+	tf     text.Face // the tile font at the same size, for tile runes the font lacks; for the tile font: the map font, for text in menus on the map
 	cw, rh float64
 	sx, sy float64 // > 0: a tile font; cells are whole pixels and the glyphs are stretched by this much to fill them
 }
@@ -78,6 +78,7 @@ type fontSet struct {
 	src      map[string]*text.GoTextFaceSource
 	fallback *text.GoTextFaceSource
 	tiles    *text.GoTextFaceSource
+	mapFace  string // the map font: the text font of the tile font's cells (menus and borders over the map)
 	faces    map[faceKey]*cellFont
 	adv      map[advKey]glyphInfo
 }
@@ -143,13 +144,30 @@ func (f *fontSet) font(name string, px float64) *cellFont {
 		cf.fb = &text.GoTextFace{Source: f.fallback, Size: px}
 		cf.face, _ = text.NewMultiFace(main, cf.fb)
 	}
-	if f.tiles != nil && name != tilesFace {
+	if name == tilesFace {
+		if src := f.source(f.mapFace); src != nil {
+			cf.tf = &text.GoTextFace{Source: src, Size: px}
+		}
+	} else if f.tiles != nil {
 		cf.tf = &text.GoTextFace{Source: f.tiles, Size: px}
 	}
 	m := main.Metrics()
 	cf.cw, cf.rh = text.Advance("0", main), m.HAscent+m.HDescent
 	f.faces[k] = cf
 	return cf
+}
+
+// setMapFace names the font that draws text in tile cells; the tile font's cells are rebuilt when it changes.
+func (f *fontSet) setMapFace(name string) {
+	if name == f.mapFace {
+		return
+	}
+	f.mapFace = name
+	for k := range f.faces {
+		if k.name == tilesFace {
+			delete(f.faces, k)
+		}
+	}
 }
 
 // em is a font's cell in em: the map font size that fits a grid follows from it.
@@ -226,13 +244,18 @@ func (f *fontSet) cell(dst *ebiten.Image, cf *cellFont, x, y float64, str string
 		sx, sy = 1, 1
 	}
 	g := f.glyph(cf, str)
+	dy := g.dy * sy
+	if cf.sx > 0 && g.face != cf.main { // text in a tile cell: stretched to fill it, so borders join and letters show
+		m := g.face.Metrics()
+		sx, sy, dy = cf.cw/g.adv, cf.rh/(m.HAscent+m.HDescent), 0
+	}
 	if adv := g.adv * sx; adv > cf.cw*1.02 {
 		k := cf.cw / adv
 		op.GeoM.Scale(sx*k, sy*k)
-		op.GeoM.Translate(x+cf.cw/2, y+(cf.rh-cf.rh*k)/2+g.dy*sy*k)
+		op.GeoM.Translate(x+cf.cw/2, y+(cf.rh-cf.rh*k)/2+dy*k)
 	} else {
 		op.GeoM.Scale(sx, sy)
-		op.GeoM.Translate(x+cf.cw/2, y+g.dy*sy)
+		op.GeoM.Translate(x+cf.cw/2, y+dy)
 	}
 	op.ColorScale.ScaleWithColor(fg)
 	text.Draw(dst, str, g.face, op)

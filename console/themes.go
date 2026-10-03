@@ -10,6 +10,7 @@ import (
 	"rx1/recfile"
 	"rx1/util"
 	"strings"
+	"time"
 
 	"codeberg.org/tslocum/cview"
 	"github.com/gdamore/tcell/v3"
@@ -48,6 +49,8 @@ type Theme struct {
 	isMonoChrome         bool
 	phosphorTint         *color.RGBA                    // optional %rec: phosphor, tints the whole screen
 	playerIcon           foundation.TextIcon            // %rec: player, the rune and the foreground colour of the player
+	sprites              map[[2]string][2]rune          // tiles: the player's two idle frames by (weapon_type, shield), from <tiles>_sprites.rec
+	monsterAnim          map[string]rune                // tiles: a monster's second idle frame (its tile one sheet row down)
 	hiddenTrapBrightness float64                        // optional %rec: hidden_trap, the foreground brightness of the floor over a trap not found yet
 	tiles                bool                           // optional %rec: tiles, File: a tiles mapping rec (loadTiles); the clients switch the map to the tile font
 	monsterIcons         map[string]foundation.TextIcon // tiles: internal_name -> tile rune, and its colour when Fg.A != 0
@@ -63,7 +66,7 @@ func (t *Theme) loadTiles(filename string) {
 		return
 	}
 	defer file.Close()
-	t.tiles, t.monsterIcons = true, map[string]foundation.TextIcon{}
+	t.tiles, t.monsterIcons, t.monsterAnim = true, map[string]foundation.TextIcon{}, map[string]rune{}
 	for section, records := range recfile.ReadMulti(file) {
 		for _, rec := range records {
 			id, icon, col := "", -1, ""
@@ -98,13 +101,60 @@ func (t *Theme) loadTiles(filename string) {
 			case "objects":
 				c := foundation.ObjectCategoryFromString(id)
 				t.iconsForObjects[c] = apply(t.iconsForObjects[c])
-			case "player":
-				t.playerIcon = apply(t.playerIcon)
 			case "monster":
 				t.monsterIcons[id] = apply(foundation.TextIcon{})
+				t.monsterAnim[id] = t.monsterIcons[id].Rune
+				if icon < monsterCells && (icon/monsterCols)%2 == 0 { // the sheet pairs each row with its animation row
+					t.monsterAnim[id] += monsterCols
+				}
 			}
 		}
 	}
+	t.loadSprites(strings.TrimSuffix(filename, ".rec") + "_sprites.rec")
+}
+
+// the Monsters sheet of the atlas: 19 columns, 26 rows, a base row above each animation row
+const monsterCols, monsterCells = 19, 494
+
+// loadSprites reads the player sprites mkoryx.py composed: weapon, shield, icon and anim records.
+func (t *Theme) loadSprites(filename string) {
+	file, err := os.Open(filename)
+	if err != nil {
+		println("WARNING: sprites:", err.Error())
+		return
+	}
+	defer file.Close()
+	t.sprites = map[[2]string][2]rune{}
+	for _, rec := range recfile.ReadMulti(file)["sprite"] {
+		var key [2]string
+		var frames [2]rune
+		for _, f := range rec {
+			switch f.Name {
+			case "weapon":
+				key[0] = f.Value
+			case "shield":
+				key[1] = f.Value
+			case "icon":
+				frames[0] = 0xE000 + rune(f.AsInt())
+			case "anim":
+				frames[1] = 0xE000 + rune(f.AsInt())
+			}
+		}
+		t.sprites[key] = frames
+	}
+}
+
+// idleFrame alternates the tiles' two idle frames twice a second (the UI redraws every 100 ms).
+func idleFrame() int { return int(time.Now().UnixMilli()/500) % 2 }
+
+// PlayerSprite is the player's tile wielding weapon and shield (the nearest sprite there is), 0 without tiles.
+func (t Theme) PlayerSprite(weapon, shield string) rune {
+	for _, key := range [][2]string{{weapon, shield}, {weapon, ""}, {"", shield}, {"", ""}} {
+		if frames, ok := t.sprites[key]; ok {
+			return frames[idleFrame()]
+		}
+	}
+	return 0
 }
 
 // IsTiles says whether the map is drawn with the tile font (a theme with %rec: tiles).

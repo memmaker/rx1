@@ -241,6 +241,20 @@ func (g *GameState) GetPlayerPosition() geometry.Point {
 	return g.Player.Position()
 }
 
+func (g *GameState) PlayerWielding() (weapon, shield string) {
+	eq := g.Player.GetEquipment()
+	for _, w := range []*Item{eq.GetMainWeapon(MeleeAttack), eq.GetMainWeapon(RangedAttack)} {
+		if w != nil {
+			weapon = w.GetWeapon().GetWeaponType().String()
+			break
+		}
+	}
+	if s := eq.GetBySlot(foundation.SlotNameOffHand); s != nil && s.SlotName() == foundation.SlotNameShield {
+		shield = s.GetInternalName()
+	}
+	return weapon, shield
+}
+
 func (g *GameState) GetMapSize() geometry.Point {
 	return g.gridMap.MapSize()
 }

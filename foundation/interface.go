@@ -44,6 +44,9 @@ type GameForUI interface {
 
 	// State Queries
 	GetPlayerPosition() geometry.Point
+	// PlayerWielding is the weapon_type of the player's wielded weapon (melee first, then the launcher) and the
+	// internal name of the shield on the off hand; "" for an empty hand
+	PlayerWielding() (weapon, shield string)
 	GetMapSize() geometry.Point
 	// GetPlayerLight returns false where light does not matter (town)
 	GetPlayerLight() (LightInfo, bool)

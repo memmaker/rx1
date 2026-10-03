@@ -1,6 +1,7 @@
 package gfx
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -330,6 +331,7 @@ func (c *Client) fitMap() {
 		return
 	}
 	// whole-pixel cells in the font's proportions, the font sized to the cell height, glyphs stretched to the cell
+	c.fonts.setMapFace(cmp.Or(c.st.MapFace, defaultMapFace))
 	cwEm, rhEm := c.fonts.em(c.mapFace())
 	cw, rh := max(1, m.body.Dx()/c.cols), max(1, m.body.Dy()/c.rows)
 	if float64(cw)/float64(rh) > cwEm/rhEm {

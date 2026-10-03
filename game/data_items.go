@@ -11,6 +11,11 @@ import (
 
 type WeaponType int
 
+var weaponTypeNames = []string{"", "sword", "club", "axe", "dagger", "spear", "bow", "arrow", "crossbow", "bolt", "dart", "rapier", "whip"}
+
+// String is the weapon_type word of weapons.rec, "" for ItemTypeUnknown.
+func (t WeaponType) String() string { return weaponTypeNames[t] }
+
 func (t WeaponType) IsMissile() bool {
 	return t == ItemTypeArrow || t == ItemTypeBolt || t == ItemTypeDart
 }

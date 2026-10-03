@@ -20,8 +20,8 @@ palette: ../themes/tiles.rec
 
 id: TileFloor
 name: tile floor
-icon: 772
-color: DirtyBlue
+icon: 1065
+color: DarkGray
 reference_image: ref/preview_dungeons.png
 
 id: TileWall
@@ -32,8 +32,8 @@ reference_image: ref/preview_dungeons.png
 
 id: TileRoomFloor
 name: tile room floor
-icon: 772
-color: DirtyBlue
+icon: 1065
+color: VeryDarkGray
 reference_image: ref/preview_dungeons.png
 
 id: TileCaveFloor
@@ -50,7 +50,7 @@ reference_image: ref/preview_dungeons.png
 
 id: TileRoomWallVertical
 name: tile room wall vertical
-icon: 805
+icon: 786
 color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
@@ -80,8 +80,8 @@ reference_image: ref/preview_dungeons.png
 
 id: TileCorridorFloor
 name: tile corridor floor
-icon: 766
-color: DirtyBlue
+icon: 1065
+color: VeryDarkGray
 reference_image: ref/preview_dungeons.png
 
 id: TileCorridorWall
@@ -170,26 +170,26 @@ reference_image: ref/preview_dungeons.png
 
 id: TileDoorOpen
 name: tile door open
-icon: 952
-color: LightGray
+icon: 953
+color: Brown
 reference_image: ref/preview_dungeons.png
 
 id: TileDoorClosed
 name: tile door closed
 icon: 950
-color: LightGray
+color: Brown
 reference_image: ref/preview_dungeons.png
 
 id: TileDoorBroken
 name: tile door broken
-icon: 961
-color: DarkBrown
+icon: 956
+color: Brown
 reference_image: ref/preview_dungeons.png
 
 id: TileDoorLocked
 name: tile door locked
-icon: 954
-color: DarkBrown
+icon: 952
+color: Brown
 reference_image: ref/preview_dungeons.png
 
 id: TileStairsUp
@@ -224,13 +224,13 @@ reference_image: ref/preview_dungeons.png
 
 id: TileMountain
 name: tile mountain
-icon: 1046
+icon: 1047
 color: RockHi
 reference_image: ref/preview_dungeons.png
 
 id: TileMountainPeak
 name: tile mountain peak
-icon: 1046
+icon: 1047
 color: Peak
 reference_image: ref/preview_dungeons.png
 
@@ -327,13 +327,13 @@ reference_image: ref/preview_dungeons.png
 id: TileLava
 name: tile lava
 icon: 771
-color: LavaHi
+color: Red
 reference_image: ref/preview_dungeons.png
 
 id: TileChasm
 name: tile chasm
-icon: 766
-color: DarkGray
+icon: 1087
+color: VeryDarkGray
 reference_image: ref/preview_dungeons.png
 
 id: TileShallowWater
@@ -344,8 +344,8 @@ reference_image: ref/preview_dungeons.png
 
 id: TileChasmEdge
 name: tile chasm edge
-icon: 1114
-color: White
+icon: 1086
+color: DarkGray
 reference_image: ref/preview_dungeons.png
 
 id: TileBridge
@@ -408,7 +408,7 @@ reference_image: ref/preview_items.png
 id: ItemWeapons
 name: item weapons
 icon: 494
-color: LightBrown
+color: Peak
 reference_image: ref/preview_items.png
 
 id: ItemArmor
@@ -426,7 +426,7 @@ reference_image: ref/preview_items.png
 id: ItemScrolls
 name: item scrolls
 icon: 562
-color: Black
+color: Yellow
 reference_image: ref/preview_items.png
 
 id: ItemPotions
@@ -437,7 +437,7 @@ reference_image: ref/preview_items.png
 
 id: ItemWands
 name: item wands
-icon: 587
+icon: 500
 color: Green
 reference_image: ref/preview_items.png
 
@@ -449,8 +449,8 @@ reference_image: ref/preview_items.png
 
 id: ItemDocuments
 name: item documents
-icon: 715
-color: Black
+icon: 737
+color: Yellow
 reference_image: ref/preview_items.png
 
 id: ItemLight
@@ -464,7 +464,7 @@ reference_image: ref/preview_items.png
 
 id: ExplodingTrap
 name: exploding trap
-icon: 1018
+icon: 1104
 color: LightGray
 reference_image: ref/preview_dungeons.png
 
@@ -522,13 +522,90 @@ icon: 1070
 color: LightRed
 reference_image: ref/preview_dungeons.png
 
-%rec: player
-%doc: Player
+%rec: stance
+%doc: The hero by what is in the hands; the idle animation frame is the cell + 7
 
-id: Player
-name: player
+id: Stance_unarmed
+name: hero, empty hands
 icon: 1171
-color: White
+reference_image: ref/preview_creatures.png
+
+id: Stance_weapon
+name: hero, weapon
+icon: 1172
+reference_image: ref/preview_creatures.png
+
+id: Stance_shield
+name: hero, shield
+icon: 1173
+reference_image: ref/preview_creatures.png
+
+id: Stance_both
+name: hero, weapon and shield
+icon: 1174
+reference_image: ref/preview_creatures.png
+
+id: Stance_ranged
+name: hero, ranged weapon
+icon: 1175
+reference_image: ref/preview_creatures.png
+
+%rec: equipment
+%doc: Overlays on the hero: Weapon_<weapon_type> and Shield_<internal_name>
+
+id: Weapon_dagger
+name: held dagger
+icon: 1184
+reference_image: ref/preview_creatures.png
+
+id: Weapon_sword
+name: held sword
+icon: 1194
+reference_image: ref/preview_creatures.png
+
+id: Weapon_rapier
+name: held rapier
+icon: 1195
+reference_image: ref/preview_creatures.png
+
+id: Weapon_axe
+name: held axe
+icon: 1205
+reference_image: ref/preview_creatures.png
+
+id: Weapon_club
+name: held club
+icon: 1216
+reference_image: ref/preview_creatures.png
+
+id: Weapon_spear
+name: held spear
+icon: 1224
+reference_image: ref/preview_creatures.png
+
+id: Weapon_whip
+name: held whip
+icon: 1237
+reference_image: ref/preview_creatures.png
+
+id: Weapon_bow
+name: held bow
+icon: 1245
+reference_image: ref/preview_creatures.png
+
+id: Weapon_crossbow
+name: held crossbow
+icon: 1250
+reference_image: ref/preview_creatures.png
+
+id: Shield_buckler
+name: held buckler
+icon: 1254
+reference_image: ref/preview_creatures.png
+
+id: Shield_large_shield
+name: held large shield
+icon: 1260
 reference_image: ref/preview_creatures.png
 
 %rec: monster
@@ -538,256 +615,256 @@ id: bat
 name: bat
 icon: 82
 color: LightGray
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/bat.png
 
 id: emu
 name: emu
 icon: 91
 color: White
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/emu.png
 
 id: hobgoblin
 name: hobgoblin
 icon: 160
 color: Green
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/hobgoblin.png
 
 id: kestrel
 name: kestrel
 icon: 92
 color: Orange
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/kestrel.png
 
 id: jackal
 name: jackal
 icon: 79
 color: Orange
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/jackal.png
 
 id: floating_eye
 name: floating eye
-icon: 268
-color: Red
-reference_image: ref/preview_creatures.png
+icon: 273
+color: Blue
+reference_image: ../../web/monsters/floating_eye.png
 
 id: ice_monster
 name: ice monster
 icon: 350
 color: LightBlue
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/ice_monster.png
 
 id: slime
 name: slime
 icon: 349
 color: LightCyan
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/slime.png
 
 id: snake
 name: snake
 icon: 84
 color: LightGreen
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/snake.png
 
 id: gnome
 name: gnome
 icon: 193
 color: White
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/gnome.png
 
 id: orc
 name: orc
 icon: 159
 color: LightGreen
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/orc.png
 
 id: rattlesnake
 name: rattlesnake
 icon: 85
 color: LightGreen
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/rattlesnake.png
 
 id: invisible_stalker
 name: invisible stalker
 icon: 307
 color: White
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/invisible_stalker.png
 
 id: rust_monster
 name: rust monster
 icon: 381
 color: Orange
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/rust_monster.png
 
 id: zombie
 name: zombie
 icon: 351
 color: Orange
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/zombie.png
 
 id: ant
-name: ant
+name: giant ant
 icon: 125
 color: Red
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/giant_ant.png
 
 id: leprechaun
 name: leprechaun
 icon: 386
 color: Cyan
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/leprechaun.png
 
 id: centaur
 name: centaur
 icon: 152
 color: Orange
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/centaur.png
 
 id: kobold
 name: kobold
 icon: 164
 color: Red
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/kobold.png
 
 id: aquator
 name: aquator
 icon: 116
 color: Blue
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/aquator.png
 
 id: black_unicorn
 name: black unicorn
 icon: 312
 color: Gray
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/black_unicorn.png
 
 id: quagga
 name: quagga
 icon: 314
 color: White
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/quagga.png
 
 id: nymph
 name: nymph
 icon: 205
 color: LightMagenta
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/nymph.png
 
 id: mimic
 name: mimic
 icon: 344
 color: White
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/mimic.png
 
 id: yeti
 name: yeti
 icon: 127
 color: White
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/yeti.png
 
 id: troll
 name: troll
 icon: 353
 color: Orange
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/troll.png
 
 id: violet_fungi
 name: violet fungi
 icon: 1136
 color: Magenta
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/violet_fungi.png
 
 id: wraith
 name: wraith
 icon: 308
 color: Red
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/wraith.png
 
 id: venus_flytrap
 name: venus flytrap
 icon: 359
 color: Green
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/venus_flytrap.png
 
 id: phantom
 name: phantom
 icon: 306
 color: LightGray
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/phantom.png
 
 id: purple_worm
 name: purple worm
 icon: 266
 color: LightMagenta
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/purple_worm.png
 
 id: ur_vile
-name: ur vile
+name: ur-vile
 icon: 309
 color: White
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/ur-vile.png
 
 id: umber_hulk
 name: umber hulk
 icon: 128
 color: Green
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/umber_hulk.png
 
 id: griffin
 name: griffin
-icon: 132
+icon: 400
 color: Yellow
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/griffin.png
 
 id: medusa
 name: medusa
 icon: 157
 color: LightMagenta
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/medusa.png
 
 id: quasit
 name: quasit
 icon: 119
 color: Green
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/quasit.png
 
 id: xeroc
 name: xeroc
 icon: 273
 color: White
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/xeroc.png
 
 id: xeroc_2
-name: xeroc 2
+name: xeroc mk ii
 icon: 274
 color: White
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/xeroc_mk_ii.png
 
 id: xorn
 name: xorn
 icon: 275
 color: Orange
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/xorn.png
 
 id: vampire
 name: vampire
 icon: 304
 color: Red
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/vampire.png
 
 id: jabberwock
 name: jabberwock
-icon: 284
+icon: 278
 color: Yellow
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/jabberwock.png
 
 id: dragon
 name: dragon
-icon: 283
+icon: 358
 color: Green
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/dragon.png
 
 id: shrieker
 name: shrieker
 icon: 1137
 color: Magenta
-reference_image: ref/preview_creatures.png
+reference_image: ../../web/monsters/shrieker.png
