@@ -67,3 +67,7 @@ func (stubUI) GetAnimEffect(string, geometry.Point, []geometry.Point, func()) fo
 func (stubUI) GetAnimUncloakAtPosition(foundation.ActorForUI, geometry.Point) (foundation.Animation, int) {
 	return stubAnim{}, 0
 }
+
+func (stubUI) GetAnimProjectile(rune, string, geometry.Point, geometry.Point, func()) (foundation.Animation, int) {
+	return stubAnim{}, 0
+}
