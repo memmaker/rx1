@@ -25,6 +25,9 @@ func TestSecretLevelRoundTrip(t *testing.T) {
 		t.Fatalf("want hidden stairs at %v", stairs)
 	}
 
+	if monster, occupied := g.gridMap.TryGetActorAt(stairs); occupied { // a monster may have spawned there
+		g.gridMap.RemoveActor(monster)
+	}
 	g.gridMap.MoveActor(g.Player, stairs)
 	g.afterPlayerMoved()
 	if !g.gridMap.GetCell(stairs).TileType.IsStairsDown() {
