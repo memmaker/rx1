@@ -529,6 +529,7 @@ func playerVorpalizeWeapon(g *GameState, actor *Actor) []foundation.Animation {
 				Name: monsterDef.Name,
 				Action: func() {
 					weaponItem.GetWeapon().Vorpalize(monsterDef.InternalName)
+					weaponItem.zapEffectName = vorpalZap // PC Rogue: one zap that sends its enemy into oblivion
 					g.msg(foundation.HiLite("Your %s gives off a flash of intense white light", weaponItem.Name()))
 
 					g.ui.UpdateInventory()

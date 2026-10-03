@@ -1,6 +1,7 @@
 package game
 
 import (
+	"rx1/geometry"
 	"strings"
 	"testing"
 )
@@ -24,4 +25,19 @@ func TestCharacterSheetShowsCombat(t *testing.T) {
 		}
 	}
 	t.Fatal("no monster on the level")
+}
+
+// PC Rogue: a vorpal weapon's single zap makes its enemy vanish; then it is spent.
+func TestVorpalBladeZapsItsEnemyOnce(t *testing.T) {
+	g := newMagicTestGame()
+	sword := g.NewItemFromName("long_sword")
+	sword.GetWeapon().Vorpalize("jackal")
+	sword.zapEffectName = vorpalZap
+	def, _ := g.monsterDefByInternalName("jackal")
+	jackal := g.NewEnemyFromDef(def)
+	g.gridMap.AddActor(jackal, g.Player.Position().Add(geometry.Point{X: 1}))
+	g.actorZapItem(g.Player, sword, jackal.Position())
+	if jackal.IsAlive() || sword.IsZappable() {
+		t.Fatal("the zap should destroy its enemy and be spent")
+	}
 }

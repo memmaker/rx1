@@ -42,6 +42,7 @@ type saveItem struct {
 	HitPlus   int      `json:"hit_plus,omitempty"`
 	DamPlus   int      `json:"damage_plus,omitempty"`
 	Vorpal    string   `json:"vorpal,omitempty"`
+	VorpalZap bool     `json:"vorpal_zap,omitempty"` // the one-shot zap is still in the blade
 	ArmorPlus int      `json:"armor_plus,omitempty"`
 	Equipped  bool     `json:"equipped,omitempty"`
 }
@@ -131,6 +132,7 @@ func (g *GameState) toSaveItem(i *Item) saveItem {
 	}
 	if i.weapon != nil {
 		s.HitPlus, s.DamPlus, s.Vorpal = i.weapon.hitPlus, i.weapon.damagePlus, i.weapon.vorpalEnemy
+		s.VorpalZap = i.zapEffectName == vorpalZap
 	}
 	if i.armor != nil {
 		s.ArmorPlus = i.armor.plus
@@ -169,6 +171,9 @@ func (g *GameState) fromSaveItem(raw json.RawMessage) (*Item, bool, bool) {
 	}
 	if i.weapon != nil {
 		i.weapon.hitPlus, i.weapon.damagePlus, i.weapon.vorpalEnemy = s.HitPlus, s.DamPlus, s.Vorpal
+		if s.VorpalZap {
+			i.zapEffectName = vorpalZap
+		}
 	}
 	if i.armor != nil {
 		i.armor.plus = s.ArmorPlus

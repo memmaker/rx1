@@ -719,6 +719,10 @@ func zapEffectExists(zapEffectName string) bool {
 
 func (g *GameState) actorZapItem(zapper *Actor, item *Item, targetPos geometry.Point) []foundation.Animation {
 	zapEffectName := item.GetZapEffectName()
+	if zapEffectName == vorpalZap {
+		item.zapEffectName = "" // one shot
+		return g.zapVorpalBlade(zapper, item.GetWeapon().vorpalEnemy, targetPos)
+	}
 
 	if zapEffectName == "" {
 		return nil
@@ -876,5 +880,28 @@ func charmTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []founda
 	if zapper == g.Player {
 		g.identification.EffectWitnessed()
 	}
+	return []foundation.Animation{projAnim}
+}
+
+const vorpalZap = "vorpal" // a vorpal weapon's single zap, not in the zap effect table
+
+// zapVorpalBlade: PC Rogue's vorpal weapon zap. The first monster in line vanishes if it is the
+// weapon's enemy; anything else is untouched.
+func (g *GameState) zapVorpalBlade(zapper *Actor, enemy string, targetPos geometry.Point) []foundation.Animation {
+	path := g.getLineOfSight(zapper.Position(), targetPos)
+	hit := path[len(path)-1]
+	projAnim, _ := g.ui.GetAnimProjectile('*', "White", zapper.Position(), hit, nil)
+	victim := g.actorAt(hit)
+	if victim == nil || victim == zapper || victim.GetInternalName() != enemy {
+		g.msg(foundation.Msg("You hear a maniacal chuckle in the distance"))
+		return []foundation.Animation{projAnim}
+	}
+	g.msg(foundation.HiLite("%s vanishes in a puff of smoke", victim.Name()))
+	finalBlow(victim, victim.GetHitPoints()) // gone, a troll does not come back
+	death := g.damageActor(zapper.Name(), victim, victim.GetHitPoints())
+	if projAnim == nil {
+		return death
+	}
+	projAnim.SetFollowUp(death)
 	return []foundation.Animation{projAnim}
 }
