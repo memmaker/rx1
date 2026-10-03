@@ -23,7 +23,7 @@ func main() {
 	config := foundation.NewConfigurationFromFile("config.rec")
 	config.PlayerName = playerName
 	gameUI := console.NewTextUI(config)
-	prepareUI(gameUI)
+	prepareUI(gameUI, config)
 	game.NewGameState(gameUI, config)
 
 	if showScoresOnly {
@@ -34,7 +34,7 @@ func main() {
 		})
 	}
 
-	gameUI.StartGameLoop()
+	runUI(gameUI)
 }
 
 func showBanner(width int) {
