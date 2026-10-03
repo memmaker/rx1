@@ -1,1 +1,11 @@
-[#FFFFFF]The presence of these large flightless birds in the Dungeons of Doom can only be explained by the legends of Yendor's bizzare sense of humor. Although they look harmless, they have a vicous kick.[-]
+[#FFFFFF]The presence of these large flightless birds in the Dungeons of Doom can only be explained by the legends of Yendor's bizarre sense of humor. Although they look harmless, they have a vicious kick.[-]
+
+[#f5e342]Origin[-]
+
+The emu (Dromaius novaehollandiae) is a large flightless bird from Australia. It can stand almost two metres tall, runs at up to 50 km/h and defends itself with a powerful kick. Unlike most of Rogue's bestiary it has no source in Dungeons & Dragons.
+
+[#f5e342]Rogue Trivia[-]
+
+In Rogue 3.6 the letter E belonged to the floating eye. Rogue 5.x gave E to the emu and dropped the floating eye from the game entirely. The emu is one of several real animals (with the kestrel and the quagga) that appear in the 5.x alphabet. It is one of the weakest monsters in the game and a typical first kill on the upper levels.
+
+The description at the top comes from the Macintosh version of Rogue.

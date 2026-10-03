@@ -1,1 +1,16 @@
 [#FFFFFF]Contrary to popular myth, these are not friendly.[-]
+
+[#f5e342]Origin[-]
+
+Trolls come from Norse folklore, where they are huge, slow-witted dwellers of mountains and forests that turn to stone in sunlight. The regenerating, rubbery troll of Dungeons & Dragons came by way of Poul Anderson's novel Three Hearts and Three Lions (1961):
+
+    "Total dismemberment will not slay a troll, for its parts will slither and scuttle together, rejoin, and the troll will arise whole and ready to continue combat. To kill a troll, the monster must be burned or immersed in acid."
+    - Monster Manual (1977), p. 97
+
+The same entry gives it armor class 4 and three attacks, two claws and a bite. Rogue kept both, along with the regeneration.
+
+[#f5e342]Rogue Trivia[-]
+
+The troll holds T in every version of Rogue. It is one of the few Rogue monsters that regenerates, healing its wounds as it fights. The rx1 troll goes one step further: struck down, it rises again once, whole and ready to fight, unless the killing blow was fire or the acid of a rust monster, aquator or slime.
+
+The description at the top comes from the Macintosh version of Rogue.

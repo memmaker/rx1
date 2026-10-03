@@ -83,6 +83,7 @@ type UI struct {
 	hpFlashUntil     time.Time // the status bar is drawn inverted until then
 	panes            Panes     // nil: side windows are drawn in the terminal grid
 	paneSent         map[string]string
+	looking          bool     // targeting is the look command: its key confirms
 	paneRestore      []func() // panes a modal took over, put back when the map is in front again
 }
 
@@ -1055,6 +1056,9 @@ func (u *UI) Print(message foundation.HiLiteString) {
 		return
 	}
 	u.application.QueueUpdateDraw(func() {
+		if u.panes != nil { // the web prompt line skips a repeat that a key has hidden: clear it, so it shows again
+			u.sendPane("prompt", Pane{})
+		}
 		u.setPane(u.messageLabel, "prompt", u.ToColoredText(message, 1))
 	})
 }
@@ -1881,7 +1885,7 @@ func (u *UI) ShowMonsterInfo(monster foundation.ActorForUI) {
 	panels := cview.NewTabbedPanels()
 	panels.SetFullScreen(true)
 	panels.SetTabSwitcherDivider("|", "|", "|")
-	monsterInfo := monster.GetDetailInfo()
+	monsterInfo := append(monster.GetDetailInfo(), u.game.GetCombatInfo(monster)...)
 	monsterLore := util.ReadFileAsLines(lorePath)
 	if len(monsterLore) == 0 {
 		u.openTextModal(monsterInfo)

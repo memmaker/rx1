@@ -1,1 +1,11 @@
 [#FFFFFF]These small falcons don't usually attack humans, but when driven by hunger and the frustration of being imprisoned in the Dungeons of Doom, they'll do anything.[-]
+
+[#f5e342]Origin[-]
+
+The common kestrel (Falco tinnunculus) is a small falcon found across Europe, Asia and Africa. It is known for hovering in place, wings beating, while it watches the ground for mice and insects. Like the emu and the quagga, it is a real animal with no source in Dungeons & Dragons.
+
+[#f5e342]Rogue Trivia[-]
+
+In Rogue 3.6 the letter K belonged to the kobold. Rogue 5.x gave K to the kestrel. It is a level 1 monster with armor class 7 that pecks for 1d4. Like the bat it flies, taking a second move to close in whenever it is not already beside you.
+
+The description at the top comes from the Macintosh version of Rogue.

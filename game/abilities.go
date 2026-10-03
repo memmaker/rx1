@@ -6,6 +6,7 @@ import (
 	"rx1/geometry"
 	"rx1/gridmap"
 	"rx1/rpg"
+	"slices"
 )
 
 // Monster abilities driven by flags and gaze_effect, see HANDOVER.md.
@@ -142,6 +143,23 @@ func (g *GameState) aiGaze(enemy *Actor) bool {
 		}
 	}
 	return true
+}
+
+// finalBlow: D&D trolls only stay dead when burned or dissolved in acid; a killing blow of that kind cancels the revive.
+func finalBlow(victim *Actor, damage int) {
+	if damage >= victim.GetHitPoints() {
+		victim.GetFlags().Unset(foundation.FlagRevive)
+	}
+}
+
+// isAcidic: monsters that rust or corrode (rust monster, aquator, slime) strike with acid.
+func isAcidic(a *Actor) bool {
+	for _, e := range slices.Concat(a.GetIntrinsicHitEffects(), a.GetIntrinsicStruckEffects()) {
+		if e.Name == "rust_armor" || e.Name == "rust_weapon" {
+			return true
+		}
+	}
+	return false
 }
 
 // tryRevive: trolls get back up once.

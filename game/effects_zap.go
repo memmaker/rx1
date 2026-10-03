@@ -29,6 +29,7 @@ func GetAllZapEffects() map[string]func(g *GameState, zapper *Actor, aimPos geom
 		"magic_arrow":          magicArrow,
 		"force_descend_target": forceDescendTarget,
 		"hold_target":          holdTarget,
+		"charm_target":         charmTarget,
 		"trap_arrow":           trapArrow,
 		"trap_dart":            trapDart,
 		"trap_bear":            trapBear,
@@ -136,6 +137,10 @@ func coldRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.An
 	hitEntityHandler := func(hitPos geometry.Point) []foundation.Animation {
 		if g.gridMap.IsActorAt(hitPos) {
 			actor := g.gridMap.ActorAt(hitPos)
+			if actor.HasFlag(foundation.FlagUndead) || actor.HasFlag(foundation.FlagColdImmune) {
+				g.msg(foundation.HiLite("The cold does not harm %s", actor.Name()))
+				return nil
+			}
 			if actor.IsAlive() && !g.boltSaves(actor) {
 				freeze := func() {
 					g.msg(foundation.HiLite("%s is frozen", actor.Name()))
@@ -212,6 +217,13 @@ func fireRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.An
 	trailColors := []string{"White", "Yellow", "LightRed", "Red"}
 
 	hitEntityHandler := func(hitPos geometry.Point) []foundation.Animation {
+		if g.gridMap.IsActorAt(hitPos) {
+			victim := g.gridMap.ActorAt(hitPos)
+			if g.boltSaves(victim) {
+				return nil
+			}
+			return g.damageActor(zapper.Name(), victim, fireDamage(victim, rollBoltDamage()))
+		}
 		return g.boltDamageLocation(zapper.Name(), hitPos)
 	}
 	if rand.Intn(20) == 0 { // 1 in 20 chance to just bounce off
@@ -233,6 +245,10 @@ func lightningRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundati
 	dontHitThese[zapper] = true
 
 	hitEntityHandler := func(hitPos geometry.Point) []foundation.Animation {
+		if g.gridMap.IsActorAt(hitPos) && splits(g.gridMap.ActorAt(hitPos)) { // D&D ochre jelly: lightning only divides it
+			dontHitThese[g.gridMap.ActorAt(hitPos)] = true
+			return split(g, g.gridMap.ActorAt(hitPos), zapper)
+		}
 		damageAnims := g.boltDamageLocation(zapper.Name(), hitPos)
 		if g.gridMap.IsActorAt(hitPos) {
 			dontHitThese[g.gridMap.ActorAt(hitPos)] = true
@@ -415,7 +431,9 @@ func holdTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []foundat
 
 	if g.gridMap.IsActorAt(targetPos) {
 		targetActor := g.gridMap.ActorAt(targetPos)
-		targetActor.GetFlags().Increase(foundation.FlagHeld, rand.Intn(10)+5)
+		if !targetActor.HasFlag(foundation.FlagUndead) && !targetActor.HasFlag(foundation.FlagNoHold) {
+			targetActor.GetFlags().Increase(foundation.FlagHeld, rand.Intn(10)+5)
+		}
 		if projAnim != nil {
 			projAnim.SetFollowUp(g.effectAnim("hold", targetPos, nil))
 		}
@@ -666,7 +684,7 @@ func fireBreath(g *GameState, zapper *Actor, pos geometry.Point) []foundation.An
 	breathAnim := g.ui.GetAnimBreath(path, nil)
 	var onHitAnimations []foundation.Animation
 	for _, victim := range hits {
-		onHitAnimations = append(onHitAnimations, g.damageActor(zapper.Name(), victim, rpg.ParseDice("6d6").Roll())...)
+		onHitAnimations = append(onHitAnimations, g.damageActor(zapper.Name(), victim, fireDamage(victim, rpg.ParseDice("6d6").Roll()))...)
 	}
 	if breathAnim == nil {
 		return onHitAnimations
@@ -812,4 +830,37 @@ func ArraysToPoints(cells [][2]int64) []geometry.Point {
 
 func valuePairToPoint(values [2]int64) geometry.Point {
 	return geometry.Point{X: int(values[0]), Y: int(values[1])}
+}
+
+// fireDamage: fire_vulnerable monsters (the yeti) take half again as much.
+// It also counts as a final blow: a troll burned to death stays dead.
+func fireDamage(victim *Actor, damage int) int {
+	if victim.HasFlag(foundation.FlagFireVulnerable) {
+		damage = damage * 3 / 2
+	}
+	finalBlow(victim, damage)
+	return damage
+}
+
+// charmTarget makes a monster fight for the hero for a while. D&D: undead and unicorns cannot be charmed.
+func charmTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []foundation.Animation {
+	origin := originFromZapperOrWall(g, zapper, targetPos)
+	pathOfFlight := g.getLineOfSight(origin, targetPos)
+	targetPos = pathOfFlight[len(pathOfFlight)-1]
+	projAnim, _ := g.ui.GetAnimProjectile('*', "LightMagenta", origin, targetPos, nil)
+	if !g.gridMap.IsActorAt(targetPos) {
+		return []foundation.Animation{projAnim}
+	}
+	target := g.gridMap.ActorAt(targetPos)
+	if target == g.Player || target.HasFlag(foundation.FlagUndead) || target.HasFlag(foundation.FlagNoHold) || rpg.Save(target.GetLevel(), rpg.VsMagic) {
+		g.msg(foundation.HiLite("%s resists", target.Name()))
+		return []foundation.Animation{projAnim}
+	}
+	target.GetFlags().Increase(foundation.FlagCharmed, rand.Intn(11)+10)
+	target.WakeUp()
+	g.msg(foundation.HiLite("%s looks at you fondly", target.Name()))
+	if zapper == g.Player {
+		g.identification.EffectWitnessed()
+	}
+	return []foundation.Animation{projAnim}
 }

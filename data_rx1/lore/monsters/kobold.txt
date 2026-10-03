@@ -1,1 +1,13 @@
-[#FFFFFF]
+[#FFFFFF]Small, scaly, foul-tempered creatures that infest the upper levels in great numbers, more nuisance than threat.[-]
+
+[#f5e342]Origin[-]
+
+The kobold comes from German folklore. In the house it was a small domestic spirit, much like the English brownie: it did chores in exchange for food, but turned spiteful when slighted. In the mines it was a malicious spirit that played tricks on miners and spoiled the ore. Jacob Grimm treats both kinds in his Deutsche Mythologie (1835; English translation Teutonic Mythology, chapter 17).
+
+The mine kobold left its mark on chemistry. Silver miners in the Ore Mountains called a worthless, poisonous ore "Kobalt", blaming the kobolds for it. When Georg Brandt isolated a new metal from that ore around 1735, it kept the name: cobalt.
+
+Dungeons & Dragons (Monsters & Treasure, 1974) turned the kobold into a weak, cowardly humanoid fought in large numbers. Later editions made it small and dog-like, and later still reptilian. Rogue took it from D&D.
+
+[#f5e342]Rogue Trivia[-]
+
+The kobold held K in Rogue 3.6, a level 1 monster with armor class 7 that hits for 1d4. Rogue 5.x gave K to the kestrel, which can fly. The kobold never flies: rx1 brings it back on the lower-case k as a plain walking monster.

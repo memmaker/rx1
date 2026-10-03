@@ -1,1 +1,17 @@
 [#FFFFFF]These manlike creatures think that they own the upper levels of the Dungeons of Doom and greatly resent any intruders. They show this resentment by attempting to kill and eat any intruders they find.[-]
+
+[#f5e342]Origin[-]
+
+In English folklore a hobgoblin was originally a friendly household spirit of the brownie type, good-humoured but fond of practical jokes. Shakespeare's Puck is the best-known example. In A Midsummer Night's Dream a fairy greets him:
+
+    Those that Hobgoblin call you, and sweet Puck,
+    You do their work, and they shall have good luck:
+    Are you not he?
+
+Later, the Puritans used the word for wicked goblin spirits, as in Bunyan's "Hobgoblin nor foul fiend". Original D&D (Monsters & Treasure, 1974) took the darker meaning: a larger, tougher, better-organised cousin of the goblin.
+
+[#f5e342]Rogue Trivia[-]
+
+The hobgoblin holds H in every version of Rogue, from 3.6 to 5.4. It is a level 1 monster with armor class 5 that hits for 1d8, the hardest hitter among the first-level monsters, and it is always hostile. For many players it is the first monster that really hurts.
+
+The description at the top comes from the Macintosh version of Rogue.

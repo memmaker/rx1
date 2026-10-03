@@ -1,1 +1,14 @@
-[#FFFFFF]
+[#FFFFFF]A great eyeball drifting through the halls. Harmless in itself, but meet its gaze in battle and you'll stand frozen while its neighbours feed.[-]
+
+[#f5e342]Origin[-]
+
+The floating eye comes from the AD&D Monster Manual (1977), where it is a small salt water fish with a transparent body and a single eye about three inches across:
+
+    "when it is gazed at the creature so doing must save versus paralyzation or become hypnotized and remain stationary. Predatory fish (always near floating eyes) then eat the helpless prey, while the floating eyes feed upon the scraps."
+    - Monster Manual (1977), p. 40
+
+Rogue kept its armor class of 9 and its harmless body, and turned the hypnotic gaze into its only attack. It is not one of the original D&D (1974-76) monsters and is unrelated to the beholder, the many-eyed "eye tyrant" of the Greyhawk supplement.
+
+[#f5e342]Rogue Trivia[-]
+
+The floating eye held E in Rogue 3.6. Its attack does no damage, but when its gaze lands the hero is transfixed for two or three turns, and further gazes add more. A blind hero is immune. Rogue 5.x dropped it, gave E to the emu and moved the freezing attack to the new ice monster. NetHack kept it, and dying while frozen by a floating eye is one of its most famous ways to go.
