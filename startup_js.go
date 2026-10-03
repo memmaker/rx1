@@ -7,6 +7,8 @@ import (
 	"io/fs"
 	"net/url"
 	"rx1/console"
+	"rx1/foundation"
+	"strings"
 	"syscall/js"
 
 	"github.com/gdamore/tcell/v3"
@@ -37,7 +39,7 @@ func startup() (string, bool, bool) {
 }
 
 // tcell's web screen starts at 80x24 without a resize event; the game needs 80x25+, and cview only lays out on resize.
-func prepareUI(u *console.UI) {
+func prepareUI(u *console.UI, _ *foundation.Configuration) {
 	s, err := tcell.NewScreen()
 	if err != nil || s.Init() != nil {
 		panic(err)
@@ -64,16 +66,18 @@ func prepareUI(u *console.UI) {
 	}
 }
 
+func runUI(u *console.UI) { u.StartGameLoop() }
+
 // webPanes hands each side window to the page as HTML (coloured spans) plus plain text (for the prompt line).
 type webPanes struct{ fn js.Value }
 
 func (w webPanes) Set(name string, p console.Pane) {
-	plain := ""
+	var plain strings.Builder
 	for _, line := range p.Lines() {
 		for _, s := range line {
-			plain += s.Text
+			plain.WriteString(s.Text)
 		}
-		plain += "\n"
+		plain.WriteString("\n")
 	}
-	w.fn.Invoke(name, p.HTML(), plain)
+	w.fn.Invoke(name, p.HTML(), plain.String())
 }
