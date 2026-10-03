@@ -421,6 +421,12 @@ func aggravate(g *GameState) {
 }
 
 func playerIdentifyItem(g *GameState, actor *Actor) []foundation.Animation {
+	identifyItem(g, g.endPlayerTurn)
+	return nil
+}
+
+// identifyItem lets the player pick an unidentified item, then calls done
+func identifyItem(g *GameState, done func()) {
 	inventory := g.GetFilteredInventory(func(item *Item) bool {
 		if item.IsWeapon() || item.IsArmor() { // known one by one, as in Rogue
 			return !item.isKnown
@@ -429,7 +435,7 @@ func playerIdentifyItem(g *GameState, actor *Actor) []foundation.Animation {
 	})
 	if len(inventory) == 0 {
 		g.msg(foundation.Msg("You are not carrying any unidentified items."))
-		return nil
+		return
 	}
 
 	onSelected := func(item foundation.ItemForUI) {
@@ -446,12 +452,10 @@ func playerIdentifyItem(g *GameState, actor *Actor) []foundation.Animation {
 
 		g.ui.UpdateInventory()
 
-		g.endPlayerTurn()
+		done()
 	}
 
 	g.ui.OpenInventoryForSelection(inventory, "Identify which item?", onSelected)
-
-	return nil
 }
 
 func removeCurse(g *GameState, actor *Actor) []foundation.Animation {
