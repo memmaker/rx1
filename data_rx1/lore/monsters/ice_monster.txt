@@ -1,1 +1,11 @@
 [#FFFFFF]Yendor gathered mineral water from all over the world to make these chilling creatures. They can give you the cold shoulder from quite a distance.[-]
+
+[#f5e342]Origin[-]
+
+The ice monster has no source in Dungeons & Dragons, folklore or fiction. It is Rogue's own invention, and almost certainly the floating eye in a new coat: the 5.x ice monster has exactly the 3.6 floating eye's stats (level 1, armor class 9, 5 experience, no damage) and the same attack, a freeze that costs the hero two or three turns.
+
+[#f5e342]Rogue Trivia[-]
+
+In Rogue 3.6 the letter I belonged to the invisible stalker. Rogue 5.x gave I to the ice monster and dropped the floating eye. Unlike the eye's gaze, the ice monster's touch also works on a blind hero, and if the hero stays frozen too long they die of hypothermia.
+
+The description at the top comes from the Macintosh version of Rogue.

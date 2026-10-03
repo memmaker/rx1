@@ -96,7 +96,9 @@ var savedFlags = map[string]foundation.ActorFlag{
 	"stationary": foundation.FlagStationary, "greedy": foundation.FlagGreedy, "disguised": foundation.FlagDisguised,
 	"group": foundation.FlagGroup, "revive": foundation.FlagRevive, "tunnel": foundation.FlagTunnel, "gazed": foundation.FlagGazed,
 	"poisoned": foundation.FlagPoisoned, "hungry": foundation.FlagHungry, "weak": foundation.FlagWeak, "faint": foundation.FlagFaint,
-	"stealth": foundation.FlagStealth, "searching": foundation.FlagSearching,
+	"stealth": foundation.FlagStealth, "searching": foundation.FlagSearching, "undead": foundation.FlagUndead, "no_hold": foundation.FlagNoHold,
+	"cold_immune": foundation.FlagColdImmune, "fire_vulnerable": foundation.FlagFireVulnerable,
+	"shuns_light": foundation.FlagShunsLight, "magic_to_hurt": foundation.FlagMagicToHurt,
 }
 
 func flagsToSave(f *foundation.MapFlags) map[string]int {

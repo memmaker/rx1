@@ -2,11 +2,14 @@
 
 [#f5e342]Origin[-]
 
+The violet fungi come from Dungeons & Dragons, where they grow among the shriekers in the dark places of the dungeon:
 
+    "Violet fungi favors rotted animal matter to grow upon. Each fungus has 1 to 4 branches which it will flail out with if any animal comes within their 1' to 4' range. The excretion from these branches rots flesh in but one melee round unless a saving throw versus poison is made."
+    - Monster Manual (1977), p. 42
 
 [#f5e342]Rogue Trivia[-]
 
-Another monster taken directly from the DnD Monster Manuel 1st Edition.
+Another monster taken directly from the Dungeons & Dragons Monster Manual (1st edition).
 
 It was already present in the very first public release of rogue we can find, version 3.6.
 
@@ -26,4 +29,4 @@ break;
 
 This might be an indicator, that the DOS version was based on an earlier version of Rogue, which still used the original name.
 
-[#f5e342]NetHack History[-]
+Once it has hold of the hero, the violet fungi's grip tightens: each attack does one point more than the last, hit or miss.

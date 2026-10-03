@@ -1,1 +1,11 @@
-[#FFFFFF]If zoologists knew that these ancestors of the modern horse lived in the Dungeons of Doom, perhaps they'd attempt its horrors, just to get a look. These have been specially bred by Yendor for their fighting ability.[-]
+[#FFFFFF]If zoologists knew that these ancestors of the modern horse lived in the Dungeons of Doom, perhaps they'd brave its horrors, just to get a look. These have been specially bred by Yendor for their fighting ability.[-]
+
+[#f5e342]Origin[-]
+
+The quagga was a South African plains zebra, striped only on its head and neck and plain brown behind. It was hunted to extinction in the 19th century; the last one died in the Artis zoo in Amsterdam in 1883. Like the emu and the kestrel, it has no source in Dungeons & Dragons, and it is a memorable pick for the awkward letter Q.
+
+[#f5e342]Rogue Trivia[-]
+
+The quagga is new in Rogue 5.x, where it took Q from the quasit, a demon invented by Dungeons & Dragons. In the IBM PC version the quagga even kept the quasit's numbers: its armor class of 2, its three weak attacks and almost the same experience. The rx1 quagga charges into battle, the way a horse would.
+
+The description at the top comes from the Macintosh version of Rogue.

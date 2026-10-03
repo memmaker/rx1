@@ -191,11 +191,17 @@ const (
 	FlagTunnel
 	FlagGazed
 	FlagPoisoned
-	FlagHungry    // shown for the player's food_left, never stored
-	FlagWeak      // same
-	FlagFaint     // counts the turns the player is fainted; shown for starvation too
-	FlagStealth   // ring of stealth
-	FlagSearching // ring of searching
+	FlagHungry         // shown for the player's food_left, never stored
+	FlagWeak           // same
+	FlagFaint          // counts the turns the player is fainted; shown for starvation too
+	FlagStealth        // ring of stealth
+	FlagSearching      // ring of searching
+	FlagUndead         // D&D: immune to sleep, charm, hold and cold
+	FlagNoHold         // D&D unicorn: cannot be held by magic
+	FlagColdImmune     // D&D yeti: impervious to cold
+	FlagFireVulnerable // D&D yeti: fire does half again as much damage
+	FlagShunsLight     // D&D wraith: never found on a lit tile
+	FlagMagicToHurt    // D&D wraith: mundane weapons do half damage
 )
 
 func AllFlagsExceptGoldOrdered() []ActorFlag {
@@ -312,6 +318,18 @@ func ActorFlagFromString(flag string) ActorFlag {
 		return FlagStealth
 	case "searching":
 		return FlagSearching
+	case "undead":
+		return FlagUndead
+	case "no_hold":
+		return FlagNoHold
+	case "cold_immune":
+		return FlagColdImmune
+	case "fire_vulnerable":
+		return FlagFireVulnerable
+	case "shuns_light":
+		return FlagShunsLight
+	case "magic_to_hurt":
+		return FlagMagicToHurt
 	}
 	panic("Invalid actor flag: " + flag)
 

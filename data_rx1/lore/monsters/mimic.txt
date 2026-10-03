@@ -1,1 +1,16 @@
-[#FFFFFF]
+[#FFFFFF]The treasure you were about to pick up just grew teeth.[-]
+
+[#f5e342]Origin[-]
+
+The mimic is one of Dungeons & Dragons' own inventions, the reason no adventurer ever trusts a treasure chest:
+
+    "Mimics pose as stonework, door, chests, or any other substance or item they can imitate. When a creature touches the mimic, the latter lashes out with a pseudopod, delivering 3-12 points of damage per hit. Meanwhile, the mimic excretes a glue which holds fast whatever member the creature touched the mimic with."
+    - Monster Manual (1977), p. 70
+
+The same entry gives it armor class 7 and 3-12 damage. Rogue kept both, rolling the damage as 3d4.
+
+[#f5e342]Rogue Trivia[-]
+
+The mimic held M in Rogue 3.6. It lies in wait disguised as gold, a potion, a scroll, a weapon, armor, a ring, a wand or even a staircase, and deep in the dungeon it may pose as the Amulet of Yendor itself. When the hero attacks it: "Wait! That's a mimic!" Rogue 5.x gave M to the medusa and replaced the mimic with the xeroc, which does the same trick under a new name.
+
+The rx1 mimic also has the Monster Manual's glue: whoever it strikes is stuck fast and must break free before moving on.

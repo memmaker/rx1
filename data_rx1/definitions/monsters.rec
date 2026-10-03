@@ -52,7 +52,7 @@ dlvl: 1
 color: Orange
 gold: 0
 carry_chance: 0
-flags: mean | chase
+flags: flying | mean | chase
 hit_effect: hit_and_run | 100
 
 name: jackal
@@ -79,7 +79,7 @@ dlvl: 6
 color: Red
 gold: 0
 carry_chance: 0
-hit_effect: freeze | 100
+hit_effect: transfix | 100
 
 name: ice monster
 level: 1
@@ -97,7 +97,7 @@ hit_effect: freeze | 100
 
 name: slime
 level: 2
-exp: 10
+exp: 2
 armor: 8
 damage: 1d3
 internal_name: slime
@@ -108,7 +108,7 @@ gold: 3d6
 carry_chance: 20
 gold_chance: 20
 struck_effect: split | 50
-struck_effect: rust_weapon | 30
+struck_effect: rust_weapon | 10
 
 name: snake
 level: 1
@@ -122,7 +122,7 @@ color: LightGreen
 gold: 0
 carry_chance: 0
 flags: mean
-hit_effect: poison | 50
+hit_effect: poison | 15
 
 name: gnome
 level: 1
@@ -195,6 +195,7 @@ carry_chance: 0
 gold_chance: 65
 flags: mean
 hit_effect: rust_armor | 100
+struck_effect: rust_weapon | 100
 
 name: zombie
 level: 2
@@ -208,7 +209,7 @@ color: Orange
 gold: 1d100
 carry_chance: 0
 gold_chance: 85
-flags: mean | chase | slow
+flags: mean | chase | slow | undead
 hit_effect: hunger | 20
 
 name: giant ant
@@ -294,10 +295,10 @@ internal_name: black_unicorn
 letter: U
 dlvl: 12
 color: Gray
-gold: 1d1000
+gold: 1d200
 carry_chance: 0
 gold_chance: 90
-flags: mean
+flags: mean | no_hold
 zap_effect: charge_attack
 use_effect: phase_door
 
@@ -343,6 +344,7 @@ gold: 4d4
 carry_chance: 30
 gold_chance: 25
 flags: disguised
+hit_effect: glue | 100
 
 name: yeti
 level: 4
@@ -356,9 +358,9 @@ color: White
 gold: 4d20
 carry_chance: 30
 gold_chance: 35
-flags: haste
-hit_effect: hold | 30
-hit_effect: slow | 50
+flags: haste | cold_immune | fire_vulnerable
+hit_effect: hold | 15
+hit_effect: slow | 20
 
 name: troll
 level: 6
@@ -385,7 +387,7 @@ color: Magenta
 gold: 3d10
 carry_chance: 0
 gold_chance: 55
-hit_effect: hold | 100
+hit_effect: flytrap_hold | 100
 flags: mean | stationary
 
 name: wraith
@@ -399,7 +401,8 @@ dlvl: 18
 color: Red
 gold: 0
 carry_chance: 0
-hit_effect: drain_level | 15
+hit_effect: drain_max_hp | 20
+flags: undead | shuns_light | magic_to_hurt
 use_effect: darkness
 
 name: venus flytrap

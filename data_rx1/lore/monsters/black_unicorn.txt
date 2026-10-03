@@ -1,8 +1,17 @@
+[#FFFFFF]Unicorns are creatures of light and purity. This one is neither. Its horn is just as sharp, though.[-]
 
+[#f5e342]Origin[-]
+
+The unicorn is one of the oldest legendary beasts, a wild horse with a single horn that only a pure maiden could tame. Dungeons & Dragons kept it as a fierce but good creature of the woodlands:
+
+    "When a unicorn charges into combat it does not strike with its two front hooves, but its horn strikes for double damage... Once per day unicorns are able to use a teleportation spell of limited distance - a dimension door."
+    - Monster Manual (1977), p. 98
+
+Rogue's black unicorn is the dark twin of this creature, mean and hostile, with no Monster Manual entry of its own.
 
 [#f5e342]Rogue Trivia[-]
 
-Before Rogue 5.4 this monster was known as xorn.
+The black unicorn is new in Rogue 5.4, where it took U from the umber hulk. Its numbers, though, came from the xorn of 5.2.1, the monster 5.4 dropped from X.
 
 /* Rogue 3.6 - 1981 */
 { "xorn",	       0,	ISMEAN,	{ _x, 120, 7, -2, ___, "1d3/1d3/1d3/4d6" } },
@@ -43,9 +52,11 @@ Ultra Rogue 1.0.8 features a unicorn that has the blink ability.
         {12,    400,    6,  2,  HPT("4d8+4"), "1d6/1d6/1d12"}
 
 
-Mike's Adventure Game als has an unicorn, this one gets a flavour string for its attack.
+Mike's Adventure Game also has an unicorn, this one gets a flavour string for its attack.
 When you get hit, you are officially "hoofed".
 
 /* Mike's Adventure Game */
 "unicorn",	'u',	3, 45,	2, 6, "1d8",		9, "hoofed",
 	(NOGRAB | BLUE),
+
+Like the Monster Manual's unicorn, the rx1 black unicorn charges with its horn, can blink a short distance away, and cannot be held by magic.
