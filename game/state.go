@@ -972,6 +972,10 @@ func (g *GameState) newEnemy(def MonsterDef, carry bool) *Actor {
 	}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
+	if def.InternalName == "violet_fungi" {
+		actor.GetFlags().Increase(foundation.FlagBranches, 1+random.Intn(4))
+		actor.GetFlags().Increase(foundation.FlagReach, 1+random.Intn(2))
+	}
 	if carry && random.Intn(100) < def.CarryChance {
 		actor.GetInventory().Add(g.rogueNewThing(random, max(1, g.currentDungeonLevel)))
 	}

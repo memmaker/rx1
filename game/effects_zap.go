@@ -29,6 +29,7 @@ func GetAllZapEffects() map[string]func(g *GameState, zapper *Actor, aimPos geom
 		"magic_arrow":          magicArrow,
 		"force_descend_target": forceDescendTarget,
 		"hold_target":          holdTarget,
+		"charm_target":         charmTarget,
 		"trap_arrow":           trapArrow,
 		"trap_dart":            trapDart,
 		"trap_bear":            trapBear,
@@ -839,4 +840,27 @@ func fireDamage(victim *Actor, damage int) int {
 	}
 	finalBlow(victim, damage)
 	return damage
+}
+
+// charmTarget makes a monster fight for the hero for a while. D&D: undead and unicorns cannot be charmed.
+func charmTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []foundation.Animation {
+	origin := originFromZapperOrWall(g, zapper, targetPos)
+	pathOfFlight := g.getLineOfSight(origin, targetPos)
+	targetPos = pathOfFlight[len(pathOfFlight)-1]
+	projAnim, _ := g.ui.GetAnimProjectile('*', "LightMagenta", origin, targetPos, nil)
+	if !g.gridMap.IsActorAt(targetPos) {
+		return []foundation.Animation{projAnim}
+	}
+	target := g.gridMap.ActorAt(targetPos)
+	if target == g.Player || target.HasFlag(foundation.FlagUndead) || target.HasFlag(foundation.FlagNoHold) || rpg.Save(target.GetLevel(), rpg.VsMagic) {
+		g.msg(foundation.HiLite("%s resists", target.Name()))
+		return []foundation.Animation{projAnim}
+	}
+	target.GetFlags().Increase(foundation.FlagCharmed, rand.Intn(11)+10)
+	target.WakeUp()
+	g.msg(foundation.HiLite("%s looks at you fondly", target.Name()))
+	if zapper == g.Player {
+		g.identification.EffectWitnessed()
+	}
+	return []foundation.Animation{projAnim}
 }
