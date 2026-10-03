@@ -69,6 +69,8 @@ func (g *GameState) decrementStatusEffects() {
 	}
 }
 
+const fatigueInterval = 35 // turns of rest per fatigue point
+
 func (g *GameState) removeDeadAndApplyRegeneration() {
 	// ponytail: Rogue's doctor() heals faster per level; approximated by a shorter interval.
 	healInterval := max(3, 20-2*g.Player.GetLevel())
@@ -89,9 +91,11 @@ func (g *GameState) removeDeadAndApplyRegeneration() {
 	if !g.Player.IsHungry() && g.TurnsTaken%healInterval == 0 && len(g.playerVisibleEnemiesByDistance()) == 0 {
 		if g.Player.NeedsHealing() {
 			g.Player.Heal(1)
-		} else {
-			g.Player.AddFatiguePoints(1)
 		}
+	}
+	// ponytail: a flat interval; resting is the only way to get tactics back, at any level
+	if !g.Player.IsHungry() && !g.Player.NeedsHealing() && g.TurnsTaken%fatigueInterval == 0 && len(g.playerVisibleEnemiesByDistance()) == 0 {
+		g.Player.AddFatiguePoints(1)
 	}
 
 	g.burnPlayerLight()

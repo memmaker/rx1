@@ -440,10 +440,24 @@ func (a *Actor) AddExperience(amount int) (newLevel int, leveledUp bool) {
 		a.stats.MaxHP += add
 		a.stats.HP += add
 		a.stats.Lvl = lvl
+		a.setMaxFatigueForLevel(true)
 		leveledUp = true
 	}
 	a.changed()
 	return lvl, leveledUp
+}
+
+// setMaxFatigueForLevel: 3 fatigue points, one more every two levels; a level gained fills the new points.
+func (a *Actor) setMaxFatigueForLevel(fill bool) {
+	if a.stats.MaxFP == 0 {
+		return
+	}
+	old := a.stats.MaxFP
+	a.stats.MaxFP = 3 + (a.stats.Lvl-1)/2
+	if fill {
+		a.stats.FP += max(0, a.stats.MaxFP-old)
+	}
+	a.stats.FP = min(a.stats.FP, a.stats.MaxFP)
 }
 
 // RaiseLevel: just enough experience for the next level.
@@ -463,6 +477,7 @@ func (a *Actor) DrainLevel() {
 	} else {
 		a.stats.Exp = 0
 	}
+	a.setMaxFatigueForLevel(false)
 	lost := rpg.NewDice(1, 10, 0).Roll()
 	a.stats.MaxHP = max(1, a.stats.MaxHP-lost)
 	a.stats.HP = min(a.stats.HP, a.stats.MaxHP)

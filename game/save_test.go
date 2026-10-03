@@ -197,3 +197,24 @@ func TestWallSlideIntoCorridor(t *testing.T) {
 		t.Fatalf("hero at %v, want %v", g.Player.Position(), want)
 	}
 }
+
+func TestTacticsBalance(t *testing.T) {
+	g := newSaveTestGame(t)
+	p := g.Player
+	p.stats.FP = 1
+	g.startSprint(p)
+	if p.GetFatiguePoints() != 1 || p.HasFlag(foundation.FlagHaste) {
+		t.Fatal("a sprint must need 2 FP")
+	}
+	p.stats.FP = 3
+	g.startSprint(p)
+	if p.GetFatiguePoints() != 1 || p.GetFlags().Get(foundation.FlagHaste) > sprintTurns+1 {
+		t.Fatalf("sprint: fp %d haste %d", p.GetFatiguePoints(), p.GetFlags().Get(foundation.FlagHaste))
+	}
+	p.stats.Lvl = 1
+	p.stats.Exp = 0
+	p.AddExperience(1000)
+	if want := 3 + (p.stats.Lvl-1)/2; p.GetFatiguePointsMax() != want || p.GetFatiguePointsMax() <= 3 {
+		t.Fatalf("level %d max FP %d, want %d", p.stats.Lvl, p.GetFatiguePointsMax(), want)
+	}
+}
