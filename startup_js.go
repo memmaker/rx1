@@ -44,6 +44,16 @@ func prepareUI(u *console.UI) {
 	}
 	s.SetSize(80, 26)
 	u.SetScreen(s)
+	// tcell's web screen knows clicks and moves only; build_web.sh adds a listener that brings the mouse wheel here
+	js.Global().Set("rxWheel", js.FuncOf(func(_ js.Value, a []js.Value) any {
+		wheel := tcell.WheelDown
+		if a[2].Float() < 0 {
+			wheel = tcell.WheelUp
+		}
+		ev := tcell.NewEventMouse(a[0].Int(), a[1].Int(), wheel, tcell.ModNone)
+		go func() { s.EventQ() <- ev }() // never block the browser's event handler
+		return nil
+	}))
 	// RVIP multi-window page: side windows are HTML panes, the terminal is only the map and follows its window's size
 	if pane := js.Global().Get("rvipPane"); pane.Type() == js.TypeFunction {
 		u.SetPanes(webPanes{pane})

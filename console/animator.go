@@ -2,6 +2,7 @@ package console
 
 import (
 	"cmp"
+	"math"
 	"rx1/foundation"
 	"rx1/geometry"
 	"slices"
@@ -27,6 +28,37 @@ type Animator struct {
 	moves          map[foundation.ActorForUI]*animationGroup // the group of each actor's step move in pending
 	// lookup is what the map shows at a tile, for the lights of animations to shine on; nil: no lights
 	lookup func(geometry.Point) (foundation.TextIcon, bool)
+	// subTicks is how many ticks a frame of a normal animation lasts; faster ones (speeder) advance more often
+	subTicks int
+	elapsed  map[TextAnimation]int // ticks since each animation's last frame
+}
+
+// speeder is an animation that plays faster than the others: speed frames in the time of one.
+type speeder interface {
+	GetSpeed() float64
+}
+
+// SetSubTicks makes a frame last n ticks, so an animation can be up to n times faster than the others.
+func (a *Animator) SetSubTicks(n int) { a.subTicks = n }
+
+// due counts a tick for the animation and says if it moves on to its next frame now.
+func (a *Animator) due(animation TextAnimation) bool {
+	period := max(a.subTicks, 1)
+	if s, ok := animation.(speeder); ok && s.GetSpeed() > 0 {
+		period = max(int(math.Round(float64(period)/s.GetSpeed())), 1)
+	}
+	if period == 1 {
+		return true
+	}
+	if a.elapsed == nil {
+		a.elapsed = map[TextAnimation]int{}
+	}
+	a.elapsed[animation]++
+	if a.elapsed[animation] < period {
+		return false
+	}
+	delete(a.elapsed, animation)
+	return true
 }
 
 // animationGroup is one action: its animations, and where it has put the actors once they have played.
@@ -153,9 +185,12 @@ func (a *Animator) retireFinished() bool {
 	return removed
 }
 
-func (a *Animator) Tick() {
+// Tick plays one tick. It reports whether what is shown changed: a frame moved on or animations ended or began.
+func (a *Animator) Tick() bool {
+	changed := false
 	// chains of animations without frames (switched off effects) resolve within one tick
 	for a.retireFinished() || (len(a.running) == 0 && len(a.queue) > 0) {
+		changed = true
 		if len(a.running) > 0 || len(a.queue) == 0 {
 			continue
 		}
@@ -187,7 +222,10 @@ func (a *Animator) Tick() {
 		if emitter, ok := animation.(lightEmitter); ok && a.lookup != nil {
 			lights = append(lights, emitter.GetLights()...)
 		}
-		animation.NextFrame()
+		if a.due(animation) {
+			animation.NextFrame()
+			changed = true
+		}
 	}
 	shown := func(p geometry.Point) (foundation.TextIcon, bool) {
 		if icon, ok := a.animationState[p]; ok {
@@ -198,6 +236,7 @@ func (a *Animator) Tick() {
 	for _, l := range lights {
 		shineLight(l, shown, func(p geometry.Point, icon foundation.TextIcon) { a.animationState[p] = icon })
 	}
+	return changed
 }
 
 // CancelAll ends everything playing, queued and pending. The actors end up where their actions have put them.
@@ -210,7 +249,7 @@ func (a *Animator) CancelAll() {
 			group.applyEvents()
 		}
 	}
-	a.running, a.queue, a.pending, a.moves = nil, nil, nil, nil
+	a.running, a.queue, a.pending, a.moves, a.elapsed = nil, nil, nil, nil, nil
 	a.step, a.current = 0, nil
 	clear(a.animationState)
 }

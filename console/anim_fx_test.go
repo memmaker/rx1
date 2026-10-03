@@ -81,3 +81,32 @@ func TestEffectsKeepTheActorInSight(t *testing.T) {
 		}
 	}
 }
+
+// A faster projectile shows on every cell of its path, it just stays on each for fewer ticks.
+func TestFastProjectileVisitsEveryCell(t *testing.T) {
+	path := make([]geometry.Point, 10)
+	for i := range path {
+		path[i] = geometry.Point{X: i}
+	}
+	fly := func(speed float64) (ticks int, seen map[geometry.Point]bool) {
+		a := NewAnimator()
+		a.SetSubTicks(6)
+		p := NewProjectileAnimation(path, foundation.TextIcon{Rune: '/'}, nil, nil)
+		p.SetSpeed(speed)
+		a.AddAnimation(p)
+		a.Flush()
+		seen = map[geometry.Point]bool{}
+		for a.Tick(); a.IsBusy(); a.Tick() {
+			for pos := range a.animationState {
+				seen[pos] = true
+			}
+			ticks++
+		}
+		return ticks, seen
+	}
+	normal, _ := fly(0)
+	fast, seen := fly(1.5)
+	if fast*3 != normal*2 || len(seen) != len(path) {
+		t.Fatalf("ticks %d at 1.5 vs %d normal, saw %d of %d cells", fast, normal, len(seen), len(path))
+	}
+}

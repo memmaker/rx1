@@ -55,7 +55,13 @@ type ProjectileAnimation struct {
 	lookup           func(loc geometry.Point) (foundation.TextIcon, bool)
 	trail            []foundation.TextIcon
 	light            *color.RGBA // the projectile lights its way, nil: it does not
+	speed            float64     // cells it flies in the time other animations play a frame; 0: one
 }
+
+// SetSpeed makes the projectile fly that many cells in the time of one frame of the others, still one cell at a time.
+func (p *ProjectileAnimation) SetSpeed(cellsPerFrame float64) { p.speed = cellsPerFrame }
+
+func (p *ProjectileAnimation) GetSpeed() float64 { return p.speed }
 
 // SetLight makes the projectile cast light of that colour around its head.
 func (p *ProjectileAnimation) SetLight(c color.RGBA) { p.light = &c }
