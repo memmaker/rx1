@@ -39,6 +39,11 @@ func (g *GameState) aiAct(enemy *Actor) {
 		}
 	}
 
+	if enemy.GetInternalName() == "shrieker" { // mindless: it never sleeps, it only hears and sees
+		g.aiShrieker(enemy)
+		return
+	}
+
 	if enemy.IsSleeping() {
 		// Rogue's wake_monster: only mean monsters wake on seeing the hero
 		if sameRoom && enemy.HasFlag(foundation.FlagMean) && g.noticesPlayerAsleep(enemy) {
@@ -58,6 +63,14 @@ func (g *GameState) aiAct(enemy *Actor) {
 	consequencesOfConfusion := g.doesActConfused(enemy)
 	if len(consequencesOfConfusion) > 0 {
 		g.ui.AddAnimations(consequencesOfConfusion)
+		return
+	}
+
+	if enemy.GetInternalName() == "violet_fungi" {
+		g.aiVioletFungus(enemy)
+		return
+	}
+	if enemy.GetInternalName() == "purple_worm" && g.aiHuntShrieker(enemy) {
 		return
 	}
 
@@ -241,15 +254,20 @@ func (g *GameState) aiFightAggroTarget(enemy *Actor) bool {
 		g.ui.AddAnimations(g.actorMeleeAttack(enemy, 0, target))
 		return true
 	}
-	// ponytail: greedy step, no pathfinding; switch to GetJPSPath if foes get stuck on walls
-	best, bestDist := enemy.Position(), geometry.DistanceChebyshev(enemy.Position(), target.Position())
-	for _, p := range g.gridMap.GetFilteredNeighborsForMovement(enemy.Position(), func(p geometry.Point) bool { return g.gridMap.IsWalkableFor(p, enemy) && !g.gridMap.IsActorAt(p) }) {
-		if d := geometry.DistanceChebyshev(p, target.Position()); d < bestDist {
+	g.stepToward(enemy, target.Position())
+	return true
+}
+
+// stepToward moves one tile closer to target.
+// ponytail: greedy step, no pathfinding; switch to GetJPSPath if monsters get stuck on walls
+func (g *GameState) stepToward(actor *Actor, target geometry.Point) {
+	best, bestDist := actor.Position(), geometry.DistanceChebyshev(actor.Position(), target)
+	for _, p := range g.gridMap.GetFilteredNeighborsForMovement(actor.Position(), func(p geometry.Point) bool { return g.gridMap.IsWalkableFor(p, actor) && !g.gridMap.IsActorAt(p) }) {
+		if d := geometry.DistanceChebyshev(p, target); d < bestDist {
 			best, bestDist = p, d
 		}
 	}
-	if best != enemy.Position() {
-		g.ui.AddAnimations(g.actorMoveAnimated(enemy, best))
+	if best != actor.Position() {
+		g.ui.AddAnimations(g.actorMoveAnimated(actor, best))
 	}
-	return true
 }

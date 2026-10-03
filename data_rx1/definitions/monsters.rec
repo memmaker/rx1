@@ -379,7 +379,7 @@ name: violet fungi
 level: 8
 exp: 85
 armor: 3
-damage: 0d0
+damage: 1d4
 internal_name: violet_fungi
 letter: f
 dlvl: 19
@@ -387,7 +387,7 @@ color: Magenta
 gold: 3d10
 carry_chance: 0
 gold_chance: 55
-hit_effect: hold | 100
+hit_effect: rot | 100
 flags: mean | stationary
 
 name: wraith
@@ -609,3 +609,15 @@ gold_chance: 95
 flags: mean | flying | regenerating | greedy
 zap_effect: fire_breath
 
+name: shrieker
+level: 2
+exp: 10
+armor: 7
+damage: 0d0
+internal_name: shrieker
+letter: F
+dlvl: 4
+color: Magenta
+gold: 0
+carry_chance: 0
+flags: stationary
