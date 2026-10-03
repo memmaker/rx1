@@ -1,1 +1,19 @@
-[#FFFFFF]
+[#f5e342]Origin[-]
+
+The xorn is a Dungeons & Dragons creation from the elemental plane of earth, a creature that eats rare minerals and passes through solid stone.
+
+    The xorn are a race of creatures found on the elemental plane of earth, but on rare occasions they will abide on the material plane for a time. When so doing, they seek deep subterranean places. Xorn feed on certain rare minerals which are the subject of their quest on the material plane.
+    - Monster Manual (1977), p. 102
+
+    The xorn is likely to demand such metals as copper, silver, etc. to snack upon, and if a passing creature refuses, the xorn is 90% likely to try to take the metal by force, for it can smell such at 20' distance.
+    - Monster Manual (1977), p. 102
+
+    These creatures are not harmed by fire or cold-based spells. Electrical attacks, such as lightning bolts, do either one-half or no damage, depending on the saving throw.
+    - Monster Manual (1977), p. 102
+
+    If a combat is going against a xorn, it will stop fighting, adjust its molecular structure, and pass through the nearest stone (usually the floor) to escape.
+    - Monster Manual (1977), p. 102
+
+[#f5e342]Rogue Trivia[-]
+
+Rogue 3.6 kept the book's three claws and big bite, "1d3/1d3/1d3/4d6", and its armor class of -2, but none of its powers. Rogue 5.x removed it along with the other monsters Dungeons & Dragons invented, and the PC version of Rogue brought those exact numbers back under a new name, the ur-vile. rx1 gives the xorn its book powers: it moves through rock, every blow it lands takes a bite out of the hero's gold, fire and cold do not harm it, lightning does half damage or none, and once the fight turns against it, it sinks into the stone and flees.

@@ -100,7 +100,7 @@ var savedFlags = map[string]foundation.ActorFlag{
 	"cold_immune": foundation.FlagColdImmune, "fire_vulnerable": foundation.FlagFireVulnerable,
 	"shuns_light": foundation.FlagShunsLight, "magic_to_hurt": foundation.FlagMagicToHurt,
 	"charmed":  foundation.FlagCharmed,
-	"branches": foundation.FlagBranches, "reach": foundation.FlagReach, "rotting": foundation.FlagRotting, "shriek": foundation.FlagShriek, "grow": foundation.FlagGrow,
+	"branches": foundation.FlagBranches, "reach": foundation.FlagReach, "rotting": foundation.FlagRotting, "shriek": foundation.FlagShriek, "grow": foundation.FlagGrow, "fire_immune": foundation.FlagFireImmune, "shock_resistant": foundation.FlagShockResistant,
 }
 
 func flagsToSave(f *foundation.MapFlags) map[string]int {

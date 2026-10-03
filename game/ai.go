@@ -84,6 +84,10 @@ func (g *GameState) aiAct(enemy *Actor) {
 		return
 	}
 
+	if enemy.GetInternalName() == "xorn" && (enemy.HasFlag(foundation.FlagScared) || enemy.GetHitPoints()*3 <= enemy.GetHitPointsMax()) && g.fleeIntoStone(enemy) {
+		return
+	}
+
 	if enemy.GetInternalName() == "quasit" && !enemy.HasFlag(foundation.FlagInvisible) && enemy.GetHitPoints()*3 <= enemy.GetHitPointsMax() {
 		makeInvisible(g, enemy) // D&D quasit: invisible at will, and badly hurt it wants to get away
 		enemy.GetFlags().Set(foundation.FlagScared)

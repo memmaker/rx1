@@ -87,8 +87,8 @@ func TestWriteFileAtomicKeepsLastGood(t *testing.T) {
 }
 
 func TestEveryFlagHasASaveName(t *testing.T) {
-	if len(savedFlags) != int(foundation.FlagGrow) {
-		t.Fatalf("%d names for %d flags: add the new flag to savedFlags", len(savedFlags), foundation.FlagGrow)
+	if len(savedFlags) != int(foundation.FlagShockResistant) {
+		t.Fatalf("%d names for %d flags: add the new flag to savedFlags", len(savedFlags), foundation.FlagShockResistant)
 	}
 }
 

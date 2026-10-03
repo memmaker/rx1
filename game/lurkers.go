@@ -67,3 +67,27 @@ func (g *GameState) emergeFromWall(a *Actor) {
 		g.ui.AddAnimations([]foundation.Animation{uncloak})
 	}
 }
+
+// fleeIntoStone: D&D xorn, when the fight goes against it, sinks into the rock and moves away through it.
+func (g *GameState) fleeIntoStone(a *Actor) bool {
+	best, bestDist := a.Position(), geometry.DistanceChebyshev(a.Position(), g.Player.Position())
+	if g.gridMap.IsTileWalkable(best) {
+		bestDist = -1 // still on the floor: any stone will do
+	}
+	for _, n := range g.gridMap.NeighborsAll(a.Position(), func(p geometry.Point) bool {
+		return g.gridMap.Contains(p) && !g.gridMap.IsTileWalkable(p) && !g.gridMap.IsActorAt(p)
+	}) {
+		if d := geometry.DistanceChebyshev(n, g.Player.Position()); d > bestDist {
+			best, bestDist = n, d
+		}
+	}
+	if best == a.Position() {
+		return false
+	}
+	if !a.HasFlag(foundation.FlagScared) {
+		a.GetFlags().Set(foundation.FlagScared)
+		g.msg(foundation.HiLite("%s sinks into the stone", a.Name()))
+	}
+	g.gridMap.ForceMoveActor(a, best) // wall crawlers pass into rock like this (phaseTowards)
+	return true
+}

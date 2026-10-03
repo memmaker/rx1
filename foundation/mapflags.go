@@ -218,6 +218,8 @@ const (
 	FlagRotting        // violet fungus: 1 damage per turn while set
 	FlagShriek         // shrieker: shrieking above shriekCooldown, quiet below it
 	FlagGrow           // purple worm: tail segments still to grow
+	FlagFireImmune     // D&D xorn: fire does no harm
+	FlagShockResistant // D&D xorn: lightning does half damage, none on a save
 )
 
 func AllFlagsExceptGoldOrdered() []ActorFlag {
@@ -347,6 +349,10 @@ func ActorFlagFromString(flag string) ActorFlag {
 		return FlagShunsLight
 	case "magic_to_hurt":
 		return FlagMagicToHurt
+	case "fire_immune":
+		return FlagFireImmune
+	case "shock_resistant":
+		return FlagShockResistant
 	}
 	panic("Invalid actor flag: " + flag)
 
