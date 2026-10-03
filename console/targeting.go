@@ -37,6 +37,7 @@ func (u *UI) LookTargeting() {
 			u.ShowMonsterInfo(actorAt)
 		}
 	})
+	u.looking = true
 }
 func (u *UI) handleDirectionalTargetingInput(origin geometry.Point, allowAdvancedTargeting bool, onSelected func(targetPos geometry.Point)) func(ev *tcell.EventKey) *tcell.EventKey {
 	return func(ev *tcell.EventKey) *tcell.EventKey {
@@ -89,6 +90,9 @@ func (u *UI) handleAdvancedTargetingInput(listOfVisibleEnemies []foundation.Acto
 		}
 
 		command := u.getAdvancedTargetingCommandForKey(toUIKey(ev))
+		if command == "" && u.looking && u.getCommandForKey(toUIKey(ev)) == "look" { // look again: at this tile
+			command = "target_confirm"
+		}
 		// Damn, this is a second layer of keymaps..or is it? probably is
 		if command == "target_cancel" {
 			u.cancelTargeting()
@@ -120,6 +124,7 @@ func (u *UI) cancelTargeting() {
 	u.mapWindow.SetInputCapture(u.handleMainInput)
 	u.application.SetMouseCapture(u.handleMainMouse)
 	u.state = StateNormal
+	u.looking = false
 	clear(u.targetingTiles)
 	u.Print(foundation.NoMsg())
 }

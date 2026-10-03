@@ -6,12 +6,19 @@ The leprechaun (Irish leipreachán or luchorpán) is a diminutive supernatural b
 
 The association with gold is often carried over to portrayals in media such as Rogue, where they steal gold or NetHack, where they always generate with gold.
 
+The Monster Manual's leprechaun is a thief by nature:
+
+    "Being full of mischief they will often (75%) snatch valuable objects from persons, turn invisible and dash away... If caught or discovered in its lair the leprechaun will attempt to mislead its captor into believing he is giving over his treasure while he actually is duping the captor."
+    - Monster Manual (1977), p. 60
+
+The Monster Manual adds that leprechauns have a great fondness for wine, and that "Rumor has it leprechauns are a species of halfling with a strong strain of pixie."
+
 
 [#f5e342]Rogue Trivia[-]
 
 Present from the very start (Rogue 3.6) and in every version since, the Leprechaun didn't change by much. It will steal your gold and then gets removed from the level entirely, essentially removing your stash of gold from the game.
 
-Note that this monster doesn't ever attack normally, it will go right for your gold.
+The leprechaun has to land a blow before it can steal, but its attack does only a single point of damage. Its real weapon is the theft.
 
 We can infer from the code, that the Leprechaun is not a trivial cutpurse, but uses magic to rob the player of gold. The player is allowed a save vs. magic to resist the effect.
 
@@ -38,6 +45,10 @@ when 'L':
 }
 
 The spelling mistake in the comment ("Leperachaun") was first fixed in the EPYX DOS release of Rogue v1.48.
+
+In Rogue 5.x a slain leprechaun drops a pile of gold, which can be bigger than what it stole.
+
+The description at the top comes from the Macintosh version of Rogue.
 
 [#f5e342]NetHack History[-]
 

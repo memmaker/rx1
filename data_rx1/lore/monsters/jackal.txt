@@ -1,1 +1,9 @@
-[#FFFFFF]
+[#FFFFFF]Small, cowardly scavengers that hunt in packs on the upper levels, nipping at anything weaker than themselves.[-]
+
+[#f5e342]Origin[-]
+
+The jackal is a small wild dog of Africa and Asia, and a scavenger as much as a hunter. In Asian folktales it trails the lion, flushes game for it and eats what the lion leaves behind, which is where its reputation for cowardice comes from. Other traditions are kinder: in Hausa tales the jackal is the wise judge of the animals, the "Learned One of the Forest".
+
+[#f5e342]Rogue Trivia[-]
+
+The jackal held J in Rogue 3.6, a level 1 monster with armor class 7 that bites for only 1d2. Rogue 5.x gave J to Lewis Carroll's jabberwock and dropped the jackal. It lived on in Hack and NetHack, where it became one of the most common early monsters. In rx1 jackals come in packs, which original Rogue never did.

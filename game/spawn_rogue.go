@@ -71,7 +71,7 @@ func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.
 		}
 		if !g.inSecretLevel && rnd(random, 100) < chance { // the mega dungeon keeps its own population
 			if pos, ok := findFloor(room, 0, canHoldMonster); ok {
-				monster := g.NewEnemyFromDef(g.rogueRandMonster(random, level, false))
+				monster := g.NewEnemyFromDef(g.rogueMonsterFor(random, level, false, newMap.IsTileLit(pos)))
 				monster.GetFlags().Set(foundation.FlagSleep)
 				newMap.AddActor(monster, pos)
 			}
@@ -149,12 +149,21 @@ func (g *GameState) rogueTreasureRoom(random *rand.Rand, level int, room *dungen
 	nm = min(nm, floorCount)
 	for ; nm > 0; nm-- {
 		if pos, ok := findFloor(room, rogueMaxTries, canHoldMonster); ok {
-			monster := g.NewEnemyFromDef(g.rogueRandMonster(random, level+1, false))
+			monster := g.NewEnemyFromDef(g.rogueMonsterFor(random, level+1, false, newMap.IsTileLit(pos)))
 			monster.GetFlags().Set(foundation.FlagSleep)
 			monster.GetFlags().Set(foundation.FlagMean) // "no sloughers in THIS room"
 			newMap.AddActor(monster, pos)
 		}
 	}
+}
+
+// rogueMonsterFor rerolls light-shunning monsters (the wraith) picked for a lit spot.
+func (g *GameState) rogueMonsterFor(random *rand.Rand, level int, wander, lit bool) MonsterDef {
+	def := g.rogueRandMonster(random, level, wander)
+	for tries := 0; lit && def.Flags != nil && def.Flags.IsSet(foundation.FlagShunsLight) && tries < 20; tries++ {
+		def = g.rogueRandMonster(random, level, wander)
+	}
+	return def
 }
 
 // rogueRandMonster: Rogue's difficulty curve (level ± rnd(10) - 5) applied to rx1's full roster.

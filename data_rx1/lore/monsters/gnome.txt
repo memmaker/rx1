@@ -1,1 +1,14 @@
-[#FFFFFF]
+[#FFFFFF]Small earth-dwellers who know the tunnels better than you. They seldom pick a fight they can't win.[-]
+
+[#f5e342]Origin[-]
+
+The gnome was named by the Swiss alchemist Paracelsus in the 16th century as the elemental spirit of earth, a small being that moves through solid rock as easily as a fish through water. Dungeons & Dragons made gnomes a clan-based mining folk, cousins of the dwarves:
+
+    "Because of their mining skills gnomes are excellent (50% to 80% likely) in detection of passages which slope upwards or downwards, unsafe walls, floors, and ceilings, and approximate depth and direction."
+    - Monster Manual (1977), p. 46
+
+The same entry gives the typical gnome leather armor studded with metal and a shield, "armor class 5". Rogue kept that number.
+
+[#f5e342]Rogue Trivia[-]
+
+The gnome held G in Rogue 3.6, a level 1 monster with armor class 5 and a 1d6 weapon. It is not hostile and leaves the hero alone unless disturbed, and it sometimes carries an item. Rogue 5.x gave G to the much stronger griffin. True to Paracelsus, the rx1 gnome tunnels through solid rock, and it often carries a little gold from its digging.

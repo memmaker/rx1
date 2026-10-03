@@ -361,13 +361,16 @@ func (g *GameState) actorMeleeAttackMult(attacker *Actor, hitMod int, defender *
 		hitMod += 100
 	}
 	damageDone, didHit := g.rollAttack(attacker, defender, hplus+hitMod, dplus, dmg)
-	damageDone *= mult
+	damageDone = mundaneHalf(defender, attacker.GetEquipment().GetMainWeapon(MeleeAttack), damageDone*mult)
 	g.attackMessage(attacker, defender, didHit)
 
 	animAttackerIndicator := g.ui.GetAnimBackgroundColor(attacker.Position(), "VeryDarkGray", 4, nil)
 	afterAttackAnimations = append(afterAttackAnimations, animAttackerIndicator)
 
 	if didHit {
+		if isAcidic(attacker) {
+			finalBlow(defender, damageDone)
+		}
 		animDamage := g.damageActor(attacker.Name(), defender, damageDone)
 		afterAttackAnimations = append(afterAttackAnimations, animDamage...)
 		afterAttackAnimations = append(afterAttackAnimations, g.applyHitEffects(attacker, defender)...)
@@ -389,6 +392,7 @@ func (g *GameState) actorRangedAttack(attacker *Actor, defender *Actor, missile 
 	}
 	hplus, dplus, dmg := attacker.GetThrowing(defender.GetInternalName(), missile)
 	damageDone, didHit := g.rollAttack(attacker, defender, hplus, dplus, dmg)
+	damageDone = mundaneHalf(defender, missile, damageDone)
 	g.attackMessage(attacker, defender, didHit)
 	if !didHit {
 		return nil
@@ -621,4 +625,12 @@ func (g *GameState) ChooseItemToTakeOff() {
 	equipment := g.Player.GetEquipment()
 	g.chooseItem(func(item *Item) bool { return item.IsEquippable() && equipment.IsEquipped(item) },
 		"You are not wearing anything.", "Take off what?", g.playerUnequip)
+}
+
+// mundaneHalf: D&D wraith, only a magic (enchanted) weapon does full damage; anything else does half.
+func mundaneHalf(defender *Actor, weapon *Item, damage int) int {
+	if !defender.HasFlag(foundation.FlagMagicToHurt) || (weapon != nil && weapon.IsMagic()) {
+		return damage
+	}
+	return damage / 2
 }

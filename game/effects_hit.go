@@ -12,10 +12,12 @@ func GetAllHitEffects() map[string]func(g *GameState, attacker, defender *Actor)
 	return map[string]func(g *GameState, attacker, defender *Actor) []foundation.Animation{
 		"rust_armor":      rustArmor,
 		"freeze":          freeze,
+		"transfix":        transfix,
 		"poison_strength": poisonStrength,
 		"drain_level":     drainLevel,
 		"drain_max_hp":    drainMaxHP,
 		"hold":            holdAndSqueeze,
+		"glue":            glue,
 		"flytrap_hold":    flytrapHold,
 		"steal_gold":      stealGold,
 		"steal_item":      stealItem,
@@ -74,11 +76,30 @@ func rustArmor(g *GameState, attacker, defender *Actor) []foundation.Animation {
 	return nil
 }
 
+// freeze: Rogue 5.4 ice monster. No save; the lost turns stack, and past BORE_LEVEL the hero dies of hypothermia.
 func freeze(g *GameState, attacker, defender *Actor) []foundation.Animation {
-	if !defender.HasFlag(foundation.FlagStun) {
-		g.msg(foundation.HiLite("%s is frozen by %s", defender.Name(), attacker.Name()))
+	if defender != g.Player {
+		return nil
 	}
-	defender.GetFlags().Set(foundation.FlagStun)
+	if g.noCommand == 0 {
+		g.msg(foundation.HiLite("You are frozen by %s", attacker.Name()))
+	}
+	g.noCommand += rand.Intn(2) + 2
+	if g.noCommand > 50 {
+		return g.damageActor("hypothermia", g.Player, g.Player.GetHitPoints())
+	}
+	return nil
+}
+
+// transfix: Rogue 3.6 floating eye gaze. No save; blind heroes are immune; the lost turns stack.
+func transfix(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	if defender != g.Player || defender.HasFlag(foundation.FlagBlind) {
+		return nil
+	}
+	if g.noCommand == 0 {
+		g.msg(foundation.HiLite("You are transfixed by the gaze of %s", attacker.Name()))
+	}
+	g.noCommand += rand.Intn(2) + 2
 	return nil
 }
 
@@ -120,6 +141,15 @@ func holdAndSqueeze(g *GameState, attacker, defender *Actor) []foundation.Animat
 		return nil
 	}
 	return g.damageActor(attacker.Name(), defender, defender.GetFlags().Get(foundation.FlagHeld)-1)
+}
+
+// glue: D&D mimic, its glue holds the victim fast without squeezing.
+func glue(g *GameState, attacker, defender *Actor) []foundation.Animation {
+	if !defender.HasFlag(foundation.FlagHeld) {
+		g.msg(foundation.HiLite("%s is stuck to %s", defender.Name(), attacker.Name()))
+	}
+	defender.GetFlags().Set(foundation.FlagHeld)
+	return nil
 }
 
 // flytrapHold is Rogue 5.4's venus flytrap: each hit holds and costs one more hp than the last
@@ -229,20 +259,36 @@ func split(g *GameState, attacker, defender *Actor) []foundation.Animation {
 	}
 	clone := g.NewEnemyFromDef(def)
 	clone.GetFlags().Set(foundation.FlagAwareOfPlayer)
+	// D&D ochre jelly: the halves do half damage. ponytail: 1d2 approximates 1d3/2 and only fits the slime.
+	attacker.stats.Dmg, clone.stats.Dmg = "1d2", "1d2"
 	clone.TakeDamage(clone.GetHitPoints() - half)
 	attacker.TakeDamage(half)
 	g.gridMap.AddActorWithDisplacement(clone, attacker.Position())
-	g.msg(foundation.HiLite("%s splits in two", attacker.Name()))
+	g.msg(foundation.Msg("The slime divides.  Ick!"))
 	return nil
 }
 
 // rustWeapon is a struck_effect: corrodes the weapon that hit the monster.
 func rustWeapon(g *GameState, attacker, defender *Actor) []foundation.Animation {
 	weapon := defender.GetEquipment().GetMainWeapon(MeleeAttack)
-	if weapon == nil || !weapon.GetWeapon().Corrode() {
+	if weapon == nil {
+		return nil
+	}
+	// D&D rust monster: magic resists, a 10% chance per plus to be spared.
+	if plus := weapon.GetWeapon().damagePlus; rand.Intn(10) < plus || !weapon.GetWeapon().Corrode() {
 		return nil
 	}
 	g.msg(foundation.HiLite("Your %s corrodes", weapon.Name()))
 	g.ui.UpdateInventory()
 	return nil
+}
+
+// splits reports whether struck blows can divide the actor (the slime).
+func splits(a *Actor) bool {
+	for _, e := range a.GetIntrinsicStruckEffects() {
+		if e.Name == "split" {
+			return true
+		}
+	}
+	return false
 }

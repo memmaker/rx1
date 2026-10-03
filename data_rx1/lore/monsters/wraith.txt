@@ -1,1 +1,18 @@
 [#FFFFFF]Although these creatures appear insubstantial, there is nothing insubstantial about their attacks, which can be quite draining.[-]
+
+[#f5e342]Origin[-]
+
+"Wraith" is an old Scots word for a ghost, especially the apparition of a person seen just before or after their death. Tolkien gave the word its lasting dread with the Ringwraiths of The Lord of the Rings, and Dungeons & Dragons made it an undead that feeds on life itself:
+
+    "Wraiths are undead, similar in nature to wights, but they exist more strongly on the negative material plane. They are found only in dark and gloomy places, for they have no power in full sunlight."
+    - Monster Manual (1977), p. 102
+
+The same entry gives it armor class 4 and a chilling touch for 1-6 damage that drains life energy. It can be struck only with silver weapons, which do half damage, or with magic ones. Rogue kept the numbers and the drain.
+
+[#f5e342]Rogue Trivia[-]
+
+The wraith holds W in every version of Rogue, and it is one of the most feared: each hit has a 15% chance to drain a whole experience level, and a hero with no experience left dies of it.
+
+The rx1 wraith drains the body instead: each hit has a 20% chance to take a point of maximum health for good. True to the Monster Manual it is never found in a lit place, it shrouds its surroundings in darkness, and only a magic weapon hurts it fully; anything else does half damage. Like all undead it cannot be held and does not feel the cold.
+
+The description at the top comes from the Macintosh version of Rogue.

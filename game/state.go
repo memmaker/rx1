@@ -15,6 +15,7 @@ import (
 	"rx1/rpg"
 	"rx1/util"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -177,7 +178,63 @@ func (g *GameState) OpenTacticsMenu() {
 
 func (g *GameState) GetCharacterSheet() []string {
 
-	return append(g.Player.GetDetailInfo(), "", fmt.Sprintf("Gold:  %d", g.Player.GetGold()), fmt.Sprintf("Depth: %d", g.currentDungeonLevel))
+	sheet := slices.DeleteFunc(g.Player.GetDetailInfo(), func(line string) bool { return strings.HasPrefix(line, "Dmg:") })
+	sheet = append(sheet, "", "> Combat (hit chance vs AC 7 / 5 / 2):")
+	for _, line := range g.playerAttacks("") {
+		sheet = append(sheet, fmt.Sprintf("%s  %s", line.text, chancesVs(line.wplus, 7, 5, 2)))
+	}
+	return append(sheet, "", fmt.Sprintf("Gold:  %d", g.Player.GetGold()), fmt.Sprintf("Depth: %d", g.currentDungeonLevel))
+}
+
+type attackLine struct {
+	text  string
+	wplus int // added to level and armor class in rpg.Swing
+}
+
+// playerAttacks are the player's melee and ranged attack against enemy (an internal name, "" for none):
+// damage with strength, and the swing bonus as rollAttack has it.
+func (g *GameState) playerAttacks(enemy string) []attackLine {
+	p := g.Player
+	str := p.GetStrength()
+	wplus := p.GetLevel() + rpg.StrPlus(str)
+	hplus, dplus, dmg := p.GetMelee(enemy)
+	lines := []attackLine{{fmt.Sprintf("Melee:  %s%+d", dmg, dplus+rpg.AddDam(str)), wplus + hplus}}
+	if equipment := p.GetEquipment(); equipment.HasMissileQuivered() {
+		missile := equipment.GetNextQuiveredMissile()
+		hplus, dplus, dmg = p.GetThrowing(enemy, missile)
+		lines = append(lines, attackLine{fmt.Sprintf("Ranged: %s%+d (%s)", dmg, dplus+rpg.AddDam(str), missile.Name()), wplus + hplus})
+	} else {
+		lines = append(lines, attackLine{text: "Ranged: no missile quivered"})
+	}
+	return lines
+}
+
+// chancesVs is the chance per swing of rpg.Swing against each armor class; wplus includes the attacker's level.
+func chancesVs(wplus int, acs ...int) string {
+	var parts []string
+	for _, ac := range acs {
+		need := 21 - ac - wplus // the d20 roll that hits
+		parts = append(parts, fmt.Sprintf("%d%%", min(max(21-need, 0), 20)*5))
+	}
+	return strings.Join(parts, " / ")
+}
+
+// GetCombatInfo is how the player and a monster fare against each other, as rollAttack has it (sleeping or held: +4 more).
+func (g *GameState) GetCombatInfo(actor foundation.ActorForUI) []string {
+	monster, ok := actor.(*Actor)
+	if !ok || monster == g.Player {
+		return nil
+	}
+	info := []string{"", "> You vs it:"}
+	for _, line := range g.playerAttacks(monster.GetInternalName()) {
+		if strings.HasPrefix(line.text, "Ranged: no") {
+			info = append(info, line.text)
+			continue
+		}
+		info = append(info, fmt.Sprintf("%s  hit %s", line.text, chancesVs(line.wplus, monster.GetArmorClass())))
+	}
+	hplus, dplus, dmg := monster.GetMelee(g.Player.GetInternalName())
+	return append(info, "", "> It vs you:", fmt.Sprintf("Melee:  %s%+d  hit %s", dmg, dplus, chancesVs(monster.GetLevel()+hplus, g.Player.GetArmorClass())))
 }
 
 func (g *GameState) GetPlayerPosition() geometry.Point {
@@ -1089,7 +1146,7 @@ func (g *GameState) wanderingMonster() bool {
 		if room == playerRoom || !g.gridMap.IsTileWalkable(p) || g.gridMap.IsActorAt(p) || g.gridMap.IsTileSpecial(p) {
 			continue
 		}
-		monster := g.newEnemy(g.rogueRandMonster(random, g.currentDungeonLevel, true), false)
+		monster := g.newEnemy(g.rogueMonsterFor(random, g.currentDungeonLevel, true, g.IsLit(p)), false)
 		monster.SetAware() // Rogue wanderers wake up and immediately chase the player
 		g.gridMap.AddActor(monster, p)
 		g.msg(foundation.HiLite("You sense a %s stirring in the dungeon", monster.Name()))

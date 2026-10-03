@@ -1,1 +1,16 @@
-[#FFFFFF]Imported from the highest Himalayan peks, long confinement in the dungeon has turned these normally placid creatures into fierce killers.[-]
+[#FFFFFF]Imported from the highest Himalayan peaks, long confinement in the dungeon has turned these normally placid creatures into fierce killers.[-]
+
+[#f5e342]Origin[-]
+
+The yeti is the "abominable snowman" of Himalayan legend, a huge ape-like creature said to roam the snowfields of Nepal and Tibet. Footprints photographed by the 1951 Everest expedition made it world famous. Dungeons & Dragons made it a predator of the ice:
+
+    "Inhabiting only regions of icy cold, yeti are seldom encountered by warm-blooded mankind. Those who do have the misfortune to stumble upon these monsters seldom live to tell the tale, for yeti are very fond of human flesh."
+    - Monster Manual (1977), p. 103
+
+The same entry gives it armor class 6 and two claws for 1-6 each. Rogue kept all three numbers.
+
+[#f5e342]Rogue Trivia[-]
+
+The yeti holds Y in every version of Rogue. The rx1 yeti is fast, and like the Monster Manual's it can grab and squeeze its prey; its icy touch can also slow the hero down. True to its home in the snow, cold cannot harm it, while fire burns it for half again as much.
+
+The description at the top comes from the Macintosh version of Rogue.
