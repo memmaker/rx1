@@ -1,1 +1,13 @@
-[#FFFFFF]
+[#f5e342]Origin[-]
+
+The quasit is a Dungeons & Dragons creation, a minor demon that serves an evil wizard as a familiar.
+
+    The quasit is a larva changed into a minor demon form to serve as familiar to a chaotic evil magic-user or cleric.
+    - Monster Manual (1977), p. 80
+
+    They regenerate at 1 hit point per melee round. They can become invisible at will, and once per day they can send out a blast of fear in a 3" radius. Only magical or cold iron weapons will harm these monsters.
+    - Monster Manual (1977), p. 80
+
+[#f5e342]Rogue Trivia[-]
+
+Rogue 3.6 kept the book's claws and bite, "1d2/1d2/1d4", and the armor class of 2, but none of its powers. Rogue 5.x removed it along with the other monsters Dungeons & Dragons invented. rx1 gives some of them back: the quasit regenerates, mundane weapons do it only half damage, it blinks away when hard pressed, and once badly hurt it turns invisible and flees.

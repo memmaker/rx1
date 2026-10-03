@@ -53,3 +53,17 @@ func TestRotDamagesOverTimeAndHealingStopsIt(t *testing.T) {
 		t.Fatal("healing should stop the rot")
 	}
 }
+
+func TestHurtQuasitVanishesAndFlees(t *testing.T) {
+	g := newMagicTestGame()
+	def, _ := g.monsterDefByInternalName("quasit")
+	q := g.NewEnemyFromDef(def)
+	g.gridMap.AddActor(q, g.Player.Position().Add(geometry.Point{X: 1}))
+	q.WakeUp()
+	q.stats.HP = 1
+	q.stats.MaxHP = 9
+	g.aiAct(q)
+	if !q.HasFlag(foundation.FlagInvisible) || !q.HasFlag(foundation.FlagScared) {
+		t.Fatal("a badly hurt quasit should vanish and flee")
+	}
+}

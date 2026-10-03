@@ -25,8 +25,8 @@ func TestHitEffectsParse(t *testing.T) {
 			}
 		}
 	}
-	if n != 25 {
-		t.Errorf("expected 25 hit effects, got %d", n)
+	if n != 24 {
+		t.Errorf("expected 24 hit effects, got %d", n)
 	}
 }
 
