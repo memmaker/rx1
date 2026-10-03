@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"image/color"
 	"math/rand"
+	"os"
+	"path"
 	"rx1/foundation"
 	"rx1/recfile"
 	"rx1/util"
@@ -44,10 +46,69 @@ type Theme struct {
 	iconsForMap          map[foundation.TileType]foundation.TextIcon
 	defaultStyle         tcell.Style
 	isMonoChrome         bool
-	phosphorTint         *color.RGBA         // optional %rec: phosphor, tints the whole screen
-	playerIcon           foundation.TextIcon // %rec: player, the rune and the foreground colour of the player
-	hiddenTrapBrightness float64             // optional %rec: hidden_trap, the foreground brightness of the floor over a trap not found yet
+	phosphorTint         *color.RGBA                    // optional %rec: phosphor, tints the whole screen
+	playerIcon           foundation.TextIcon            // %rec: player, the rune and the foreground colour of the player
+	hiddenTrapBrightness float64                        // optional %rec: hidden_trap, the foreground brightness of the floor over a trap not found yet
+	tiles                bool                           // optional %rec: tiles, File: a tiles mapping rec (loadTiles); the clients switch the map to the tile font
+	monsterIcons         map[string]foundation.TextIcon // tiles: internal_name -> tile rune, and its colour when Fg.A != 0
 }
+
+// loadTiles overlays a tiles mapping rec (data_rx1/tiles/*.rec, the remapper's typed format: %rec: map/items/objects/
+// player/monster, id/icon/color) on the theme's icons: an icon >= 0 is the tile font's glyph U+E000+icon, a color one
+// of the theme's colours; the rest of an entry stays as the theme has it.
+func (t *Theme) loadTiles(filename string) {
+	file, err := os.Open(filename)
+	if err != nil {
+		println("WARNING: tiles:", err.Error())
+		return
+	}
+	defer file.Close()
+	t.tiles, t.monsterIcons = true, map[string]foundation.TextIcon{}
+	for section, records := range recfile.ReadMulti(file) {
+		for _, rec := range records {
+			id, icon, col := "", -1, ""
+			for _, f := range rec {
+				switch f.Name {
+				case "id":
+					id = f.Value
+				case "icon":
+					icon = f.AsInt()
+				case "color":
+					col = f.Value
+				}
+			}
+			if icon < 0 && col == "" {
+				continue
+			}
+			apply := func(i foundation.TextIcon) foundation.TextIcon {
+				if icon >= 0 {
+					i.Rune = 0xE000 + rune(icon)
+				}
+				if col != "" {
+					i.Fg = t.colorDefs.GetByName(col)
+				}
+				return i
+			}
+			switch section {
+			case "map":
+				t.iconsForMap[foundation.TileType(id)] = apply(t.iconsForMap[foundation.TileType(id)])
+			case "items":
+				c := foundation.ItemCategoryFromString(id)
+				t.iconsForItems[c] = apply(t.iconsForItems[c])
+			case "objects":
+				c := foundation.ObjectCategoryFromString(id)
+				t.iconsForObjects[c] = apply(t.iconsForObjects[c])
+			case "player":
+				t.playerIcon = apply(t.playerIcon)
+			case "monster":
+				t.monsterIcons[id] = apply(foundation.TextIcon{})
+			}
+		}
+	}
+}
+
+// IsTiles says whether the map is drawn with the tile font (a theme with %rec: tiles).
+func (t Theme) IsTiles() bool { return t.tiles }
 
 func (t Theme) GetIconForItem(category foundation.ItemCategory) foundation.TextIcon {
 	return t.iconsForItems[category]
@@ -126,7 +187,7 @@ func NewThemeFromFile(filename string) Theme {
 		}
 	}
 
-	return Theme{
+	theme := Theme{
 		phosphorTint:         phosphorTint,
 		hiddenTrapBrightness: hiddenTrapBrightness,
 		playerIcon:           playerIcon,
@@ -141,6 +202,14 @@ func NewThemeFromFile(filename string) Theme {
 		uiBorder:            uiBorders,
 		defaultStyle:        defaultStyle,
 	}
+	if rec, ok := records["tiles"]; ok && len(rec) > 0 {
+		for _, field := range rec[0] {
+			if field.Name == "File" {
+				theme.loadTiles(path.Join(path.Dir(filename), field.Value))
+			}
+		}
+	}
+	return theme
 }
 
 func (t Theme) GetUIColor(foreground UIColor) color.RGBA {
