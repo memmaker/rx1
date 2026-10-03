@@ -433,6 +433,17 @@ func (g *GameState) init() {
 	g.stash = nil
 	g.levels = nil // a new game visits new levels
 
+	g.identification = NewIdentificationKnowledge() // before the starting gear: every item keeps a pointer to it
+
+	g.identification.MixScrolls(g.dataDefinitions.GetScrollInternalNames())
+	g.identification.MixPotions(g.dataDefinitions.GetPotionInternalNames())
+	g.identification.IdentifyItem("potion_life") // bought in town, never a mystery
+	g.identification.MixWands(g.dataDefinitions.GetWandInternalNames())
+	g.identification.MixRings(g.dataDefinitions.GetRingInternalNames())
+	g.identification.SetOnIdChanged(g.ui.UpdateInventory) // after the setup: the UI has no game yet
+
+	g.identification.SetAlwaysIDOnUse(g.dataDefinitions.AlwaysIDOnUseInternalNames())
+
 	// Rogue's init_player, plus rx1's torch
 	mace, armor, bow := g.NewItemFromName("mace"), g.NewItemFromName("ring_mail"), g.NewItemFromName("short_bow")
 	mace.weapon.hitPlus, mace.weapon.damagePlus = 1, 1
@@ -466,17 +477,6 @@ func (g *GameState) init() {
 		}
 		g.updateUIStatus()
 	})
-
-	g.identification = NewIdentificationKnowledge()
-
-	g.identification.MixScrolls(g.dataDefinitions.GetScrollInternalNames())
-	g.identification.MixPotions(g.dataDefinitions.GetPotionInternalNames())
-	g.identification.IdentifyItem("potion_life") // bought in town, never a mystery
-	g.identification.MixWands(g.dataDefinitions.GetWandInternalNames())
-	g.identification.MixRings(g.dataDefinitions.GetRingInternalNames())
-	g.identification.SetOnIdChanged(g.ui.UpdateInventory) // after the setup: the UI has no game yet
-
-	g.identification.SetAlwaysIDOnUse(g.dataDefinitions.AlwaysIDOnUseInternalNames())
 
 	g.TurnsTaken = 0
 	g.logBuffer = []foundation.HiLiteString{}
