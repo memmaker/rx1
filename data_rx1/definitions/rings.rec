@@ -6,6 +6,7 @@
 
 name: ring of protection
 internal_name: ring_protection
+description: Adds to your armor while worn. A negative ring is cursed and sticks.
 category: rings
 slot: ring
 stat: armor
@@ -16,6 +17,7 @@ worth: 400
 
 name: ring of strength
 internal_name: ring_strength
+description: Adds to your strength while worn. A negative ring is cursed and sticks.
 category: rings
 slot: ring
 stat: strength
@@ -26,6 +28,7 @@ worth: 400
 
 name: ring of dexterity
 internal_name: ring_dexterity
+description: Adds to your chance to hit while worn. A negative ring is cursed and sticks.
 category: rings
 slot: ring
 stat: to_hit
@@ -36,6 +39,7 @@ worth: 440
 
 name: ring of increase damage
 internal_name: ring_increase_damage
+description: Adds to the damage you deal while worn. A negative ring is cursed and sticks.
 category: rings
 slot: ring
 stat: damage
@@ -46,6 +50,7 @@ worth: 400
 
 name: ring of regeneration
 internal_name: ring_regeneration
+description: You heal one HP every turn while worn.
 category: rings
 slot: ring
 equip_flag: regenerating
@@ -56,6 +61,7 @@ worth: 460
 
 name: ring of see invisible
 internal_name: ring_see_invisible
+description: You see invisible monsters while worn.
 category: rings
 slot: ring
 equip_flag: see_invisible
@@ -66,6 +72,7 @@ worth: 310
 
 name: ring of teleportation
 internal_name: ring_teleportation
+description: Cursed: each step you take has a 2 percent chance of teleporting you to a random spot.
 category: rings
 slot: ring
 equip_flag: curse_teleportitis
@@ -76,6 +83,7 @@ worth: 30
 
 name: ring of slow digestion
 internal_name: ring_slow_digestion
+description: You burn food more slowly while worn.
 category: rings
 slot: ring
 equip_flag: slow_digestion
@@ -86,6 +94,7 @@ worth: 240
 
 name: ring of stealth
 internal_name: ring_stealth
+description: Halves the chance that sleeping monsters notice you while worn.
 category: rings
 slot: ring
 equip_flag: stealth
@@ -96,6 +105,7 @@ worth: 470
 
 name: ring of searching
 internal_name: ring_searching
+description: You search for secret doors and traps every turn while worn.
 category: rings
 slot: ring
 equip_flag: searching

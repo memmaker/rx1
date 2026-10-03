@@ -76,6 +76,8 @@ type ItemDef struct {
 
 	Text string // documents only
 
+	Description string // the item's rules, shown in the inventory once identified
+
 	LightRadius       int
 	LightColor        color.RGBA
 	LightPattern      string
@@ -164,6 +166,8 @@ func NewItemDefFromRecord(record recfile.Record) ItemDef {
 			itemDef.LightPattern = field.Value
 		case "light_flicker_frame_delay":
 			itemDef.LightFrameDelayMs = field.AsInt()
+		case "description":
+			itemDef.Description = field.Value
 		case "equip_flag":
 			itemDef.EquipFlag = foundation.ActorFlagFromString(field.Value)
 		}

@@ -112,6 +112,7 @@ type Item struct {
 	isKnown      bool
 	found        bool // Rogue ISFOUND: a scare monster scroll that was picked up once
 	text         string
+	description  string // rules text from the .rec file
 
 	light foundation.LightInfo // Radius is the full radius, see LightRadius()
 
@@ -152,6 +153,27 @@ func (i *Item) DisplayLength() int {
 
 func (i *Item) GetListInfo() string {
 	return fmt.Sprintf("%s", i.name)
+}
+
+// Description: stats and rules; an unidentified item tells nothing beyond its looks
+func (i *Item) Description() string {
+	lines := []string{i.InventoryNameWithColors(""), " " + i.category.String()}
+	if i.IsMagic() && !i.id.IsItemIdentified(i.internalName) {
+		return strings.Join(append(lines, "", " Unidentified: use it, or have it identified."), "\n")
+	}
+	if i.IsWeapon() && i.thrownDamage.NotZero() {
+		lines = append(lines, " thrown: "+i.thrownDamage.ShortString())
+	}
+	if i.IsRing() && i.stat != "" {
+		lines = append(lines, fmt.Sprintf(" %s %+d", i.stat, i.statBonus))
+	}
+	if (i.IsWeapon() || i.IsArmor()) && !i.isKnown {
+		lines = append(lines, " enchantment unknown")
+	}
+	if i.description != "" {
+		lines = append(lines, "", cview.Escape(i.description))
+	}
+	return strings.Join(lines, "\n")
 }
 
 func (i *Item) InventoryNameWithColors(colorCode string) string {
