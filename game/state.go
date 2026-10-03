@@ -784,7 +784,7 @@ func (g *GameState) playerVisibleEnemiesByDistance() []*Actor {
 	}
 	playerPos := g.Player.Position()
 	for _, actor := range g.gridMap.Actors() {
-		if actor == g.Player {
+		if actor == g.Player || actor.head != nil {
 			continue
 		}
 		if g.canPlayerSee(actor.Position()) && g.couldPlayerSeeActor(actor) {
@@ -975,6 +975,9 @@ func (g *GameState) newEnemy(def MonsterDef, carry bool) *Actor {
 	if def.InternalName == "violet_fungi" {
 		actor.GetFlags().Increase(foundation.FlagBranches, 1+random.Intn(4))
 		actor.GetFlags().Increase(foundation.FlagReach, 1+random.Intn(2))
+	}
+	if def.InternalName == "purple_worm" {
+		actor.GetFlags().Increase(foundation.FlagGrow, wormStartLength)
 	}
 	if carry && random.Intn(100) < def.CarryChance {
 		actor.GetInventory().Add(g.rogueNewThing(random, max(1, g.currentDungeonLevel)))

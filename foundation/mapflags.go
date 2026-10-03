@@ -217,6 +217,7 @@ const (
 	FlagReach          // violet fungus: how many tiles its branches reach
 	FlagRotting        // violet fungus: 1 damage per turn while set
 	FlagShriek         // shrieker: shrieking above shriekCooldown, quiet below it
+	FlagGrow           // purple worm: tail segments still to grow
 )
 
 func AllFlagsExceptGoldOrdered() []ActorFlag {

@@ -42,6 +42,8 @@ type Actor struct {
 	disguise               foundation.ItemCategory
 	holdHits               int // Rogue's vf_hit: the flytrap's growing grip
 	carryChance            int // Rogue 5.4 m_carry: percent chance to walk to an item in its room
+	head                   *Actor   // set on a worm segment
+	tail                   []*Actor // a worm's segments, nearest first
 
 	icon       rune
 	color      string

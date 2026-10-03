@@ -45,7 +45,7 @@ func forceDescendTarget(g *GameState, zapper *Actor, pos geometry.Point) []found
 		return nil
 	}
 
-	descendingActor := g.gridMap.ActorAt(pos)
+	descendingActor := g.actorAt(pos)
 	if descendingActor == g.Player {
 		g.QueueActionAfterAnimation(g.descendToRandomLocation)
 	} else {
@@ -91,7 +91,7 @@ func charge(g *GameState, zapper *Actor, pos geometry.Point, isHeroic bool, getP
 	targetPos := pathOfFlight[len(pathOfFlight)-1]
 	if !g.canFlyThrough(targetPos) && len(pathOfFlight) > 1 {
 		if g.gridMap.IsActorAt(targetPos) {
-			hitActor = g.gridMap.ActorAt(targetPos)
+			hitActor = g.actorAt(targetPos)
 		}
 		targetPos = pathOfFlight[len(pathOfFlight)-2]
 	}
@@ -125,7 +125,7 @@ func (g *GameState) boltSaves(victim *Actor) bool {
 }
 
 func (g *GameState) boltDamageLocation(source string, pos geometry.Point) []foundation.Animation {
-	if g.gridMap.IsActorAt(pos) && g.boltSaves(g.gridMap.ActorAt(pos)) {
+	if g.gridMap.IsActorAt(pos) && g.boltSaves(g.actorAt(pos)) {
 		return nil
 	}
 	return g.damageLocation(source, pos, rollBoltDamage())
@@ -136,7 +136,7 @@ func coldRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.An
 	trailColors := []string{"White", "White", "LightCyan", "LightBlue", "Blue"}
 	hitEntityHandler := func(hitPos geometry.Point) []foundation.Animation {
 		if g.gridMap.IsActorAt(hitPos) {
-			actor := g.gridMap.ActorAt(hitPos)
+			actor := g.actorAt(hitPos)
 			if actor.HasFlag(foundation.FlagUndead) || actor.HasFlag(foundation.FlagColdImmune) {
 				g.msg(foundation.HiLite("The cold does not harm %s", actor.Name()))
 				return nil
@@ -218,7 +218,7 @@ func fireRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.An
 
 	hitEntityHandler := func(hitPos geometry.Point) []foundation.Animation {
 		if g.gridMap.IsActorAt(hitPos) {
-			victim := g.gridMap.ActorAt(hitPos)
+			victim := g.actorAt(hitPos)
 			if g.boltSaves(victim) {
 				return nil
 			}
@@ -245,13 +245,13 @@ func lightningRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundati
 	dontHitThese[zapper] = true
 
 	hitEntityHandler := func(hitPos geometry.Point) []foundation.Animation {
-		if g.gridMap.IsActorAt(hitPos) && splits(g.gridMap.ActorAt(hitPos)) { // D&D ochre jelly: lightning only divides it
-			dontHitThese[g.gridMap.ActorAt(hitPos)] = true
-			return split(g, g.gridMap.ActorAt(hitPos), zapper)
+		if g.gridMap.IsActorAt(hitPos) && splits(g.actorAt(hitPos)) { // D&D ochre jelly: lightning only divides it
+			dontHitThese[g.actorAt(hitPos)] = true
+			return split(g, g.actorAt(hitPos), zapper)
 		}
 		damageAnims := g.boltDamageLocation(zapper.Name(), hitPos)
 		if g.gridMap.IsActorAt(hitPos) {
-			dontHitThese[g.gridMap.ActorAt(hitPos)] = true
+			dontHitThese[g.actorAt(hitPos)] = true
 		}
 		return damageAnims
 	}
@@ -302,7 +302,7 @@ func invisibilityTarget(g *GameState, zapper *Actor, targetPos geometry.Point) [
 	animations = append(animations, projAnim)
 
 	if g.gridMap.IsActorAt(targetPos) {
-		targetActor := g.gridMap.ActorAt(targetPos)
+		targetActor := g.actorAt(targetPos)
 		makeInvisible(g, targetActor)
 		if projAnim != nil {
 			projAnim.SetFollowUp(g.effectAnim("invisible", targetPos, nil))
@@ -335,7 +335,7 @@ func teleportTargetTo(g *GameState, zapper *Actor, targetPos geometry.Point) []f
 	animations = append(animations, projAnim)
 
 	if g.gridMap.IsActorAt(targetPos) {
-		targetActor := g.gridMap.ActorAt(targetPos)
+		targetActor := g.actorAt(targetPos)
 
 		teleportAnim := teleportWithAnimation(g, targetActor, teleportTargetPos)
 		projAnim.SetFollowUp([]foundation.Animation{teleportAnim})
@@ -362,7 +362,7 @@ func teleportTargetAway(g *GameState, zapper *Actor, targetPos geometry.Point) [
 	}
 
 	if g.gridMap.IsActorAt(targetPos) {
-		targetActor := g.gridMap.ActorAt(targetPos)
+		targetActor := g.actorAt(targetPos)
 
 		teleportAnim := phaseDoor(g, targetActor)
 		if projAnim != nil {
@@ -405,7 +405,7 @@ func cancelTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []found
 	animations = append(animations, projAnim)
 
 	if g.gridMap.IsActorAt(targetPos) {
-		targetActor := g.gridMap.ActorAt(targetPos)
+		targetActor := g.actorAt(targetPos)
 		cancel(g, targetActor)
 		if projAnim != nil {
 			projAnim.SetFollowUp(g.effectAnim("cancel", targetPos, nil))
@@ -430,7 +430,7 @@ func holdTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []foundat
 	animations = append(animations, projAnim)
 
 	if g.gridMap.IsActorAt(targetPos) {
-		targetActor := g.gridMap.ActorAt(targetPos)
+		targetActor := g.actorAt(targetPos)
 		if !targetActor.HasFlag(foundation.FlagUndead) && !targetActor.HasFlag(foundation.FlagNoHold) {
 			targetActor.GetFlags().Increase(foundation.FlagHeld, rand.Intn(10)+5)
 		}
@@ -457,7 +457,7 @@ func slowTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []foundat
 	animations = append(animations, projAnim)
 
 	if g.gridMap.IsActorAt(targetPos) {
-		targetActor := g.gridMap.ActorAt(targetPos)
+		targetActor := g.actorAt(targetPos)
 		slow(g, targetActor)
 		if projAnim != nil {
 			projAnim.SetFollowUp(g.effectAnim("slow", targetPos, nil))
@@ -482,7 +482,7 @@ func hasteTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []founda
 	animations = append(animations, projAnim)
 
 	if g.gridMap.IsActorAt(targetPos) {
-		targetActor := g.gridMap.ActorAt(targetPos)
+		targetActor := g.actorAt(targetPos)
 		haste(g, targetActor)
 		if projAnim != nil {
 			projAnim.SetFollowUp(g.effectAnim("haste", targetPos, nil))
@@ -508,7 +508,7 @@ func polymorph(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.
 
 	if g.gridMap.IsActorAt(targetPos) {
 
-		defender := g.gridMap.ActorAt(targetPos)
+		defender := g.actorAt(targetPos)
 
 		monsterDef := g.dataDefinitions.RandomMonsterDef()
 		newMonster := g.NewEnemyFromDef(monsterDef)
@@ -589,7 +589,7 @@ func nameOfDamageSource(zapper *Actor, otherName string) string {
 
 func (g *GameState) damageLocation(damageSource string, targetPos geometry.Point, damage int) []foundation.Animation {
 	if g.gridMap.IsActorAt(targetPos) {
-		defender := g.gridMap.ActorAt(targetPos)
+		defender := g.actorAt(targetPos)
 		return g.damageActor(damageSource, defender, damage)
 
 	} else if g.gridMap.IsObjectAt(targetPos) {
@@ -600,8 +600,12 @@ func (g *GameState) damageLocation(damageSource string, targetPos geometry.Point
 }
 
 func (g *GameState) damageActorWithFollowUp(damageSource string, victim *Actor, damage int, done func(), followUps []foundation.Animation) []foundation.Animation {
+	at := victim.Position()
+	if victim.head != nil { // a blow to a worm segment hurts the worm
+		victim = victim.head
+	}
 	victim.TakeDamage(damage)
-	damageAnim := g.ui.GetAnimDamage(victim.Position(), damage, done)
+	damageAnim := g.ui.GetAnimDamage(at, damage, done)
 
 	if victim.HasFlag(foundation.FlagSleep) { // Rogue's runto: a hit always wakes and sets it after the hero
 		victim.GetFlags().Unset(foundation.FlagSleep)
@@ -676,7 +680,7 @@ func fireBreath(g *GameState, zapper *Actor, pos geometry.Point) []foundation.An
 		}
 		path = append(path, cur)
 		steps++
-		if victim, ok := g.gridMap.TryGetActorAt(cur); ok && victim != zapper && !rpg.Save(victim.GetLevel(), rpg.VsMagic) {
+		if victim := g.actorAt(cur); victim != nil && victim != zapper && !rpg.Save(victim.GetLevel(), rpg.VsMagic) {
 			hits = append(hits, victim)
 			break
 		}
@@ -851,7 +855,7 @@ func charmTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []founda
 	if !g.gridMap.IsActorAt(targetPos) {
 		return []foundation.Animation{projAnim}
 	}
-	target := g.gridMap.ActorAt(targetPos)
+	target := g.actorAt(targetPos)
 	if target == g.Player || target.HasFlag(foundation.FlagUndead) || target.HasFlag(foundation.FlagNoHold) || rpg.Save(target.GetLevel(), rpg.VsMagic) {
 		g.msg(foundation.HiLite("%s resists", target.Name()))
 		return []foundation.Animation{projAnim}

@@ -70,7 +70,7 @@ func (g *GameState) aiAct(enemy *Actor) {
 		g.aiVioletFungus(enemy)
 		return
 	}
-	if enemy.GetInternalName() == "purple_worm" && g.aiHuntShrieker(enemy) {
+	if enemy.GetInternalName() == "purple_worm" && g.aiHuntFungi(enemy) {
 		return
 	}
 
