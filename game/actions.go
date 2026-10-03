@@ -420,7 +420,7 @@ func (g *GameState) PickupItem() {
 		if item.IsGold() {
 			g.Player.AddGold(item.GetCharges())
 		} else {
-			item.found = true
+			item.found = item.IsScareMonster() // only that scroll remembers it, or a found ration would not stack with the starting one
 			inventory.Add(item)
 			for ; item.bundle > 0; item.bundle-- { // Rogue's ISMANY groups lie on the floor as one pile
 				inventory.Add(item.copyOfMissile())
