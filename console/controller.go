@@ -177,7 +177,7 @@ func (u *UI) ShowGameOver(scoreInfo foundation.ScoreInfo, highScores []foundatio
 func (u *UI) showWinScreen(scoreInfo foundation.ScoreInfo, highScores []foundation.ScoreInfo) {
 	textView := cview.NewTextView()
 	textView.SetBorder(true)
-	textView.SetScrollable(false)
+	textView.SetScrollable(true) // the wheel reaches what does not fit
 	textView.SetScrollBarVisibility(cview.ScrollBarNever)
 	textView.SetTextAlign(cview.AlignCenter)
 	textView.SetTitleAlign(cview.AlignCenter)
@@ -222,7 +222,7 @@ func (u *UI) showDeathScreen(scoreInfo foundation.ScoreInfo, highScores []founda
 	textView.SetTextAlign(cview.AlignCenter)
 	textView.SetTitleAlign(cview.AlignCenter)
 	textView.SetBorder(true)
-	textView.SetScrollable(false)
+	textView.SetScrollable(true)
 	textView.SetScrollBarVisibility(cview.ScrollBarNever)
 	textView.SetTitle("You died")
 
@@ -399,11 +399,14 @@ func (u *UI) AfterAnimations(f func()) {
 
 // animationStep advances playback by one frame on the UI goroutine; when it is over the map unfreezes
 // and the afterAnimations callbacks run.
-func (u *UI) animationStep() {
-	u.animator.Tick()
+// It reports whether the screen needs a redraw.
+func (u *UI) animationStep() bool {
+	changed := u.animator.Tick()
 	if !u.animator.IsBusy() {
 		u.finishAnimations()
+		return true
 	}
+	return changed
 }
 
 // skipAnimations jumps to the end of everything queued, e.g. because the player pressed a key.
@@ -820,7 +823,13 @@ func (u *UI) GetAnimThrow(item foundation.ItemForUI, origin geometry.Point, targ
 	}
 	textIcon := u.getIconForItem(item.GetCategory())
 
-	return u.GetAnimProjectileWithIcon(textIcon, origin, target, nil)
+	anim, length := u.GetAnimProjectileWithIcon(textIcon, origin, target, nil)
+	if missile, ok := item.(interface{ IsMissile() bool }); ok && missile.IsMissile() {
+		if flight, ok := anim.(*ProjectileAnimation); ok {
+			flight.SetSpeed(1.5) // arrows, bolts and darts fly faster than whatever else is thrown
+		}
+	}
+	return anim, length
 }
 
 func (u *UI) GetAnimProjectile(icon rune, fgColor string, origin geometry.Point, target geometry.Point, done func()) (foundation.Animation, int) {
@@ -1051,9 +1060,13 @@ func (u *UI) Print(message foundation.HiLiteString) {
 }
 func (u *UI) StartGameLoop() {
 	go func() {
-		for range time.Tick(u.settings.AnimationDelay) {
+		for range time.Tick(u.settings.AnimationDelay / animSubTicks) {
 			if u.animWake.Load() {
-				u.application.QueueUpdateDraw(u.animationStep)
+				u.application.QueueUpdate(func() {
+					if u.animationStep() { // a tick between frames changes nothing on screen
+						u.application.Draw()
+					}
+				})
 			}
 		}
 	}()
@@ -1113,6 +1126,9 @@ func (u *UI) InitDungeonUI() {
 		return
 	}
 	disableMouseFocus := func(action cview.MouseAction, event *tcell.EventMouse) (cview.MouseAction, *tcell.EventMouse) {
+		if action == cview.MouseScrollUp || action == cview.MouseScrollDown { // the wheel scrolls the panel, focus stays
+			return action, event
+		}
 		u.application.SetFocus(u.mapWindow) // Don't switch input focus here by clicking
 		return action, nil
 	}
@@ -2249,9 +2265,13 @@ func NewTextUI(settings *foundation.Configuration) *UI {
 	}
 
 	u.animator.lookup = u.mapLookup
+	u.animator.SetSubTicks(animSubTicks)
 	u.initCoreUI()
 	return u
 }
+
+// animSubTicks splits the animation delay into finer ticks, so some animations (missiles) can play faster.
+const animSubTicks = 6
 
 // withLight lets the animation light up the map around it in the named colour, if it can cast light.
 func (u *UI) withLight(anim foundation.Animation, colorName string) foundation.Animation {
