@@ -23,4 +23,21 @@ term.addEventListener("wheel", (e) => {
 }, { passive: false });
 EOF
 install -m 644 "$WEB/termstyle.css" "$WEB/beep.wav" "$OUT/"
+# offline after the first visit: sw.js precaches every file here, then serves network-first with the cache as fallback
+# (saves are already in IndexedDB). ponytail: refetches all on each sw.js change, fine at ~17MB.
+{ printf 'const FILES = ["./", "../../progress.js"'
+  (cd "$OUT" && find . -type f ! -name sw.js ! -name '*.gz' ! -name '.*' | sed 's|^\./||' | sort | while read -r f; do printf ', "%s"' "$f"; done)
+  printf '];\n'
+  cat <<'EOF2'
+self.addEventListener("install", e => e.waitUntil(caches.open("rx1").then(c => c.addAll(FILES)).then(() => self.skipWaiting())))
+self.addEventListener("activate", e => e.waitUntil(self.clients.claim()))
+self.addEventListener("fetch", e => {
+  if (e.request.method !== "GET" || e.request.url.includes("/beacon")) return
+  e.respondWith(fetch(e.request).then(r => {
+    if (r.ok) { const copy = r.clone(); caches.open("rx1").then(c => c.put(e.request, copy)) }
+    return r
+  }).catch(() => caches.match(e.request, { ignoreSearch: true })))
+})
+EOF2
+} > "$OUT/sw.js"
 ls -l "$OUT"/rx1.wasm*
