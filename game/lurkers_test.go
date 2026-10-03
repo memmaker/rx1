@@ -12,7 +12,8 @@ func TestWallLurkersStepOutWhenHeroEnters(t *testing.T) {
 	g := newTestGame()
 	g.wizardLevelStyle = new(dungen.LevelStyle) // walled rooms
 	g.GotoDungeonLevel(10, StairsBoth, true)
-	room := g.dungeonLayout.AllRooms()[0]
+	rooms := slices.DeleteFunc(slices.Clone(g.dungeonLayout.AllRooms()), func(r *dungen.DungeonRoom) bool { return len(r.GetWalls()) == 0 })
+	room, elsewhere := rooms[0], rooms[1]
 	for _, a := range slices.Clone(g.gridMap.Actors()) {
 		if a != g.Player && room.ContainsIncludingWalls(a.Position()) {
 			g.gridMap.RemoveActor(a)
@@ -29,7 +30,13 @@ func TestWallLurkersStepOutWhenHeroEnters(t *testing.T) {
 	if len(lurkers) < 2 {
 		t.Fatalf("%d lurkers in the walls", len(lurkers))
 	}
-	g.aiAct(lurkers[0]) // the hero is elsewhere: it stays hidden
+	for _, p := range elsewhere.GetAbsoluteFloorTiles() { // the hero is elsewhere
+		if !g.gridMap.IsActorAt(p) {
+			g.gridMap.MoveActor(g.Player, p)
+			break
+		}
+	}
+	g.aiAct(lurkers[0]) // so it stays hidden
 	if !g.lurksInWall(lurkers[0]) {
 		t.Fatal("a lurker should wait while the room is empty")
 	}
@@ -41,8 +48,8 @@ func TestWallLurkersStepOutWhenHeroEnters(t *testing.T) {
 	}
 	for _, a := range lurkers {
 		g.aiAct(a)
-		if g.lurksInWall(a) || a.HasFlag(foundation.FlagInvisible) || !room.FloorContains(a.Position()) {
-			t.Fatal("a lurker should step out of the wall into the room")
+		if g.lurksInWall(a) || a.HasFlag(foundation.FlagInvisible) {
+			t.Fatal("a lurker should come out of the wall")
 		}
 	}
 }

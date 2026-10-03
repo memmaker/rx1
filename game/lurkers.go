@@ -41,29 +41,29 @@ func (g *GameState) lurksInWall(a *Actor) bool {
 	return a.GetInternalName() == "xeroc_2" && a.HasFlag(foundation.FlagInvisible) && !g.gridMap.IsTileWalkable(a.Position())
 }
 
-// emergeFromWall: the wall fades into the monster, which steps into the room and attacks.
+// emergeFromWall: the wall fades into the monster, which steps into the room if it can and attacks.
 func (g *GameState) emergeFromWall(a *Actor) {
 	room := g.getPlayerRoom()
 	wall := a.Position()
 	if room == nil || !room.FloorContains(g.Player.Position()) || !room.ContainsIncludingWalls(wall) {
 		return
 	}
-	exits := slices.DeleteFunc(lurkerExits(room, wall), g.gridMap.IsActorAt)
-	if len(exits) == 0 {
-		return
-	}
-	floor := exits[rand.Intn(len(exits))]
 	a.GetFlags().Unset(foundation.FlagInvisible)
 	a.GetFlags().Set(foundation.FlagAwareOfPlayer)
 	a.GetFlags().Set(foundation.FlagChase)
 	g.msg(foundation.HiLite("%s steps out of the wall", a.Name()))
 	uncloak, _ := g.ui.GetAnimUncloakAtPosition(a, wall)
-	move := g.ui.GetAnimMove(a, wall, floor)
-	g.gridMap.MoveActor(a, floor)
-	if uncloak == nil || move == nil { // animations switched off
-		return
+	exits := slices.DeleteFunc(lurkerExits(room, wall), g.gridMap.IsActorAt)
+	if len(exits) > 0 { // with its way out blocked it fights from the wall
+		floor := exits[rand.Intn(len(exits))]
+		move := g.ui.GetAnimMove(a, wall, floor)
+		g.gridMap.MoveActor(a, floor)
+		if uncloak != nil && move != nil {
+			move.RequestMapUpdateOnFinish()
+			uncloak.SetFollowUp([]foundation.Animation{move})
+		}
 	}
-	move.RequestMapUpdateOnFinish()
-	uncloak.SetFollowUp([]foundation.Animation{move})
-	g.ui.AddAnimations([]foundation.Animation{uncloak})
+	if uncloak != nil { // nil: animations switched off
+		g.ui.AddAnimations([]foundation.Animation{uncloak})
+	}
 }
