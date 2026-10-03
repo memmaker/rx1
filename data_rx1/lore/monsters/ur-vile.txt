@@ -1,1 +1,11 @@
 [#FFFFFF]Rumored to have been brought in from another dimension by Yendor. A massive mouth filled with razor-sharp teeth, fists the size of basketballs and an unquenchable appetite for human flesh. Not a pretty sight.[-]
+
+[#f5e342]Origin[-]
+
+Ur-viles come from Stephen R. Donaldson's The Chronicles of Thomas Covenant (1977). There they are eyeless black creatures of the Despiser, Lord Foul. They are bred rather than born, see by smell, and fight in wedge formations led by their loremaster. Their dark lore is strong enough to call up acids and corrupting power.
+
+[#f5e342]Rogue Trivia[-]
+
+The ur-vile appears only in the PC version of Rogue, where it took the place of the unicorn at u: a mean creature with three small attacks and a 4d6 bite. The Macintosh flavor line paints it as a mouth full of teeth with huge fists, which has little to do with Donaldson's eyeless lore-wielders. In rx1 ur-viles hunt in packs, as Donaldson's do, and can call down darkness.
+
+The description at the top comes from the Macintosh version of Rogue.
