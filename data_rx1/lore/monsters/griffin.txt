@@ -1,1 +1,17 @@
 [#FFFFFF]Flying and clawing his way into your heart, this little fellow can render you into bird food in a matter of seconds. As you die, it will be a great comfort to know that Gryphons are mythical.[-]
+
+[#f5e342]Origin[-]
+
+The griffin, with the body of a lion and the head and wings of an eagle, is one of the oldest monsters of all: it appears in Persian and Greek art long before any book. The Greek historian Herodotus passed on the story of griffins guarding gold in the far north, against the one-eyed Arimaspians who tried to steal it. Dungeons & Dragons spells it "griffon" and makes it a horse-hunter whose young are worth a fortune:
+
+    They are aggressive carnivores, and their favorite prey are horses.
+    - Monster Manual (1977), p. 50
+
+    Fledglings sell for 5,000 gold pieces, eggs for 2,000, on the open market.
+    - Monster Manual (1977), p. 50
+
+[#f5e342]Rogue Trivia[-]
+
+The griffin is new in Rogue 5.x, where it is one of the few monsters with three special powers at once: it is mean, it flies, and it regenerates. Its 2000 experience is the third highest in the game, behind only the jabberwock (3000) and the dragon (5000); the next monster down, the vampire, is worth 350. In rx1 its wingbeats can also hurl the hero back, and it calls down lightning.
+
+The description at the top comes from the Macintosh version of Rogue.
