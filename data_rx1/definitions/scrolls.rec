@@ -21,7 +21,7 @@ always_id_on_use: true
 
 name: hold monster
 internal_name: hold_monster
-description: Freezes every monster you can see.
+description: Freezes every monster you can see. Each has a 1 in 10 chance per turn to break free, about 10 turns on average. Your attacks hit a held monster at +4.
 category: scrolls
 charges: 1
 chance: 2
