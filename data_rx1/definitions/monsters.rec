@@ -562,7 +562,7 @@ dlvl: 21
 color: Orange
 gold: 0
 carry_chance: 0
-flags: mean | wall_crawler
+flags: mean | wall_crawler | cold_immune | fire_immune | shock_resistant
 hit_effect: eat_gold | 100
 
 name: vampire

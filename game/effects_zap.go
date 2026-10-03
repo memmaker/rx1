@@ -249,6 +249,13 @@ func lightningRay(g *GameState, zapper *Actor, aimPos geometry.Point) []foundati
 			dontHitThese[g.actorAt(hitPos)] = true
 			return split(g, g.actorAt(hitPos), zapper)
 		}
+		if v := g.actorAt(hitPos); v != nil && v.HasFlag(foundation.FlagShockResistant) { // D&D xorn: half, or none on a save
+			dontHitThese[v] = true
+			if g.boltSaves(v) {
+				return nil
+			}
+			return g.damageActor(zapper.Name(), v, rollBoltDamage()/2)
+		}
 		damageAnims := g.boltDamageLocation(zapper.Name(), hitPos)
 		if g.gridMap.IsActorAt(hitPos) {
 			dontHitThese[g.actorAt(hitPos)] = true
@@ -839,6 +846,9 @@ func valuePairToPoint(values [2]int64) geometry.Point {
 // fireDamage: fire_vulnerable monsters (the yeti) take half again as much.
 // It also counts as a final blow: a troll burned to death stays dead.
 func fireDamage(victim *Actor, damage int) int {
+	if victim.HasFlag(foundation.FlagFireImmune) {
+		return 0
+	}
 	if victim.HasFlag(foundation.FlagFireVulnerable) {
 		damage = damage * 3 / 2
 	}

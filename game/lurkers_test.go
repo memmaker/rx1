@@ -53,3 +53,34 @@ func TestWallLurkersStepOutWhenHeroEnters(t *testing.T) {
 		}
 	}
 }
+
+func TestXornResistsAndFleesIntoStone(t *testing.T) {
+	g := newTestGame()
+	g.wizardLevelStyle = new(dungen.LevelStyle)
+	g.GotoDungeonLevel(10, StairsBoth, true)
+	def, _ := g.monsterDefByInternalName("xorn")
+	xorn := g.NewEnemyFromDef(def)
+	if fireDamage(xorn, 10) != 0 {
+		t.Fatal("fire should not harm a xorn")
+	}
+	rooms := slices.DeleteFunc(slices.Clone(g.dungeonLayout.AllRooms()), func(r *dungen.DungeonRoom) bool { return len(r.GetWalls()) == 0 })
+	room := rooms[0]
+	for _, a := range slices.Clone(g.gridMap.Actors()) {
+		if a != g.Player && room.ContainsIncludingWalls(a.Position()) {
+			g.gridMap.RemoveActor(a)
+		}
+	}
+	for _, w := range room.GetWalls() {
+		if exits := lurkerExits(room, w); len(exits) > 0 {
+			g.gridMap.AddActor(xorn, exits[0])
+			break
+		}
+	}
+	xorn.WakeUp()
+	xorn.GetFlags().Set(foundation.FlagAwareOfPlayer)
+	xorn.stats.HP, xorn.stats.MaxHP = 1, 30
+	g.aiAct(xorn)
+	if g.gridMap.IsTileWalkable(xorn.Position()) || !xorn.HasFlag(foundation.FlagScared) {
+		t.Fatal("a beaten xorn should sink into the stone")
+	}
+}
