@@ -4,6 +4,7 @@ package console
 
 import (
 	"fmt"
+	"image/color"
 	"os"
 	"rx1/foundation"
 	"rx1/geometry"
@@ -11,11 +12,38 @@ import (
 	"testing"
 )
 
-type roomGame struct{ foundation.GameForUI }
+type roomGame struct {
+	foundation.GameForUI
+	player foundation.ActorForUI
+}
 
-func (roomGame) IsVisibleToPlayer(geometry.Point) bool { return false }
-func (roomGame) IsExplored(geometry.Point) bool        { return true }
-func (roomGame) IsLit(geometry.Point) bool             { return true }
+var previewCenter = geometry.Point{X: 12, Y: 7}
+
+// the player stands in the middle of a lit room, looked up as the game does
+func (roomGame) IsVisibleToPlayer(p geometry.Point) bool {
+	return roomGame{}.MapAt(p) != foundation.TileEmpty
+}
+func (roomGame) GetHudFlags() map[foundation.ActorFlag]int { return nil }
+func (roomGame) GetPlayerPosition() geometry.Point         { return previewCenter }
+func (roomGame) GetPlayerLight() (foundation.LightInfo, bool) {
+	return foundation.LightInfo{}, false
+}
+func (roomGame) GlowAt(geometry.Point) (color.RGBA, bool)          { return color.RGBA{}, false }
+func (roomGame) ObjectAt(geometry.Point) foundation.ObjectCategory { return -1 }
+func (g roomGame) ActorAt(p geometry.Point) foundation.ActorForUI {
+	if p == previewCenter {
+		return g.player
+	}
+	return nil
+}
+func (g roomGame) TopEntityAt(p geometry.Point, actor foundation.ActorForUI) foundation.EntityType {
+	if actor != nil {
+		return foundation.EntityTypeActor
+	}
+	return foundation.EntityTypeWorldTile
+}
+func (roomGame) IsExplored(geometry.Point) bool { return true }
+func (roomGame) IsLit(geometry.Point) bool      { return true }
 func (roomGame) MapAt(p geometry.Point) foundation.TileType {
 	switch {
 	case p.X < 2 || p.X > 22 || p.Y < 1 || p.Y > 13:
@@ -31,7 +59,7 @@ func TestFxPreview(t *testing.T) {
 	if out == "" {
 		t.Skip()
 	}
-	u := &UI{game: roomGame{}, currentTheme: NewThemeFromFile("../data_rx1/themes/fancy.rec"), settings: &foundation.Configuration{AnimationsEnabled: true, AnimateEffects: true}}
+	u := &UI{game: roomGame{player: &atActor{}}, currentTheme: NewThemeFromFile("../data_rx1/themes/fancy.rec"), settings: &foundation.Configuration{AnimationsEnabled: true, AnimateEffects: true, AnimateProjectiles: true}}
 	center := geometry.Point{X: 12, Y: 7}
 	var room []geometry.Point
 	for y := 2; y <= 12; y++ {
@@ -52,7 +80,7 @@ func TestFxPreview(t *testing.T) {
 	}
 	var js strings.Builder
 	js.WriteString("const FX={")
-	names := strings.Fields("haste slow levitate see_invisible blind hallucinate polymorph detect_food detect_magic detect_monsters detect_traps light darkness raise_level sleep laughter red_glow cancel hold invisible")
+	names := strings.Fields("haste slow levitate see_invisible blind hallucinate polymorph detect_food detect_magic detect_monsters detect_traps light darkness raise_level sleep laughter red_glow cancel hold invisible heal extra_heal gain_strength gain_max_hp")
 	for _, name := range names {
 		var area []geometry.Point
 		if name == "light" || name == "darkness" {
@@ -70,15 +98,50 @@ func TestFxPreview(t *testing.T) {
 		}
 		js.WriteString("],")
 	}
+	// the older animations, played by the animator so their lights shine
+	var line []geometry.Point
+	for x := 4; x <= 20; x++ {
+		line = append(line, geometry.Point{X: x, Y: 7})
+	}
+	scenes := map[string]func() foundation.Animation{
+		"fire_ray": func() foundation.Animation {
+			a, _ := u.GetAnimProjectileWithTrail(' ', []string{"White", "Yellow", "LightRed", "Red"}, line, nil)
+			return a
+		},
+		"cold_ray": func() foundation.Animation {
+			a, _ := u.GetAnimProjectileWithTrail('☼', []string{"White", "White", "LightCyan", "LightBlue", "Blue"}, line, nil)
+			return a
+		},
+		"lightning": func() foundation.Animation {
+			a, _ := u.GetAnimProjectileWithTrail(' ', []string{"White", "Yellow", "Yellow", "Yellow"}, line, nil)
+			return a
+		},
+		"magic_missile": func() foundation.Animation {
+			a, _ := u.GetAnimProjectile('°', "LightGreen", line[0], line[len(line)-1], nil)
+			return a
+		},
+		"explosion": func() foundation.Animation { return u.GetAnimExplosion(disc(center, 2), nil) },
+	}
+	u.animator = NewAnimator()
+	u.animator.lookup = u.mapLookup
+	for _, name := range []string{"fire_ray", "cold_ray", "lightning", "magic_missile", "explosion"} {
+		u.animator.AddAnimation(scenes[name]().(TextAnimation))
+		u.animator.Flush()
+		fmt.Fprintf(&js, "%q:[", name)
+		for u.animator.Tick(); u.animator.IsBusy() || len(u.animator.animationState) > 0; u.animator.Tick() {
+			js.WriteString("{")
+			for p, i := range u.animator.animationState {
+				fmt.Fprintf(&js, "\"%d,%d\":%s,", p.X, p.Y, cell(i))
+			}
+			js.WriteString("},")
+		}
+		js.WriteString("],")
+	}
 	js.WriteString("};const BASE={")
 	for y := 0; y < 15; y++ {
 		for x := 0; x < 25; x++ {
 			p := geometry.Point{X: x, Y: y}
 			i := u.tileIcon(p)
-			if p == center {
-				i = u.icon('@', "White", "Black")
-				i.Bg = u.tileIcon(p).Bg
-			}
 			fmt.Fprintf(&js, "\"%d,%d\":%s,", x, y, cell(i))
 		}
 	}

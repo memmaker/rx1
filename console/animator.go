@@ -25,6 +25,8 @@ type Animator struct {
 	current        *animationGroup                           // the action that is being added, nil before its first addition
 	queue          [][]*animationGroup                       // flushed batches, each starts when the one before has finished
 	moves          map[foundation.ActorForUI]*animationGroup // the group of each actor's step move in pending
+	// lookup is what the map shows at a tile, for the lights of animations to shine on; nil: no lights
+	lookup func(geometry.Point) (foundation.TextIcon, bool)
 }
 
 // animationGroup is one action: its animations, and where it has put the actors once they have played.
@@ -177,11 +179,24 @@ func (a *Animator) Tick() {
 
 	clear(a.animationState)
 
+	var lights []animLight
 	for _, animation := range animations {
 		for pos, icon := range animation.GetDrawables() {
 			a.animationState[pos] = icon
 		}
+		if emitter, ok := animation.(lightEmitter); ok && a.lookup != nil {
+			lights = append(lights, emitter.GetLights()...)
+		}
 		animation.NextFrame()
+	}
+	shown := func(p geometry.Point) (foundation.TextIcon, bool) {
+		if icon, ok := a.animationState[p]; ok {
+			return icon, true
+		}
+		return a.lookup(p)
+	}
+	for _, l := range lights {
+		shineLight(l, shown, func(p geometry.Point, icon foundation.TextIcon) { a.animationState[p] = icon })
 	}
 }
 

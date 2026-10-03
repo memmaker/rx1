@@ -568,6 +568,7 @@ func (u *UI) GetAnimTeleport(user foundation.ActorForUI, origin, targetPos geome
 		{Rune: '.', Fg: lightGray, Bg: mapBackground},
 		{Rune: '.', Fg: u.currentTheme.GetColorByName("DarkGray"), Bg: mapBackground},
 	}, nil)
+	u.withLight(vanishAnim, "LightCyan")
 	vanishAnim.RequestMapUpdateOnFinish()
 
 	appearAnim := u.GetAnimAppearance(user, targetPos, appearOnMap)
@@ -600,7 +601,7 @@ func (u *UI) GetAnimAppearance(actor foundation.ActorForUI, targetPos geometry.P
 		{Rune: originalIcon.Rune, Fg: white, Bg: mapBackground},
 		{Rune: originalIcon.Rune, Fg: white, Bg: mapBackground},
 	}, done)
-	return appearAnim
+	return u.withLight(appearAnim, "LightCyan")
 }
 func (u *UI) GetAnimWakeUp(location geometry.Point, done func()) foundation.Animation {
 	keepAllNeighbors := func(point geometry.Point) bool { return true }
@@ -717,7 +718,7 @@ func (u *UI) GetAnimBreath(path []geometry.Point, done func()) foundation.Animat
 		{Rune: '*', Fg: u.currentTheme.GetColorByName("LightGray"), Bg: u.currentTheme.GetColorByName("Black")},
 		{Rune: '*', Fg: u.currentTheme.GetColorByName("DarkGray"), Bg: u.currentTheme.GetColorByName("Black")},
 	}, done)
-	return projAnim
+	return u.withLight(projAnim, "Orange")
 }
 func (u *UI) GetAnimVorpalizeWeapon(origin geometry.Point, done func()) []foundation.Animation {
 	effectIcon := foundation.TextIcon{
@@ -760,7 +761,7 @@ func (u *UI) GetAnimVorpalizeWeapon(origin geometry.Point, done func()) []founda
 		effectIcon.WithBg(u.currentTheme.GetColorByName("Black")).WithFg(u.currentTheme.GetColorByName("Black")),
 	}, nil)
 
-	return []foundation.Animation{animationInner, animationCenter, animationOuter}
+	return []foundation.Animation{u.withLight(animationInner, "White"), animationCenter, animationOuter}
 }
 func (u *UI) GetAnimEnchantWeapon(player foundation.ActorForUI, location geometry.Point, done func()) foundation.Animation {
 	playerIcon := u.getIconForActor(player)
@@ -785,7 +786,7 @@ func (u *UI) GetAnimEnchantWeapon(player foundation.ActorForUI, location geometr
 		playerIcon.WithBg(u.currentTheme.GetColorByName("Blue")).WithFg(u.currentTheme.GetColorByName("LightGray")),
 		playerIcon.WithBg(u.currentTheme.GetColorByName("Blue")).WithFg(u.currentTheme.GetColorByName("LightGray")),
 	}
-	return u.GetAnimTiles([]geometry.Point{location}, frames, done)
+	return u.withLight(u.GetAnimTiles([]geometry.Point{location}, frames, done), "LightBlue")
 }
 func (u *UI) GetAnimEnchantArmor(player foundation.ActorForUI, location geometry.Point, done func()) foundation.Animation {
 	playerIcon := u.getIconForActor(player)
@@ -811,7 +812,7 @@ func (u *UI) GetAnimEnchantArmor(player foundation.ActorForUI, location geometry
 		playerIcon.WithBg(u.currentTheme.GetColorByName("DarkGray")).WithFg(u.currentTheme.GetColorByName("LightGray")),
 	}
 
-	return u.GetAnimTiles([]geometry.Point{location}, frames, done)
+	return u.withLight(u.GetAnimTiles([]geometry.Point{location}, frames, done), "White")
 }
 func (u *UI) GetAnimThrow(item foundation.ItemForUI, origin geometry.Point, target geometry.Point) (foundation.Animation, int) {
 	if !u.settings.AnimationsEnabled || !u.settings.AnimateProjectiles {
@@ -828,7 +829,8 @@ func (u *UI) GetAnimProjectile(icon rune, fgColor string, origin geometry.Point,
 		Fg:   u.currentTheme.GetColorByName(fgColor),
 		Bg:   u.currentTheme.GetUIColor(UIColorMapDefaultBackground),
 	}
-	return u.GetAnimProjectileWithIcon(textIcon, origin, target, done)
+	anim, length := u.GetAnimProjectileWithIcon(textIcon, origin, target, done)
+	return u.withLight(anim, fgColor), length // magic glows, thrown things (GetAnimThrow) do not
 }
 func (u *UI) GetAnimProjectileWithIcon(textIcon foundation.TextIcon, origin geometry.Point, target geometry.Point, done func()) (foundation.Animation, int) {
 	if !u.settings.AnimationsEnabled || !u.settings.AnimateProjectiles {
@@ -874,6 +876,7 @@ func (u *UI) GetAnimProjectileWithTrail(leadIcon rune, colorNames []string, path
 
 	animation := NewProjectileAnimation(pathOfFlight, trailIcons[0], u.mapLookup, done)
 	animation.SetTrail(trailIcons[1:])
+	animation.SetLight(u.currentTheme.GetColorByName(colorNames[min(2, len(colorNames)-1)])) // the ray's own colour, past its white-hot head
 	return animation, len(pathOfFlight)
 }
 
@@ -2245,8 +2248,17 @@ func NewTextUI(settings *foundation.Configuration) *UI {
 		drawnPos:       make(map[foundation.ActorForUI]geometry.Point),
 	}
 
+	u.animator.lookup = u.mapLookup
 	u.initCoreUI()
 	return u
+}
+
+// withLight lets the animation light up the map around it in the named colour, if it can cast light.
+func (u *UI) withLight(anim foundation.Animation, colorName string) foundation.Animation {
+	if emitter, ok := anim.(interface{ SetLight(color.RGBA) }); ok {
+		emitter.SetLight(u.currentTheme.GetColorByName(colorName))
+	}
+	return anim
 }
 
 func runeToDirection(r rune) geometry.CompassDirection {
@@ -2442,7 +2454,7 @@ func (u *UI) GetAnimExplosion(hitPositions []geometry.Point, done func()) founda
 		{Rune: '*', Fg: lightGray, Bg: background},
 		{Rune: '*', Fg: darkGray, Bg: background},
 	}
-	return u.GetAnimTiles(hitPositions, frames, done)
+	return u.withLight(u.GetAnimTiles(hitPositions, frames, done), "Orange")
 }
 
 func (u *UI) GetAnimUncloakAtPosition(actor foundation.ActorForUI, uncloakLocation geometry.Point) (foundation.Animation, int) {

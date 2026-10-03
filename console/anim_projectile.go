@@ -1,6 +1,7 @@
 package console
 
 import (
+	"image/color"
 	"rx1/foundation"
 	"rx1/geometry"
 )
@@ -53,6 +54,17 @@ type ProjectileAnimation struct {
 	currentPathIndex int
 	lookup           func(loc geometry.Point) (foundation.TextIcon, bool)
 	trail            []foundation.TextIcon
+	light            *color.RGBA // the projectile lights its way, nil: it does not
+}
+
+// SetLight makes the projectile cast light of that colour around its head.
+func (p *ProjectileAnimation) SetLight(c color.RGBA) { p.light = &c }
+
+func (p *ProjectileAnimation) GetLights() []animLight {
+	if p.light == nil || p.IsDone() {
+		return nil
+	}
+	return []animLight{{pos: p.path[p.currentPathIndex], color: *p.light, radius: 2, strength: 0.9}}
 }
 
 func NewProjectileAnimation(path []geometry.Point, icon foundation.TextIcon, lookup func(loc geometry.Point) (foundation.TextIcon, bool), done func()) *ProjectileAnimation {
