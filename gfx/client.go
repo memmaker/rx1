@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"math"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -93,6 +94,7 @@ type Client struct {
 	drop         image.Rectangle
 	hot          []hot // chrome click areas, absolute
 	pop          *popup
+	clicked      image.Rectangle // the last chrome button clicked: where its menu opens
 	promptHidden bool
 	mapGrid      image.Rectangle
 	mapImg       *ebiten.Image
@@ -233,14 +235,17 @@ func (c *Client) relayout() {
 	c.hot, c.bars = c.hot[:0], nil
 	area := image.Rect(0, int(c.px(32)), c.w, c.h)
 	shown := map[string]image.Rectangle{}
-	if c.single() && c.modal { // the i menu lives in the Inventory pane, the item's description in Visible: show both
-		g, side := int(c.px(4)), area.Dx()*3/10
-		shown["map"] = image.Rect(area.Min.X, area.Min.Y, area.Max.X-side-g, area.Max.Y)
-		split := area.Min.Y + area.Dy()*6/10
-		shown["inventory"] = image.Rect(area.Max.X-side, area.Min.Y, area.Max.X, split)
-		shown["visible"] = image.Rect(area.Max.X-side, split+g, area.Max.X, area.Max.Y)
-	} else if c.single() {
+	if c.single() {
+		top := area.Min.Y + area.Dy()*15/100
+		shown["messages"] = image.Rect(area.Min.X, area.Min.Y, area.Max.X, top)
+		area.Min.Y = top + int(c.px(4))
 		shown["map"] = area
+		if c.modal { // the i menu lives in the Inventory pane, the item's description in Visible: both over the map, top right
+			g, side := int(c.px(4)), area.Dx()*3/10
+			split := area.Min.Y + area.Dy()*6/10
+			shown["inventory"] = image.Rect(area.Max.X-side, area.Min.Y, area.Max.X, split)
+			shown["visible"] = image.Rect(area.Max.X-side, split+g, area.Max.X, area.Max.Y)
+		}
 	} else {
 		walk(c.tree, area, int(c.px(4)), int(c.px(60)), shown, &c.bars)
 	}
@@ -385,10 +390,10 @@ func (c *Client) fontMenu(forMap bool) {
 	items = append(items, "#Old-school")
 	items = append(items, Fonts[modernCount:]...)
 	cur := c.st.Face
-	at := image.Pt(int(c.px(160)), int(c.px(32)))
 	if forMap {
-		cur, at = c.st.MapFace, image.Pt(c.wins["map"].rect.Max.X-int(c.px(220)), c.wins["map"].body.Min.Y)
+		cur = c.st.MapFace
 	}
+	at := image.Pt(c.clicked.Min.X, c.clicked.Max.Y) // beneath the button that opened it
 	on := 0
 	for i, n := range items {
 		if n == cur && cur != "" {
@@ -487,11 +492,13 @@ func (c *Client) Update() error {
 	if down {
 		for _, h := range c.hot {
 			if pt.In(h.r) {
+				c.clicked = h.r
 				h.fn()
 				return nil
 			}
 		}
-		for _, w := range c.wins {
+		for _, id := range slices.Backward(c.order) { // topmost first: single mode overlays the map
+			w := c.wins[id]
 			if !w.shown || !pt.In(w.body) {
 				continue
 			}
@@ -719,7 +726,8 @@ func (c *Client) Draw(screen *ebiten.Image) {
 	fillRect(screen, 0, 0, float64(c.w), c.px(32), colPanel)
 	fillRect(screen, 0, c.px(31), float64(c.w), c.px(1), colLine)
 	label(screen, c.ui(14), "RX1", c.px(10), c.px(8), colAccent)
-	for _, w := range c.wins {
+	for _, id := range c.order { // map before the panes that overlay it in single mode
+		w := c.wins[id]
 		if !w.shown {
 			continue
 		}
@@ -820,7 +828,11 @@ func (c *Client) paintMap() {
 			continue
 		}
 		s.dirty[i] = false
-		c.fonts.cell(c.mapImg, cf, float64(i%c.cols)*cf.cw, float64(i/c.cols)*cf.rh, cell.Str, cell.Fg, cell.Bg)
+		bg := cell.Bg
+		if c.tiles { // tiles mode: the tinted tiles sit on black, never on the theme's cell backgrounds
+			bg = color.RGBA{A: 255}
+		}
+		c.fonts.cell(c.mapImg, cf, float64(i%c.cols)*cf.cw, float64(i/c.cols)*cf.rh, cell.Str, cell.Fg, bg)
 	}
 	s.changed, c.mapAll, c.redraw = false, false, true
 }

@@ -1175,6 +1175,7 @@ func (u *UI) InitDungeonUI() {
 	u.statusBar.SetScrollable(false)
 	u.statusBar.SetMouseCapture(disableMouseFocus)
 	u.statusBar.SetScrollBarVisibility(cview.ScrollBarNever)
+	u.statusBar.SetWrap(false) // a wrapped single line would show only its tail (the turns)
 
 	u.rightPanel = cview.NewTextView()
 	u.rightPanel.SetScrollable(false)
@@ -1714,41 +1715,48 @@ func (u *UI) colorIfDiff(statStr string, stat foundation.HudValue, currentValue 
 }
 func (u *UI) getSingleLineStatus(statusValues map[foundation.HudValue]int, flags map[foundation.ActorFlag]int, multiLine bool) string {
 
+	// pad only in the roomy multi-line bar; one line must fit 80 columns
+	pad := func(label string, n int) string {
+		if multiLine {
+			return fmt.Sprintf("%s: %%-%dd", label, n)
+		}
+		return label + ":%d"
+	}
 	gold := statusValues[foundation.HudGold]
-	goldStr := fmt.Sprintf("Gold: %-5d", gold)
+	goldStr := fmt.Sprintf(pad("Gold", 5), gold)
 	goldStr = u.colorIfDiff(goldStr, foundation.HudGold, gold)
 
 	level := statusValues[foundation.HudLevel]
-	levelStr := u.colorIfDiff(fmt.Sprintf("Lvl: %-2d", level), foundation.HudLevel, level)
+	levelStr := u.colorIfDiff(fmt.Sprintf(pad("Lvl", 2), level), foundation.HudLevel, level)
 
 	str := statusValues[foundation.HudStrength]
-	strStr := u.colorIfDiff(fmt.Sprintf("Str: %-2d", str), foundation.HudStrength, str)
+	strStr := u.colorIfDiff(fmt.Sprintf(pad("Str", 2), str), foundation.HudStrength, str)
 
 	armor := statusValues[foundation.HudArmor]
-	armorStr := u.colorIfDiff(fmt.Sprintf("Armor: %-2d", armor), foundation.HudArmor, armor)
+	armorStr := u.colorIfDiff(fmt.Sprintf(pad("Armor", 2), armor), foundation.HudArmor, armor)
 
 	exp := statusValues[foundation.HudExperience]
-	expStr := u.colorIfDiff(fmt.Sprintf("Exp: %-5d", exp), foundation.HudExperience, exp)
+	expStr := u.colorIfDiff(fmt.Sprintf(pad("Exp", 5), exp), foundation.HudExperience, exp)
 
 	dLevel := statusValues[foundation.HudDungeonLevel]
-	dLevelStr := fmt.Sprintf("DL: %-2d", dLevel)
+	dLevelStr := fmt.Sprintf(pad("DL", 2), dLevel)
 	dLevelStr = u.colorIfDiff(dLevelStr, foundation.HudDungeonLevel, dLevel)
 
 	turns := statusValues[foundation.HudTurnsTaken]
-	turnsStr := fmt.Sprintf("T: %-4d", turns)
+	turnsStr := fmt.Sprintf(pad("T", 4), turns)
 
 	var statusStr string
 	if !multiLine {
 		hp := statusValues[foundation.HudHitPoints]
 		hpMax := statusValues[foundation.HudHitPointsMax]
 		hpValString := fmt.Sprintf("%d/%d", hp, hpMax)
-		hpStr := fmt.Sprintf("HP: %-7s", hpValString)
+		hpStr := "HP:" + hpValString
 		hpStr = u.colorIfDiff(hpStr, foundation.HudHitPoints, hp)
 
 		fatigueCurrent := statusValues[foundation.HudFatiguePoints]
 		fatigueMax := statusValues[foundation.HudFatiguePointsMax]
 		fpValString := fmt.Sprintf("%d/%d", fatigueCurrent, fatigueMax)
-		fpStr := fmt.Sprintf("FP: %-7s", fpValString)
+		fpStr := "FP:" + fpValString
 		fpStr = u.colorIfDiff(fpStr, foundation.HudFatiguePoints, fatigueCurrent)
 
 		flagString := FlagStringShort(flags)
@@ -1782,8 +1790,25 @@ func (u *UI) openInventory(items []foundation.ItemForUI) *TextInventory {
 	panelName := "inventory"
 
 	// the Visible window shows the item under the cursor while the inventory is open
-	list.onCursor = func(item foundation.ItemForUI) { u.setPane(u.lowerRightPanel, "visible", item.Description()) }
+	description := ""
+	if len(items) > 0 {
+		description = items[0].Description()
+	}
+	list.onCursor = func(item foundation.ItemForUI) {
+		description = item.Description()
+		u.setPane(u.lowerRightPanel, "visible", description)
+	}
+	if u.panes == nil { // a small box at the bottom while the terminal is too small for the Visible window
+		box := cview.NewBox()
+		box.SetBackgroundTransparent(true)
+		box.SetDrawFunc(func(screen tcell.Screen, x, y, width, height int) (int, int, int, int) {
+			u.drawItemDescription(screen, width, height, list.listWidth+2, description)
+			return x, y, width, height
+		})
+		u.pages.AddPanel("itemDescription", box, true, true)
+	}
 	list.SetCloseHandler(func() {
+		u.pages.RemovePanel("itemDescription")
 		u.pages.HidePanel(panelName)
 		if u.panes == nil {
 			u.UpdateVisibleEnemies()
@@ -1800,6 +1825,34 @@ func (u *UI) openInventory(items []foundation.ItemForUI) *TextInventory {
 	u.application.SetFocus(list)
 
 	return list
+}
+
+// drawItemDescription draws the inventory cursor's description low on the screen, centred in the
+// space left of the inventory, unless the Visible window (classic panels) is on screen to show it.
+func (u *UI) drawItemDescription(screen tcell.Screen, width, height, inventoryWidth int, description string) {
+	if description == "" || (width > u.settings.MapWidth && height >= u.settings.MapHeight+4) {
+		return
+	}
+	space := width - inventoryWidth
+	if space < 24 { // too narrow beside the inventory: use the whole width
+		space = width
+	}
+	boxWidth := min(space-2, 50)
+	var lines []string
+	for _, line := range strings.Split(description, "\n") {
+		if line == "" {
+			lines = append(lines, "")
+		}
+		lines = append(lines, cview.WordWrap(line, boxWidth-2)...)
+	}
+	boxHeight := min(len(lines)+2, height/2)
+	x, y := (space-boxWidth)/2, height-1-boxHeight // above the status bar
+	style := u.currentTheme.defaultStyle
+	runes := []rune{cview.Borders.Horizontal, cview.Borders.Vertical, cview.Borders.TopLeft, cview.Borders.TopRight, cview.Borders.BottomRight, cview.Borders.BottomLeft}
+	drawBackgroundAndBorderWithTitleForInventory(screen, x, y, boxWidth, boxHeight, "", style, runes)
+	for i, line := range lines[:boxHeight-2] {
+		cview.Print(screen, []byte(line), x+1, y+1+i, boxWidth-2, cview.AlignLeft, style.GetForeground())
+	}
 }
 
 func (u *UI) OpenInventoryForManagement(items []foundation.ItemForUI) {
@@ -2559,6 +2612,9 @@ func (u *UI) OpenThemesMenu() {
 	for _, t := range allThemes {
 		themeFile := t
 		themeName := strings.TrimSuffix(path.Base(themeFile), ".rec")
+		if u.panes == nil && NewThemeFromFile(themeFile).IsTiles() { // a real terminal has no tile font
+			continue
+		}
 		actions = append(actions, foundation.MenuItem{
 			Name: themeName,
 			Action: func() {

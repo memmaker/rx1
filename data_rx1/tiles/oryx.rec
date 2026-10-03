@@ -20,19 +20,19 @@ palette: ../themes/tiles.rec
 
 id: TileFloor
 name: tile floor
-icon: 1065
+icon: 1063
 color: DarkGray
 reference_image: ref/preview_dungeons.png
 
 id: TileWall
 name: tile wall
-icon: 802
+icon: 786
 color: DirtyBlue
 reference_image: ref/preview_dungeons.png
 
 id: TileRoomFloor
 name: tile room floor
-icon: 1065
+icon: 1063
 color: VeryDarkGray
 reference_image: ref/preview_dungeons.png
 
@@ -56,25 +56,25 @@ reference_image: ref/preview_dungeons.png
 
 id: TileRoomWallCornerTopLeft
 name: tile room wall corner top left
-icon: 804
+icon: 786
 color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
 id: TileRoomWallCornerTopRight
 name: tile room wall corner top right
-icon: 804
+icon: 786
 color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
 id: TileRoomWallCornerBottomRight
 name: tile room wall corner bottom right
-icon: 804
+icon: 802
 color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
 id: TileRoomWallCornerBottomLeft
 name: tile room wall corner bottom left
-icon: 804
+icon: 802
 color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
@@ -152,7 +152,7 @@ reference_image: ref/preview_dungeons.png
 
 id: TileWallFull
 name: tile wall full
-icon: 802
+icon: 786
 color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
@@ -164,7 +164,7 @@ reference_image: ref/preview_dungeons.png
 
 id: TileWallCross
 name: tile wall cross
-icon: 803
+icon: 786
 color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
@@ -225,13 +225,13 @@ reference_image: ref/preview_dungeons.png
 id: TileMountain
 name: tile mountain
 icon: 1047
-color: RockHi
+color: Brown
 reference_image: ref/preview_dungeons.png
 
 id: TileMountainPeak
 name: tile mountain peak
 icon: 1047
-color: Peak
+color: White
 reference_image: ref/preview_dungeons.png
 
 id: TileTownGrass
@@ -260,7 +260,7 @@ reference_image: ref/preview_dungeons.png
 
 id: TileRoof
 name: tile roof
-icon: 767
+icon: 794
 color: LightRed
 reference_image: ref/preview_dungeons.png
 
@@ -272,25 +272,25 @@ reference_image: ref/preview_dungeons.png
 
 id: TileTownWallSide
 name: tile town wall side
-icon: 867
+icon: 826
 color: LightGray
 reference_image: ref/preview_dungeons.png
 
 id: TileTownInterior
 name: tile town interior
-icon: 772
-color: LightGray
+icon: 1065
+color: VeryDarkGray
 reference_image: ref/preview_dungeons.png
 
 id: TileTownCornerTopLeft
 name: tile town corner top left
-icon: 866
+icon: 821
 color: LightRed
 reference_image: ref/preview_dungeons.png
 
 id: TileTownCornerTopRight
 name: tile town corner top right
-icon: 866
+icon: 821
 color: LightRed
 reference_image: ref/preview_dungeons.png
 
@@ -315,7 +315,7 @@ reference_image: ref/preview_dungeons.png
 id: TileTree
 name: tile tree
 icon: 1056
-color: LightGray
+color: GrassDot
 reference_image: ref/preview_dungeons.png
 
 id: TileWater
@@ -350,20 +350,20 @@ reference_image: ref/preview_dungeons.png
 
 id: TileBridge
 name: tile bridge
-icon: 1006
+icon: 754
 color: Brown
 reference_image: ref/preview_dungeons.png
 
 id: TileFungus
 name: tile fungus
-icon: 1136
+icon: 1061
 color: LightGreen
 reference_image: ref/preview_dungeons.png
 
 id: TileFungusForest
 name: tile fungus forest
-icon: 1137
-color: LightGreen
+icon: 1061
+color: Blue
 reference_image: ref/preview_dungeons.png
 
 id: TileVendorCurator
@@ -413,13 +413,13 @@ reference_image: ref/preview_items.png
 
 id: ItemArmor
 name: item armor
-icon: 654
-color: Orange
+icon: 641
+color: LightGray
 reference_image: ref/preview_items.png
 
 id: ItemRings
 name: item rings
-icon: 540
+icon: 545
 color: LightRed
 reference_image: ref/preview_items.png
 
@@ -443,8 +443,8 @@ reference_image: ref/preview_items.png
 
 id: ItemAmulets
 name: item amulets
-icon: 588
-color: LightMagenta
+icon: 544
+color: Yellow
 reference_image: ref/preview_items.png
 
 id: ItemDocuments
@@ -455,8 +455,8 @@ reference_image: ref/preview_items.png
 
 id: ItemLight
 name: item light
-icon: 575
-color: Yellow
+icon: 582
+color: LavaHi
 reference_image: ref/preview_items.png
 
 %rec: objects
@@ -470,14 +470,14 @@ reference_image: ref/preview_dungeons.png
 
 id: SlowTrap
 name: slow trap
-icon: 1017
-color: LightRed
+icon: 1076
+color: Blue
 reference_image: ref/preview_dungeons.png
 
 id: TeleportTrap
 name: teleport trap
 icon: 1074
-color: LightRed
+color: Yellow
 reference_image: ref/preview_dungeons.png
 
 id: DartTrap
@@ -619,13 +619,13 @@ reference_image: ../../web/monsters/bat.png
 
 id: emu
 name: emu
-icon: 91
-color: White
+icon: 99
+color: Peak
 reference_image: ../../web/monsters/emu.png
 
 id: hobgoblin
 name: hobgoblin
-icon: 160
+icon: 162
 color: Green
 reference_image: ../../web/monsters/hobgoblin.png
 
@@ -643,20 +643,20 @@ reference_image: ../../web/monsters/jackal.png
 
 id: floating_eye
 name: floating eye
-icon: 273
+icon: 322
 color: Blue
 reference_image: ../../web/monsters/floating_eye.png
 
 id: ice_monster
 name: ice monster
-icon: 350
-color: LightBlue
+icon: 275
+color: LightCyan
 reference_image: ../../web/monsters/ice_monster.png
 
 id: slime
 name: slime
 icon: 349
-color: LightCyan
+color: LavaHi
 reference_image: ../../web/monsters/slime.png
 
 id: snake
@@ -667,7 +667,7 @@ reference_image: ../../web/monsters/snake.png
 
 id: gnome
 name: gnome
-icon: 193
+icon: 194
 color: White
 reference_image: ../../web/monsters/gnome.png
 
@@ -679,7 +679,7 @@ reference_image: ../../web/monsters/orc.png
 
 id: rattlesnake
 name: rattlesnake
-icon: 85
+icon: 279
 color: LightGreen
 reference_image: ../../web/monsters/rattlesnake.png
 
@@ -691,14 +691,14 @@ reference_image: ../../web/monsters/invisible_stalker.png
 
 id: rust_monster
 name: rust monster
-icon: 381
+icon: 460
 color: Orange
 reference_image: ../../web/monsters/rust_monster.png
 
 id: zombie
 name: zombie
-icon: 351
-color: Orange
+icon: 345
+color: Peak
 reference_image: ../../web/monsters/zombie.png
 
 id: ant
@@ -709,8 +709,8 @@ reference_image: ../../web/monsters/giant_ant.png
 
 id: leprechaun
 name: leprechaun
-icon: 386
-color: Cyan
+icon: 387
+color: LightGreen
 reference_image: ../../web/monsters/leprechaun.png
 
 id: centaur
@@ -721,8 +721,8 @@ reference_image: ../../web/monsters/centaur.png
 
 id: kobold
 name: kobold
-icon: 164
-color: Red
+icon: 195
+color: Green
 reference_image: ../../web/monsters/kobold.png
 
 id: aquator
@@ -745,7 +745,7 @@ reference_image: ../../web/monsters/quagga.png
 
 id: nymph
 name: nymph
-icon: 205
+icon: 391
 color: LightMagenta
 reference_image: ../../web/monsters/nymph.png
 
@@ -763,25 +763,25 @@ reference_image: ../../web/monsters/yeti.png
 
 id: troll
 name: troll
-icon: 353
+icon: 357
 color: Orange
 reference_image: ../../web/monsters/troll.png
 
 id: violet_fungi
 name: violet fungi
-icon: 1136
+icon: 1061
 color: Magenta
 reference_image: ../../web/monsters/violet_fungi.png
 
 id: wraith
 name: wraith
 icon: 308
-color: Red
+color: Gray
 reference_image: ../../web/monsters/wraith.png
 
 id: venus_flytrap
 name: venus flytrap
-icon: 359
+icon: 380
 color: Green
 reference_image: ../../web/monsters/venus_flytrap.png
 
@@ -799,14 +799,14 @@ reference_image: ../../web/monsters/purple_worm.png
 
 id: ur_vile
 name: ur-vile
-icon: 309
-color: White
+icon: 168
+color: ShallowWaterBg
 reference_image: ../../web/monsters/ur-vile.png
 
 id: umber_hulk
 name: umber hulk
-icon: 128
-color: Green
+icon: 309
+color: Brown
 reference_image: ../../web/monsters/umber_hulk.png
 
 id: griffin
@@ -817,14 +817,14 @@ reference_image: ../../web/monsters/griffin.png
 
 id: medusa
 name: medusa
-icon: 157
-color: LightMagenta
+icon: 299
+color: LightGreen
 reference_image: ../../web/monsters/medusa.png
 
 id: quasit
 name: quasit
-icon: 119
-color: Green
+icon: 246
+color: DirtyYellow
 reference_image: ../../web/monsters/quasit.png
 
 id: xeroc
@@ -847,7 +847,7 @@ reference_image: ../../web/monsters/xorn.png
 
 id: vampire
 name: vampire
-icon: 304
+icon: 421
 color: Red
 reference_image: ../../web/monsters/vampire.png
 
@@ -865,6 +865,6 @@ reference_image: ../../web/monsters/dragon.png
 
 id: shrieker
 name: shrieker
-icon: 1137
-color: Magenta
+icon: 1061
+color: White
 reference_image: ../../web/monsters/shrieker.png
