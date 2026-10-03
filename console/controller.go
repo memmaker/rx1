@@ -1517,6 +1517,19 @@ func (u *UI) UpdateVisibleEnemies() {
 		asString = append(asString, enemyLine)
 	}
 	u.setPane(u.lowerRightPanel, "visible", strings.Join(asString, "\n"))
+	if u.panes == nil {
+		return
+	}
+	// web: each line's monster sheet and lore, shown when the line is clicked; hallucinating, the truth stays hidden
+	for i, enemy := range visibleEnemies {
+		sheet, lore := "", ""
+		if !u.isPlayerHallucinating() {
+			sheet = strings.Join(append(enemy.GetDetailInfo(), u.game.GetCombatInfo(enemy)...), "\n")
+			lore = strings.Join(util.ReadFileAsLines(path.Join(u.settings.DataRootDir, "lore", "monsters", enemy.GetInternalName()+".txt")), "\n")
+		}
+		u.setPane(nil, fmt.Sprint("sheet", i), sheet)
+		u.setPane(nil, fmt.Sprint("lore", i), lore)
+	}
 }
 
 func (u *UI) FullColorBarFromPercent(currentVal, maxVal, width int) string {
