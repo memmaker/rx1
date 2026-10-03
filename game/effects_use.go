@@ -420,6 +420,15 @@ func aggravate(g *GameState) {
 	g.msg(foundation.Msg("you hear a high pitched humming noise"))
 }
 
+func unidentifiedItems(g *GameState) []foundation.ItemForUI {
+	return g.GetFilteredInventory(func(item *Item) bool {
+		if item.IsWeapon() || item.IsArmor() { // known one by one, as in Rogue
+			return !item.isKnown
+		}
+		return item.IsMagic() && !g.identification.IsItemIdentified(item.GetInternalName())
+	})
+}
+
 func playerIdentifyItem(g *GameState, actor *Actor) []foundation.Animation {
 	identifyItem(g, g.endPlayerTurn)
 	return nil
@@ -427,12 +436,7 @@ func playerIdentifyItem(g *GameState, actor *Actor) []foundation.Animation {
 
 // identifyItem lets the player pick an unidentified item, then calls done
 func identifyItem(g *GameState, done func()) {
-	inventory := g.GetFilteredInventory(func(item *Item) bool {
-		if item.IsWeapon() || item.IsArmor() { // known one by one, as in Rogue
-			return !item.isKnown
-		}
-		return item.IsMagic() && !g.identification.IsItemIdentified(item.GetInternalName())
-	})
+	inventory := unidentifiedItems(g)
 	if len(inventory) == 0 {
 		g.msg(foundation.Msg("You are not carrying any unidentified items."))
 		return

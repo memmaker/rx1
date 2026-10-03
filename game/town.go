@@ -68,13 +68,20 @@ func (g *GameState) openVendor(tile foundation.TileType) {
 		g.openShop(vendorTitle(tile), wares, func(i *Item) bool { return i.IsWeapon() || i.IsArmor() })
 	case foundation.TileVendorCurator:
 		fee := documentPrice / 2
-		g.openShop(vendorTitle(tile), nil, (*Item).IsDocument, foundation.MenuItem{Name: "Identify (" + strconv.Itoa(fee) + " gold)", CloseMenus: true, Action: func() {
+		var identify func()
+		identify = func() {
 			if !g.Player.HasGold(fee) {
 				g.msg(foundation.Msg("You cannot afford that"))
 				return
 			}
-			identifyItem(g, func() { g.Player.RemoveGold(fee) })
-		}})
+			identifyItem(g, func() {
+				g.Player.RemoveGold(fee)
+				if g.Player.HasGold(fee) && len(unidentifiedItems(g)) > 0 {
+					identify()
+				}
+			})
+		}
+		g.openShop(vendorTitle(tile), nil, (*Item).IsDocument, foundation.MenuItem{Name: "Identify (" + strconv.Itoa(fee) + " gold)", CloseMenus: true, Action: identify})
 	}
 }
 
@@ -101,11 +108,14 @@ func (g *GameState) openShop(title string, wares []*Item, buys func(*Item) bool,
 			g.ui.OpenVendorMenu(title, forSale, g.buyItemFromVendor)
 		}})
 	}
-	menu = append(menu, foundation.MenuItem{Name: "Sell", CloseMenus: true, Action: func() {
+	var sell func(again bool)
+	sell = func(again bool) { // again: back to the list after a sale, quietly gone when nothing is left
 		equipment := g.Player.GetEquipment()
 		sellable := g.GetFilteredInventory(func(i *Item) bool { return buys(i) && !equipment.IsEquipped(i) })
 		if len(sellable) == 0 {
-			g.msg(foundation.Msg("You have nothing they want"))
+			if !again {
+				g.msg(foundation.Msg("You have nothing they want"))
+			}
 			return
 		}
 		g.ui.OpenInventoryForSelection(sellable, title+": sell what?", func(stack foundation.ItemForUI) {
@@ -114,8 +124,10 @@ func (g *GameState) openShop(title string, wares []*Item, buys func(*Item) bool,
 			g.removeItemFromInventory(g.Player, item)
 			g.Player.AddGold(price)
 			g.msg(foundation.HiLite("You sold %s for %s gold", item.Name(), strconv.Itoa(price)))
+			sell(true)
 		})
-	}})
+	}
+	menu = append(menu, foundation.MenuItem{Name: "Sell", CloseMenus: true, Action: func() { sell(false) }})
 	menu = append(menu, services...)
 	g.ui.OpenTitledMenu(title, menu)
 }
