@@ -22,6 +22,7 @@ type saveActor struct {
 	Items      []json.RawMessage       `json:"items,omitempty"`
 	HoldHits   int                     `json:"hold_hits,omitempty"`
 	TimeEnergy int                     `json:"time_energy,omitempty"`
+	Tail       []geometry.Point        `json:"tail,omitempty"`
 	Disguise   foundation.ItemCategory `json:"disguise,omitempty"` // ponytail: the enum number, a mimic looks odd if the enum shifts
 }
 
@@ -110,11 +111,15 @@ func (g *GameState) encodeLevel(depth int, secret bool, v *visitedLevel) saveLev
 		l.Glow = append(l.Glow, saveGlow{p, c})
 	}
 	for _, a := range m.Actors() {
-		if a == g.Player || !a.IsAlive() {
+		if a == g.Player || !a.IsAlive() || a.head != nil {
 			continue
 		}
+		var tail []geometry.Point
+		for _, seg := range a.tail {
+			tail = append(tail, seg.Position())
+		}
 		l.Actors = append(l.Actors, saveActor{a.internalName, a.Position(), a.stats, flagsToSave(a.GetFlags()),
-			g.toSaveItems(a.GetInventory()), a.holdHits, a.timeEnergy, a.disguise})
+			g.toSaveItems(a.GetInventory()), a.holdHits, a.timeEnergy, tail, a.disguise})
 	}
 	for _, i := range m.Items() {
 		raw, _ := json.Marshal(saveFloorItem{g.toSaveItem(i), i.Position().X, i.Position().Y})
@@ -181,6 +186,11 @@ func (g *GameState) decodeLevel(l saveLevel, current bool) (*visitedLevel, error
 		}
 		a.holdHits, a.timeEnergy, a.disguise = sa.HoldHits, sa.TimeEnergy, sa.Disguise
 		m.ForceSpawnActorInWall(a, sa.Pos) // keeps a monster inside rock where it was
+		for _, p := range sa.Tail {
+			if free(p) {
+				m.ForceSpawnActorInWall(newSegment(a), p)
+			}
+		}
 	}
 	for _, raw := range l.Items {
 		var at struct{ X, Y int }

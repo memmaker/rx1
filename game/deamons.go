@@ -15,7 +15,7 @@ func (g *GameState) enemyMovement(playerTimeSpent int) {
 	allEnemies := gridMap.Actors()
 	for i := len(allEnemies) - 1; i >= 0; i-- { // Rogue: the newest monster acts first
 		enemy := allEnemies[i]
-		if enemy == g.Player {
+		if enemy == g.Player || enemy.head != nil { // worm segments move with the head
 			continue
 		}
 		if !enemy.IsAlive() {
@@ -102,7 +102,7 @@ func (g *GameState) removeDeadAndApplyRegeneration() {
 
 	for i := len(g.gridMap.Actors()) - 1; i >= 0; i-- {
 		actor := g.gridMap.Actors()[i]
-		if !actor.IsAlive() {
+		if !actor.IsAlive() || actor.head != nil && !g.onMap(actor.head) {
 			g.gridMap.RemoveActor(actor)
 		} else {
 			g.applyRot(actor)

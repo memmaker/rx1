@@ -80,10 +80,10 @@ func (g *GameState) shriek(shrieker *Actor) {
 	}
 }
 
-// aiHuntShrieker: purple worms greatly prize shriekers as food.
-func (g *GameState) aiHuntShrieker(worm *Actor) bool {
+// aiHuntFungi: purple worms greatly prize shriekers as food, and eat violet fungi too. Each meal grows the tail.
+func (g *GameState) aiHuntFungi(worm *Actor) bool {
 	for _, prey := range g.gridMap.Actors() {
-		if prey.GetInternalName() != "shrieker" || !prey.IsAlive() || geometry.DistanceChebyshev(worm.Position(), prey.Position()) > 6 || !g.inReach(worm.Position(), prey.Position()) {
+		if prey.GetInternalName() != "shrieker" && prey.GetInternalName() != "violet_fungi" || !prey.IsAlive() || geometry.DistanceChebyshev(worm.Position(), prey.Position()) > 6 || !g.inReach(worm.Position(), prey.Position()) {
 			continue
 		}
 		if geometry.DistanceChebyshev(worm.Position(), prey.Position()) > 1 {
@@ -92,6 +92,7 @@ func (g *GameState) aiHuntShrieker(worm *Actor) bool {
 		}
 		g.msg(foundation.HiLite("%s devours %s", worm.Name(), prey.Name()))
 		worm.Heal(prey.GetHitPointsMax())
+		worm.GetFlags().Increment(foundation.FlagGrow)
 		g.ui.AddAnimations(g.damageActor(worm.Name(), prey, prey.GetHitPoints()))
 		return true
 	}
