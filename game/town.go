@@ -27,6 +27,9 @@ func vendorTitle(tile foundation.TileType) string {
 	return ""
 }
 
+// documentPrice: the curator pays half of it for lore and asks the same half to identify
+const documentPrice = 40
+
 // itemPrice is what a vendor asks; he pays half of it.
 // ponytail: flat price per kind, add a price field to the .rec files when balance needs it
 func itemPrice(i *Item) int {
@@ -40,7 +43,7 @@ func itemPrice(i *Item) int {
 	case i.IsWeapon():
 		return 50
 	case i.IsDocument():
-		return 40
+		return documentPrice
 	case i.IsLight():
 		return 30
 	case i.IsFood():
@@ -64,7 +67,14 @@ func (g *GameState) openVendor(tile foundation.TileType) {
 		}
 		g.openShop(vendorTitle(tile), wares, func(i *Item) bool { return i.IsWeapon() || i.IsArmor() })
 	case foundation.TileVendorCurator:
-		g.openShop(vendorTitle(tile), nil, (*Item).IsDocument)
+		fee := documentPrice / 2
+		g.openShop(vendorTitle(tile), nil, (*Item).IsDocument, foundation.MenuItem{Name: "Identify (" + strconv.Itoa(fee) + " gold)", CloseMenus: true, Action: func() {
+			if !g.Player.HasGold(fee) {
+				g.msg(foundation.Msg("You cannot afford that"))
+				return
+			}
+			identifyItem(g, func() { g.Player.RemoveGold(fee) })
+		}})
 	}
 }
 
@@ -80,7 +90,7 @@ func rusty(i *Item) *Item {
 	return i
 }
 
-func (g *GameState) openShop(title string, wares []*Item, buys func(*Item) bool) {
+func (g *GameState) openShop(title string, wares []*Item, buys func(*Item) bool, services ...foundation.MenuItem) {
 	var menu []foundation.MenuItem
 	if len(wares) > 0 {
 		menu = append(menu, foundation.MenuItem{Name: "Buy", CloseMenus: true, Action: func() {
@@ -106,6 +116,7 @@ func (g *GameState) openShop(title string, wares []*Item, buys func(*Item) bool)
 			g.msg(foundation.HiLite("You sold %s for %s gold", item.Name(), strconv.Itoa(price)))
 		})
 	}})
+	menu = append(menu, services...)
 	g.ui.OpenTitledMenu(title, menu)
 }
 
