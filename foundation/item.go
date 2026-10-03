@@ -14,6 +14,7 @@ type ItemForUI interface {
 	IsEquippable() bool
 	IsUsableOrZappable() bool
 	GetListInfo() string
+	Description() string // cview-tagged lines for the Visible window while the inventory is open
 	Shortcut() rune
 	DisplayLength() int
 	Position() geometry.Point

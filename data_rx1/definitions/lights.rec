@@ -4,6 +4,7 @@
 
 name: torch
 internal_name: torch
+description: Lights radius 1 and burns 800 turns of fuel. Fuel is not used in lit rooms or in town.
 category: light
 slot: light_source
 charges: 800
@@ -14,6 +15,7 @@ light_flicker_frame_delay: 125
 
 name: lantern
 internal_name: lantern
+description: Lights radius 2 and burns 1000 to 1200 turns of fuel. Fuel is not used in lit rooms or in town.
 category: light
 slot: light_source
 charges: 1000-1200
@@ -24,6 +26,7 @@ light_flicker_frame_delay: 125
 
 name: brass lantern
 internal_name: brass_lantern
+description: Lights radius 3 and burns 1000 to 1200 turns of fuel. Fuel is not used in lit rooms or in town.
 category: light
 slot: light_source
 charges: 1000-1200
@@ -34,6 +37,7 @@ light_flicker_frame_delay: 125
 
 name: the Star-Glass
 internal_name: star_glass
+description: A legendary light that never runs out of fuel.
 category: light
 slot: light_source
 light_radius: 4
@@ -43,6 +47,7 @@ light_flicker_frame_delay: 125
 
 name: the Morning Star
 internal_name: morning_star
+description: A legendary light with a very wide radius that never runs out of fuel.
 category: light
 slot: light_source
 light_radius: 12

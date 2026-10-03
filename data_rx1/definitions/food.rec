@@ -1,4 +1,5 @@
 name: ration of food
 internal_name: food_ration
+description: Eating it refills your stomach for roughly 1100 to 1500 turns. Now and then it tastes awful, but gives a little experience.
 category: food
 use_effect: satiate_fully

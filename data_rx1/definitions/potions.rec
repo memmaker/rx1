@@ -5,6 +5,7 @@
 
 name: potion of confusion
 internal_name: potion_confusion
+description: Confuses you for 20 to 27 turns, so your moves go astray.
 use_effect: confuse
 category: potions
 charges: 1
@@ -13,6 +14,7 @@ worth: 5
 
 name: potion of monster detection
 internal_name: potion_monster_detection
+description: Shows every monster on the level for 8 to 15 turns.
 use_effect: detect_monsters
 category: potions
 charges: 1
@@ -21,6 +23,7 @@ worth: 130
 
 name: potion of magic detection
 internal_name: potion_magic_detection
+description: Shows the magic items lying on the level.
 use_effect: detect_magic
 category: potions
 charges: 1
@@ -29,6 +32,7 @@ worth: 105
 
 name: potion of haste
 internal_name: potion_haste
+description: You act twice as fast for 20 to 30 turns. Drinking while slowed only cancels the slowness.
 use_effect: haste
 category: potions
 charges: 1
@@ -38,6 +42,7 @@ always_id_on_use: true
 
 name: potion of blindness
 internal_name: potion_blindness
+description: Blinds you for 25 to 40 turns. A healing potion cures it.
 use_effect: blindness
 category: potions
 charges: 1
@@ -47,6 +52,7 @@ always_id_on_use: true
 
 name: potion of levitation
 internal_name: potion_levitation
+description: You float for 25 to 35 turns.
 use_effect: levitation
 category: potions
 charges: 1
@@ -55,6 +61,7 @@ worth: 75
 
 name: potion of see invisible
 internal_name: potion_see_invisible
+description: Lets you see invisible monsters for 100 to 200 turns.
 use_effect: see_invisible
 category: potions
 charges: 1
@@ -63,6 +70,7 @@ worth: 100
 
 name: potion of healing
 internal_name: potion_healing
+description: Heals level d4 HP. Healing past full raises maximum HP. Cures blindness and rot.
 use_effect: heal
 category: potions
 charges: 1
@@ -72,6 +80,7 @@ always_id_on_use: true
 
 name: potion of extra healing
 internal_name: potion_extra_healing
+description: Heals level d8 HP. Healing past full raises maximum HP. Cures blindness, rot and hallucination.
 use_effect: extra_heal
 category: potions
 charges: 1
@@ -81,6 +90,7 @@ always_id_on_use: true
 
 name: potion of raise level
 internal_name: potion_raise_level
+description: Raises your experience level by one.
 use_effect: raise_level
 category: potions
 charges: 1
@@ -90,6 +100,7 @@ always_id_on_use: true
 
 name: potion of hallucination
 internal_name: potion_hallucination
+description: Monsters look like other creatures for 100 to 150 turns. Extra healing cures it.
 use_effect: hallucination
 category: potions
 charges: 1
@@ -99,6 +110,7 @@ always_id_on_use: true
 
 name: potion of gain strength
 internal_name: potion_gain_strength
+description: Restores any lost strength, then adds one point of strength.
 use_effect: gain_strength
 category: potions
 charges: 1
@@ -109,6 +121,7 @@ always_id_on_use: true
 # never found in the dungeon: sold by the general store
 name: potion of life
 internal_name: potion_life
+description: Raises your maximum HP by one and heals one HP.
 use_effect: gain_max_hp
 category: potions
 charges: 1

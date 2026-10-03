@@ -30,6 +30,8 @@ type TextInventory struct {
 	lineColor            func(foundation.ItemCategory) color.RGBA
 	cursor               int
 	contextMenu          func(item foundation.ItemForUI)
+	onCursor             func(item foundation.ItemForUI) // called when the cursor lands on another item
+	cursorItem           foundation.ItemForUI
 }
 
 func (i *TextInventory) SetContextMenu(open func(item foundation.ItemForUI)) {
@@ -88,6 +90,10 @@ func (i *TextInventory) drawInside(screen tcell.Screen, x int, y int, width int,
 	drawBackgroundAndBorderWithTitleForInventory(screen, startX, startY, i.listWidth+2, i.listHeight+2, i.ourTitle, i.style, runes)
 
 	i.cursor = min(max(i.cursor, 0), max(len(i.items)-1, 0))
+	if i.onCursor != nil && len(i.items) > 0 && i.items[i.cursor] != i.cursorItem {
+		i.cursorItem = i.items[i.cursor]
+		i.onCursor(i.cursorItem)
+	}
 	for lineIndex, item := range i.items {
 		line := item.InventoryNameWithColorsAndShortcut(RGBAToFgColorCode(i.lineColor(item.GetCategory())))
 		if i.isEquipped != nil && i.isEquipped(item) {

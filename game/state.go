@@ -1466,6 +1466,7 @@ func NewItem(def ItemDef, id *IdentificationKnowledge) *Item {
 		equipFlag:    def.EquipFlag,
 		thrownDamage: def.ThrowDamageDice,
 		text:         def.Text,
+		description:  def.Description,
 		light: foundation.LightInfo{
 			Radius:  def.LightRadius,
 			Color:   def.LightColor,

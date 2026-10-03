@@ -1,5 +1,6 @@
 name: main gauche
 internal_name: main_gauche
+description: A light sword, poor when thrown.
 category: weapons
 chance: 8
 slot: one_handed_weapon
@@ -9,6 +10,7 @@ thrown_damage: 1d3
 
 name: mace
 internal_name: mace
+description: A heavy club. Weak when thrown.
 category: weapons
 chance: 11
 slot: one_handed_weapon
@@ -19,6 +21,7 @@ worth: 8
 
 name: long sword
 internal_name: long_sword
+description: A one-handed sword that hits hard. Poor when thrown.
 slot: one_handed_weapon
 category: weapons
 chance: 11
@@ -29,6 +32,7 @@ worth: 15
 
 name: short bow
 internal_name: short_bow
+description: Fires arrows from the quiver. Arrows need a bow to be shot.
 slot: missile_launcher
 category: weapons
 chance: 12
@@ -39,6 +43,7 @@ worth: 15
 
 name: arrow
 internal_name: arrow
+description: Shot from a bow for full damage. Thrown by hand it does almost nothing.
 category: weapons
 chance: 12
 slot: quiver
@@ -50,6 +55,7 @@ worth: 1
 
 name: dagger
 internal_name: dagger
+description: A light blade that is also decent thrown.
 slot: one_handed_weapon
 category: weapons
 chance: 8
@@ -60,6 +66,7 @@ worth: 3
 
 name: two handed sword
 internal_name: two_handed_sword
+description: Needs both hands, so no other hand item can be held with it. Poor when thrown.
 slot: two_handed_weapon
 category: weapons
 chance: 10
@@ -71,6 +78,7 @@ worth: 75
 
 name: dart
 internal_name: dart
+description: Thrown from the quiver. Light, but better thrown than most weapons.
 slot: quiver
 category: weapons
 chance: 12
@@ -81,6 +89,7 @@ worth: 2
 
 name: crossbow
 internal_name: crossbow
+description: Fires crossbow bolts from the quiver. Bolts need a crossbow to be shot.
 slot: missile_launcher
 category: weapons
 chance: 12
@@ -90,6 +99,7 @@ thrown_damage: 1d1
 
 name: crossbow bolt
 internal_name: crossbow_bolt
+description: Shot from a crossbow for full damage. Thrown by hand it does little.
 slot: quiver
 category: weapons
 chance: 12
@@ -100,6 +110,7 @@ thrown_damage: 1d2
 
 name: spear
 internal_name: spear
+description: One-handed and one of the best weapons to throw.
 slot: one_handed_weapon
 category: weapons
 chance: 12
@@ -110,6 +121,7 @@ worth: 5
 
 name: overkill
 internal_name: overkill
+description: A one-handed spear of frightening power, also fine to throw.
 slot: one_handed_weapon
 category: weapons
 chance: 1
@@ -120,6 +132,7 @@ weapon_skill_used: melee
 
 name: club
 internal_name: club
+description: A simple one-handed club. Weak when thrown.
 category: weapons
 chance: 11
 slot: one_handed_weapon
@@ -129,6 +142,7 @@ thrown_damage: 1d3
 
 name: axe
 internal_name: axe
+description: A one-handed axe. Weak when thrown.
 category: weapons
 chance: 10
 slot: one_handed_weapon
@@ -138,6 +152,7 @@ thrown_damage: 1d3
 
 name: rapier
 internal_name: rapier
+description: A one-handed blade. Poor when thrown.
 category: weapons
 chance: 8
 slot: one_handed_weapon
@@ -147,6 +162,7 @@ thrown_damage: 1d2
 
 name: whip
 internal_name: whip
+description: A one-handed whip. Useless when thrown.
 category: weapons
 chance: 8
 slot: one_handed_weapon
@@ -156,6 +172,7 @@ thrown_damage: 1d1
 
 name: battle axe
 internal_name: battle_axe
+description: Needs both hands, so no other hand item can be held with it. Weak when thrown.
 slot: two_handed_weapon
 category: weapons
 chance: 6

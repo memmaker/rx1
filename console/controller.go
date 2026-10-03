@@ -1757,11 +1757,19 @@ func (u *UI) openInventory(items []foundation.ItemForUI) *TextInventory {
 
 	panelName := "inventory"
 
+	// the Visible window shows the item under the cursor while the inventory is open
+	list.onCursor = func(item foundation.ItemForUI) { u.setPane(u.lowerRightPanel, "visible", item.Description()) }
 	list.SetCloseHandler(func() {
 		u.pages.HidePanel(panelName)
+		if u.panes == nil {
+			u.UpdateVisibleEnemies()
+		}
 	})
 	if u.panes != nil { // the menu takes over the Inventory window instead of covering the map
-		u.drawToPane(list.Box, "inventory", func() int { return list.listWidth + 2 }, list.menuHeight, list.drawInside, u.UpdateInventory)
+		u.drawToPane(list.Box, "inventory", func() int { return list.listWidth + 2 }, list.menuHeight, list.drawInside, func() {
+			u.UpdateInventory()
+			u.UpdateVisibleEnemies()
+		})
 	}
 	u.pages.AddPanel(panelName, list, true, true)
 	u.pages.ShowPanel(panelName)
