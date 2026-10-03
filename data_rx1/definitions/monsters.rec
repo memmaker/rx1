@@ -452,14 +452,14 @@ name: ur-vile
 level: 7
 exp: 190
 armor: -2
-damage: 1d9/1d9/2d9
+damage: 1d3/1d3/1d3/4d6
 internal_name: ur_vile
 letter: u
 dlvl: 21
 color: White
 gold: 0
 carry_chance: 45
-flags: group
+flags: group | mean
 use_effect: darkness
 
 name: umber hulk
