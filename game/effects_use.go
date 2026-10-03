@@ -301,7 +301,9 @@ func makeInvisible(g *GameState, user *Actor) {
 	turnsUntilVisible := rand.Intn(8) + 8
 	g.Player.GetFlags().Increase(foundation.FlagInvisible, turnsUntilVisible)
 }
-func haste(g *GameState, user *Actor) {
+func haste(g *GameState, user *Actor) { hasteFor(g, user, rand.Intn(11)+20) }
+
+func hasteFor(g *GameState, user *Actor, turns int) {
 	if user.GetFlags().IsSet(foundation.FlagSlow) {
 		user.GetFlags().Unset(foundation.FlagSlow)
 		return
@@ -315,8 +317,7 @@ func haste(g *GameState, user *Actor) {
 
 	g.msg(foundation.Msg("The world around you slows down"))
 
-	tunsUntilUnhasted := rand.Intn(11) + 20
-	g.Player.GetFlags().Increase(foundation.FlagHaste, tunsUntilUnhasted)
+	g.Player.GetFlags().Increase(foundation.FlagHaste, turns)
 }
 
 func slow(g *GameState, user *Actor) {

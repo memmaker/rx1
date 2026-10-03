@@ -141,7 +141,7 @@ func (g *GameState) OpenTacticsMenu() {
 	menuItems = append(menuItems, foundation.MenuItem{
 		Name: "Charge Attack",
 		Action: func() {
-			g.startAimZapEffect("charge_attack", nil)
+			g.startCharge("charge_attack", nil)
 		},
 		CloseMenus: true,
 	})
@@ -154,15 +154,17 @@ func (g *GameState) OpenTacticsMenu() {
 					payFatigue := func() {
 						g.Player.LooseFatigue(1)
 					}
-					g.startAimZapEffect("heroic_charge", payFatigue)
+					g.startCharge("heroic_charge", payFatigue)
 				} else {
 					g.msg(foundation.Msg("You are too fatigued to perform a heroic charge"))
 				}
 			},
 			CloseMenus: true,
 		})
+	}
+	if g.Player.GetFatiguePoints() >= sprintCost {
 		menuItems = append(menuItems, foundation.MenuItem{
-			Name: "Start Sprinting",
+			Name: fmt.Sprintf("Start Sprinting (%d FP)", sprintCost),
 			Action: func() {
 				g.startSprint(g.Player)
 			},
@@ -1303,13 +1305,36 @@ func (g *GameState) dropInventory(victim *Actor) {
 	}
 }
 
+// Tactics: a charge needs room to run and not too much of it; a sprint is a short burst, not a potion of speed.
+const (
+	chargeMinRange = 2
+	chargeMaxRange = 6
+	sprintCost     = 2
+	sprintTurns    = 10
+)
+
+// startCharge aims a charge; a target out of range costs nothing.
+func (g *GameState) startCharge(effect string, payCost func()) {
+	g.ui.SelectTarget(g.Player.Position(), func(targetPos geometry.Point) {
+		d := g.Player.Position().Sub(targetPos)
+		if r := max(abs(d.X), abs(d.Y)); r < chargeMinRange || r > chargeMaxRange {
+			g.msg(foundation.Msg(fmt.Sprintf("A charge needs a target %d to %d tiles away", chargeMinRange, chargeMaxRange)))
+			return
+		}
+		if payCost != nil {
+			payCost()
+		}
+		g.playerInvokeZapEffectAndEndTurn(effect, targetPos)
+	})
+}
+
 func (g *GameState) startSprint(actor *Actor) {
-	if actor.GetFatiguePoints() < 1 {
+	if actor.GetFatiguePoints() < sprintCost {
 		g.msg(foundation.Msg("You are too tired to sprint"))
 		return
 	}
-	actor.LooseFatigue(1)
-	haste(g, actor)
+	actor.LooseFatigue(sprintCost)
+	hasteFor(g, actor, sprintTurns)
 }
 
 func (g *GameState) AddCurseToEquippable(item *Item) {
