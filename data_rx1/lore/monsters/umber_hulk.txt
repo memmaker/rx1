@@ -1,1 +1,13 @@
-[#FFFFFF]
+[#f5e342]Origin[-]
+
+The umber hulk is a Dungeons & Dragons creation, a burrowing predator with iron claws, great mandibles and four eyes that addle the mind.
+
+    Umber hulks are subterranean predators. Their iron-like claws enable them to burrow through solid stone at 1" per turn and through loam at fully 6 times that rate. Their prey includes young purple worms, anhkheg, and similar monsters. However, the favorite prey of umber hulks are humans.
+    - Monster Manual (1977), p. 98
+
+    Worse still, any intelligent creature which views the umber hulk's four eyes squarely must save versus magic or be confused for 3-12 melee rounds.
+    - Monster Manual (1977), p. 98
+
+[#f5e342]Rogue Trivia[-]
+
+Rogue 3.6 kept the book's claws, bite and gaze: "3d4/3d4/2d5", and the first time an umber hulk sees the hero, unless the hero saves against magic, "The umber hulk's gaze has confused you." Rogue 5.x removed it along with the other monsters Dungeons & Dragons invented. In rx1 it also burrows through rock, as the book says.
