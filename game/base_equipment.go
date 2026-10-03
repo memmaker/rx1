@@ -22,6 +22,9 @@ func (e *Equipment) IsEquipped(item *Item) bool {
 	if slotName == foundation.SlotNameTwoHandedWeapon || slotName == foundation.SlotNameOneHandedWeapon {
 		slotName = foundation.SlotNameMainHand
 	}
+	if slotName == foundation.SlotNameShield {
+		slotName = foundation.SlotNameOffHand
+	}
 
 	if slotName == foundation.SlotNameRing {
 		if slotItem, exists := e.slots[foundation.SlotNameRingLeft]; exists && slotItem == item {
@@ -51,6 +54,15 @@ func (e *Equipment) Equip(item *Item) {
 		return
 	}
 
+	// a shield is strapped to the off hand, which a two-handed weapon needs too
+	if slotName == foundation.SlotNameShield {
+		if main := e.slots[foundation.SlotNameMainHand]; main != nil && main.IsTwoHandedWeapon() {
+			delete(e.slots, foundation.SlotNameMainHand)
+		}
+		e.slots[foundation.SlotNameOffHand] = item
+		return
+	}
+
 	if slotName == foundation.SlotNameRing {
 		if _, exists := e.slots[foundation.SlotNameRingLeft]; !exists {
 			e.slots[foundation.SlotNameRingLeft] = item
@@ -75,6 +87,9 @@ func (e *Equipment) UnEquip(item *Item) {
 	}
 	if slotName == foundation.SlotNameOneHandedWeapon {
 		slotName = foundation.SlotNameMainHand
+	}
+	if slotName == foundation.SlotNameShield {
+		slotName = foundation.SlotNameOffHand
 	}
 	if slotName == foundation.SlotNameRing {
 		if slotItem, exists := e.slots[foundation.SlotNameRingLeft]; exists && slotItem == item {
@@ -153,7 +168,7 @@ func (e *Equipment) CanEquip(item *Item) bool {
 }
 func (e *Equipment) GetItemsToReplace(item *Item) []*Item {
 	var items []*Item
-	if item.SlotName() == foundation.SlotNameOffHand {
+	if item.SlotName() == foundation.SlotNameShield {
 		mainHandItem, hasItemInMainHand := e.slots[foundation.SlotNameMainHand]
 		if hasItemInMainHand && mainHandItem.IsTwoHandedWeapon() {
 			items = appendIfNotNil(items, e.slots[foundation.SlotNameMainHand])

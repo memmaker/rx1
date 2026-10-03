@@ -69,3 +69,21 @@ slot: torso
 armor: 7
 chance: 5
 worth: 150
+
+name: buckler
+internal_name: buckler
+description: A small round shield gripped in the fist, the companion of the sword and buckler fighters of the late Middle Ages. Too small to rust through, too busy to hold a two-handed weapon.
+category: armor
+slot: shield
+armor: 1
+chance: 3
+worth: 10
+
+name: large shield
+internal_name: large_shield
+description: A tall iron-rimmed shield that covers a man from chin to knee, like the Roman scutum or the pavise of medieval crossbowmen. Heavy, and the iron rusts.
+category: armor
+slot: shield
+armor: 2
+chance: 2
+worth: 40

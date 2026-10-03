@@ -25,6 +25,7 @@ func (roomGame) IsVisibleToPlayer(p geometry.Point) bool {
 }
 func (roomGame) GetHudFlags() map[foundation.ActorFlag]int { return nil }
 func (roomGame) GetPlayerPosition() geometry.Point         { return previewCenter }
+func (roomGame) PlayerWielding() (string, string) { return "", "" }
 func (roomGame) GetPlayerLight() (foundation.LightInfo, bool) {
 	return foundation.LightInfo{}, false
 }

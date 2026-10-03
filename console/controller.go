@@ -481,14 +481,20 @@ func (u *UI) getIconForActor(actor foundation.ActorForUI) foundation.TextIcon {
 	}
 
 	icon := actor.TextIcon(u.currentTheme.GetIconForMap(foundation.TileFloor).Bg, u.currentTheme.GetColorByName)
-	if actor == u.game.ActorAt(u.game.GetPlayerPosition()) { // the player looks as the theme says
+	if actor == u.game.ActorAt(u.game.GetPlayerPosition()) { // the player looks as the theme says, wielding their weapon in tiles
 		icon.Rune, icon.Fg = u.currentTheme.playerIcon.Rune, u.currentTheme.playerIcon.Fg
-	} else if len(u.currentTheme.monsterIcons) > 0 { // tiles mode: the monster's tile
+		if sprite := u.currentTheme.PlayerSprite(u.game.PlayerWielding()); sprite != 0 {
+			icon.Rune = sprite
+		}
+	} else if len(u.currentTheme.monsterIcons) > 0 { // tiles mode: the monster's tile, animated
 		tile, ok := u.currentTheme.monsterIcons[actor.GetInternalName()]
 		if !ok {
 			return icon
 		}
 		icon.Rune = tile.Rune
+		if idleFrame() == 1 {
+			icon.Rune = u.currentTheme.monsterAnim[actor.GetInternalName()]
+		}
 		if tile.Fg.A != 0 {
 			icon.Fg = tile.Fg
 		}

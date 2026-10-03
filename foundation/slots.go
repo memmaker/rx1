@@ -38,6 +38,8 @@ func (n EquipSlot) ToString() string {
 		return "On back"
 	case SlotNameQuiver:
 		return "Quivered"
+	case SlotNameShield:
+		return "On arm"
 	}
 	return "Unknown"
 }
@@ -113,6 +115,8 @@ func ItemSlotFromString(s string) EquipSlot {
 		return SlotNameArmorBack
 	case "quiver":
 		return SlotNameQuiver
+	case "shield":
+		return SlotNameShield
 	}
 	panic("Invalid slot: " + s)
 }
