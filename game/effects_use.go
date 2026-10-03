@@ -89,6 +89,7 @@ func healBy(g *GameState, actor *Actor, sides int, extra bool) {
 		actor.GetFlags().Unset(foundation.FlagBlind)
 		g.msg(foundation.Msg("You can see again"))
 	}
+	actor.GetFlags().Unset(foundation.FlagRotting)
 	if extra {
 		actor.GetFlags().Unset(foundation.FlagHallucinating)
 	}
@@ -189,6 +190,7 @@ func noAnim(h func(g *GameState, user *Actor)) func(*GameState, *Actor) []founda
 		return nil
 	}
 }
+
 // withFx runs h and plays the named effect on the user.
 func withFx(effect string, h func(g *GameState, user *Actor)) func(*GameState, *Actor) []foundation.Animation {
 	return func(g *GameState, user *Actor) []foundation.Animation {

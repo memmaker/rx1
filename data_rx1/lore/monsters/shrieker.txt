@@ -1,0 +1,5 @@
+[#FFFFFF]A mindless, man-sized mushroom that lives in dark places beneath the ground. It cannot move. Light or movement nearby sets off a piercing shriek that wakes everything around and calls wandering monsters. Violet fungi grow among shriekers, and purple worms hunt them as food.[-]
+
+[#f5e342]Origin[-]
+
+Taken from the DnD Monster Manual 1st Edition, where it is usually found together with the violet fungus.

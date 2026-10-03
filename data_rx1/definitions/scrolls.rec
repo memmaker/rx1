@@ -25,6 +25,14 @@ chance: 2
 worth: 180
 use_effect: freeze_monsters_in_room
 
+name: charm monster
+internal_name: charm_monster
+category: scrolls
+charges: 1
+chance: 2
+worth: 200
+zap_effect: charm_target
+
 name: sleep
 internal_name: sleep
 category: scrolls

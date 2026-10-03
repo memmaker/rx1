@@ -71,6 +71,14 @@ func (f ActorFlag) String() string { // Nice strings for display
 		return "Stealth"
 	case FlagSearching:
 		return "Searching"
+	case FlagCharmed:
+		return "Charmed"
+	case FlagBranches:
+		return "Branches"
+	case FlagReach:
+		return "Reach"
+	case FlagRotting:
+		return "Rotting"
 	}
 	return "Unknown"
 }
@@ -143,6 +151,8 @@ func (f ActorFlag) StringShort() string { // short abbreviated strings (2-3 lett
 		return "Srh"
 	case FlagPoisoned:
 		return "Psn"
+	case FlagRotting:
+		return "Rot"
 	}
 	return "Unk"
 
@@ -202,6 +212,11 @@ const (
 	FlagFireVulnerable // D&D yeti: fire does half again as much damage
 	FlagShunsLight     // D&D wraith: never found on a lit tile
 	FlagMagicToHurt    // D&D wraith: mundane weapons do half damage
+	FlagCharmed        // turns left fighting on the hero's side
+	FlagBranches       // D&D violet fungus: attacks per turn, severed by hard hits
+	FlagReach          // violet fungus: how many tiles its branches reach
+	FlagRotting        // violet fungus: 1 damage per turn while set
+	FlagShriek         // shrieker: shrieking above shriekCooldown, quiet below it
 )
 
 func AllFlagsExceptGoldOrdered() []ActorFlag {
@@ -233,6 +248,7 @@ func AllFlagsExceptGoldOrdered() []ActorFlag {
 		FlagHallucinating,
 		FlagSlowDigestion,
 		FlagPoisoned,
+		FlagRotting,
 		FlagHungry,
 		FlagWeak,
 		FlagFaint,

@@ -78,6 +78,8 @@ func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.
 		}
 	}
 
+	g.placeShriekers(random, newMap, canHoldMonster)
+
 	// put_things
 	if !noNewStuff {
 		treasureRooms := 0
@@ -171,7 +173,7 @@ func (g *GameState) rogueMonsterFor(random *rand.Rand, level int, wander, lit bo
 // nonWanderers are the blank slots of wand_mons: 5.4's, plus 3.6's for its own monsters
 // (the troll wanders in 5.4, not in 3.6, and keeps its 5.4 slot).
 var nonWanderers = map[string]bool{"ice_monster": true, "leprechaun": true, "nymph": true, "venus_flytrap": true,
-	"xeroc": true, "dragon": true, "floating_eye": true, "violet_fungi": true, "mimic": true, "purple_worm": true}
+	"xeroc": true, "dragon": true, "floating_eye": true, "violet_fungi": true, "shrieker": true, "mimic": true, "purple_worm": true}
 
 func (g *GameState) rogueRandMonster(random *rand.Rand, level int, wander bool) MonsterDef {
 	if len(g.dataDefinitions.Monsters) == 0 {
