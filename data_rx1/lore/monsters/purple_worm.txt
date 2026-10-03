@@ -1,1 +1,20 @@
-[#FFFFFF]
+[#f5e342]Origin[-]
+
+The purple worm is a Dungeons & Dragons creation, a fifty-foot burrower that hunts by feeling vibrations through the rock. Rogue's 2d12/2d4 is a cut-down version of its bite and its tail sting.
+
+    Purple worms burrow deep beneath the ground in a constant search for food. They sense vibrations at 60' and move to attack.
+    - Monster Manual (1977), p. 80
+
+A bite that hits well swallows the victim whole:
+
+    Any creature swallowed will be dead in 6 melee rounds. The worm will digest its meal in 12 turns, and at that time the creature is totally gone and cannot be raised from the dead.
+    - Monster Manual (1977), p. 80
+
+Its tail carries a poisonous stinger:
+
+    The sting causes 2-8 hit points of damage when it hits, and if the victim fails its poison saving throw it is killed by the purple worm's poison.
+    - Monster Manual (1977), p. 80
+
+[#f5e342]Rogue Trivia[-]
+
+In Rogue 3.6 the purple worm is the second-deadliest monster of all, worth 7000 experience, and it has no special power: just two huge attacks. Rogue 5.x removed it along with the other monsters Dungeons & Dragons invented. In rx1 the worm fills many tiles, its body trailing behind its head through the rock it tunnels, and every blow to the body hurts the worm. It grows longer each time it devours a shrieker or a violet fungus, and its sting has a 10% chance to poison the hero, sapping health over time.
