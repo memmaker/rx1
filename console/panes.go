@@ -71,6 +71,7 @@ func (u *UI) drawToPane(box *cview.Box, name string, w, h func() int, draw func(
 		return x, y, 0, 0
 	})
 	u.paneRestore = append(u.paneRestore, restore)
+	u.sendPane("modal", Pane{Text: "on"}) // a one-window client shows the taken-over panes while this lasts
 }
 
 func (u *UI) restorePanes() {
@@ -82,6 +83,7 @@ func (u *UI) restorePanes() {
 	for _, f := range r {
 		f()
 	}
+	u.sendPane("modal", Pane{Text: "off"})
 }
 
 // offscreen draws into its own cells; anything it doesn't override (events, colours) still goes to the real screen.

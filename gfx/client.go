@@ -98,6 +98,7 @@ type Client struct {
 	mapImg       *ebiten.Image
 	mapFont      *cellFont
 	tiles        bool // the theme is in tiles mode: the map font is the tile font (Set "tiles")
+	modal        bool // a menu has taken over a side pane (Set "modal"): one-window mode shows that pane beside the map
 	mapAll       bool // every map cell is to be drawn again
 	lastCell     image.Point
 	detail       detail
@@ -232,7 +233,13 @@ func (c *Client) relayout() {
 	c.hot, c.bars = c.hot[:0], nil
 	area := image.Rect(0, int(c.px(32)), c.w, c.h)
 	shown := map[string]image.Rectangle{}
-	if c.single() {
+	if c.single() && c.modal { // the i menu lives in the Inventory pane, the item's description in Visible: show both
+		g, side := int(c.px(4)), area.Dx()*3/10
+		shown["map"] = image.Rect(area.Min.X, area.Min.Y, area.Max.X-side-g, area.Max.Y)
+		split := area.Min.Y + area.Dy()*6/10
+		shown["inventory"] = image.Rect(area.Max.X-side, area.Min.Y, area.Max.X, split)
+		shown["visible"] = image.Rect(area.Max.X-side, split+g, area.Max.X, area.Max.Y)
+	} else if c.single() {
 		shown["map"] = area
 	} else {
 		walk(c.tree, area, int(c.px(4)), int(c.px(60)), shown, &c.bars)
@@ -668,6 +675,14 @@ func (c *Client) Draw(screen *ebiten.Image) {
 			c.tiles = plain(c.panes[name]) == "on"
 			c.fitMap()
 			continue
+		case name == "modal": // a menu took over a pane, or gave it back (panes.go drawToPane / restorePanes)
+			if on := plain(c.panes[name]) == "on"; on != c.modal {
+				c.modal = on
+				if c.single() {
+					c.relayout()
+				}
+			}
+			continue
 		case strings.HasPrefix(name, "sheet"), strings.HasPrefix(name, "lore"):
 			name = "visible"
 		}
@@ -936,7 +951,7 @@ func (c *Client) renderText(w *window, lines [][]console.Span, right bool) {
 	w.scroll = math.Max(0, math.Min(w.scroll, w.contentH-H))
 	x0 := padX
 	if right {
-		x0 = W - padX - float64(longest)*cf.cw
+		x0 = math.Max(padX, W-padX-float64(longest)*cf.cw)
 	}
 	for i, l := range lines {
 		y := padY + float64(i)*cf.rh - w.scroll
