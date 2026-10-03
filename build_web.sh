@@ -19,7 +19,10 @@ cat >> "$OUT/tcell.js" <<'EOF'
 term.addEventListener("wheel", (e) => {
   if (typeof rxWheel !== "function" || e.deltaY === 0) return;
   e.preventDefault();
-  rxWheel(Math.min((e.offsetX / fontwidth) | 0, width - 1), Math.min((e.offsetY / fontheight) | 0, height - 1), e.deltaY);
+  // cell from the terminal's box: e.offsetX is relative to the <span> under the mouse, so menus never got the wheel
+  const r = term.getBoundingClientRect();
+  rxWheel(Math.min(width - 1, Math.max(0, ((e.clientX - r.left) / r.width * width) | 0)),
+          Math.min(height - 1, Math.max(0, ((e.clientY - r.top) / r.height * height) | 0)), e.deltaY);
 }, { passive: false });
 EOF
 install -m 644 "$WEB/termstyle.css" "$WEB/beep.wav" "$OUT/"
