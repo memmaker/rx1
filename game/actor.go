@@ -32,6 +32,8 @@ type Actor struct {
 
 	statusFlags *foundation.MapFlags
 
+	aggroTarget *Actor // a charmed monster that hit this one; not saved
+
 	intrinsicZapEffects    []string
 	intrinsicUseEffects    []string
 	intrinsicHitEffects    []HitEffect

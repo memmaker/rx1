@@ -2,7 +2,12 @@
 
 [#8080a0]Description[-]
 
-A rust monster is a pony-sized creature that dwells underground, with a squat and humped body, four insectoid legs and thick, lumpy hide. It can smell metal from up to ninety feet away, and the long antennae that extends from under each of its eyes can instantly rust or corrode any metal they touch to the point of falling apart—its hide has the same effect on weapons that strike it, and magic items weapons have a chance of resisting proportional to their enchantment. A rust monster's diet consists of freshly-rusted ferrous metals such as iron, steel, and steel alloys, which it prefers to other metals; adventurers can take advantage of this by distracting it with suitable throwaway items.
+A rust monster is a pony-sized creature with a squat, humped body, four insectoid legs, a lumpy hide and two long antennae that rust or corrode any metal they touch. The Monster Manual describes its habits:
+
+    "Rust monsters inhabit only dark subterranean places. They roam such places in search of their food - metals of all sorts, but principally ferrous based metals such as iron, steel, and steel alloys... Rust monsters can smell metal at 9" distance."
+    - Monster Manual (1977), p. 83
+
+Magic items resist: each plus gives a 10% chance to escape the rust. Weapons that strike the creature are affected just as if its antennae had touched them. Rogue took its armor class of 2 and its 5 hit dice from this entry.
 
 [#f5e342]Origin[-]
 
@@ -16,7 +21,7 @@ The Rust Monster was introduced in the Greyhawk Supplement (1974) and might be o
 
 [#f5e342]Rogue Trivia[-]
 
-The rust monster appears in rogue 3.6 and 5.2.1 and was later replaced with the aquator.
+The rust monster holds R in Rogue 3.6. In 5.4 the letter belongs to the rattlesnake, and the armor-rusting attack has moved to the aquator.
 
 It doesn't have any effective attack besides its rusting touch, which can degrade metal armor.
 
@@ -28,3 +33,4 @@ Ultra Rogue 1.0.8 also implements weapon rusting, which will degrade the player'
 
 In Advanced Rogue 5.8s, your weapon can also degrade, except if it's magically enchanted RELIC.
 
+The rx1 rust monster follows the Monster Manual: a weapon that strikes it rusts too, though magic weapons have a 10% chance per plus to resist.

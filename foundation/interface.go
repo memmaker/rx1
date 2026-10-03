@@ -48,6 +48,8 @@ type GameForUI interface {
 	// GetPlayerLight returns false where light does not matter (town)
 	GetPlayerLight() (LightInfo, bool)
 	GetCharacterSheet() []string
+	// GetCombatInfo is the player's and the monster's attacks against each other
+	GetCombatInfo(monster ActorForUI) []string
 
 	GetHudStats() map[HudValue]int
 	GetHudFlags() map[ActorFlag]int

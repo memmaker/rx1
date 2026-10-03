@@ -1,1 +1,16 @@
-[#FFFFFF]Slowly, over many centuries, the garbage of the dungeon began to take on a life of it's own Now these lumpy beings meander endlessly through the halls ...[-]
+[#FFFFFF]Slowly, over many centuries, the garbage of the dungeon began to take on a life of its own. Now these lumpy beings meander endlessly through the halls...[-]
+
+[#f5e342]Origin[-]
+
+The slime belongs to the family of oozes, jellies and molds that Dungeons & Dragons used as dungeon cleaners. Its splitting habit most likely comes from the ochre jelly:
+
+    "Ochre jelly are a form of giant amoeba. They seep about in dungeons, hunting for any form of flesh or cellulose to devour... Striking the ochre jelly with lightning bolts simply divides the creature into one or more smaller creatures, each doing one-half normal damage. Cold and fire based attacks have normal effect."
+    - Monster Manual (1977), p. 75
+
+[#f5e342]Rogue Trivia[-]
+
+The slime is unique to the IBM PC version of Rogue (A.I. Design, 1985), where it took S from the snake. Whenever the hero misses it, it has a good chance to divide, filling the room with more slime: "The slime divides. Ick!" The code that handles this lives in a file of its own, slime.c.
+
+The rx1 slime follows the ochre jelly instead. It divides when a blow lands, and the two halves share its hit points and do only half damage. A lightning bolt divides it without hurting it, while fire and cold harm it as usual. Its acidic body also has a small chance to corrode the weapon that strikes it.
+
+The description at the top comes from the Macintosh version of Rogue.

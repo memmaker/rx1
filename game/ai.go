@@ -61,6 +61,11 @@ func (g *GameState) aiAct(enemy *Actor) {
 		return
 	}
 
+	if enemy.HasFlag(foundation.FlagCharmed) {
+		g.aiCharmed(enemy)
+		return
+	}
+
 	if enemy.HasFlag(foundation.FlagScared) {
 		if !sameRoom && rand.Intn(3) == 0 {
 			enemy.GetFlags().Unset(foundation.FlagScared)
@@ -92,6 +97,17 @@ func (g *GameState) aiAct(enemy *Actor) {
 
 	if sameRoom && losToPlayer && g.aiGaze(enemy) {
 		return
+	}
+
+	if g.aiFightAggroTarget(enemy) {
+		return
+	}
+
+	if distanceToPlayer > 1 {
+		if ally, ok := g.adjacentActor(enemy, true); ok && rand.Intn(2) == 0 {
+			g.ui.AddAnimations(g.actorMeleeAttack(enemy, 0, ally))
+			return
+		}
 	}
 
 	// Rogue: every awake monster hunts the hero across the whole level
@@ -184,4 +200,56 @@ func (g *GameState) aiGoForCarriedItem(enemy *Actor) bool {
 	return g.aiGoToItem(enemy, func(item *Item) bool {
 		return !item.IsScareMonster() && rand.Intn(100) < enemy.carryChance
 	})
+}
+
+// aiCharmed: a charmed monster fights the hero's enemies next to it, else it stays close to the hero.
+func (g *GameState) aiCharmed(ally *Actor) {
+	ally.GetFlags().Decrement(foundation.FlagCharmed)
+	if !ally.HasFlag(foundation.FlagCharmed) {
+		g.msg(foundation.HiLite("%s is no longer charmed", ally.Name()))
+	}
+	if foe, ok := g.adjacentActor(ally, false); ok {
+		foe.aggroTarget = ally
+		g.ui.AddAnimations(g.actorMeleeAttack(ally, 0, foe))
+		return
+	}
+	if geometry.DistanceChebyshev(ally.Position(), g.Player.Position()) > 2 {
+		newPos := g.gridMap.GetMoveOnPlayerDijkstraMap(ally.Position(), true, g.playerDijkstraMap)
+		g.ui.AddAnimations(g.actorMoveAnimated(ally, newPos))
+	}
+}
+
+// adjacentActor finds a monster next to actor that is charmed (or not), never the hero.
+func (g *GameState) adjacentActor(actor *Actor, charmed bool) (*Actor, bool) {
+	for _, pos := range g.gridMap.NeighborsAll(actor.Position(), func(p geometry.Point) bool { return g.gridMap.IsActorAt(p) }) {
+		other := g.gridMap.ActorAt(pos)
+		if other != g.Player && other.HasFlag(foundation.FlagCharmed) == charmed && g.gridMap.DiagonalOK(actor.Position(), pos) {
+			return other, true
+		}
+	}
+	return nil, false
+}
+
+// aiFightAggroTarget: a monster hit by a charmed one goes after it until one dies or the charm ends.
+func (g *GameState) aiFightAggroTarget(enemy *Actor) bool {
+	target := enemy.aggroTarget
+	if target == nil || !target.IsAlive() || !target.HasFlag(foundation.FlagCharmed) || g.gridMap.ActorAt(target.Position()) != target {
+		enemy.aggroTarget = nil
+		return false
+	}
+	if geometry.DistanceChebyshev(enemy.Position(), target.Position()) <= 1 && g.gridMap.DiagonalOK(enemy.Position(), target.Position()) {
+		g.ui.AddAnimations(g.actorMeleeAttack(enemy, 0, target))
+		return true
+	}
+	// ponytail: greedy step, no pathfinding; switch to GetJPSPath if foes get stuck on walls
+	best, bestDist := enemy.Position(), geometry.DistanceChebyshev(enemy.Position(), target.Position())
+	for _, p := range g.gridMap.GetFilteredNeighborsForMovement(enemy.Position(), func(p geometry.Point) bool { return g.gridMap.IsWalkableFor(p, enemy) && !g.gridMap.IsActorAt(p) }) {
+		if d := geometry.DistanceChebyshev(p, target.Position()); d < bestDist {
+			best, bestDist = p, d
+		}
+	}
+	if best != enemy.Position() {
+		g.ui.AddAnimations(g.actorMoveAnimated(enemy, best))
+	}
+	return true
 }

@@ -368,6 +368,9 @@ func (g *GameState) actorMeleeAttackMult(attacker *Actor, hitMod int, defender *
 	afterAttackAnimations = append(afterAttackAnimations, animAttackerIndicator)
 
 	if didHit {
+		if isAcidic(attacker) {
+			finalBlow(defender, damageDone)
+		}
 		animDamage := g.damageActor(attacker.Name(), defender, damageDone)
 		afterAttackAnimations = append(afterAttackAnimations, animDamage...)
 		afterAttackAnimations = append(afterAttackAnimations, g.applyHitEffects(attacker, defender)...)

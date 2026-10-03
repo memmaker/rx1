@@ -1,10 +1,14 @@
-[#FFFFFF]This normally aquatic creature has adapted to the environment of the Dungeons of Doom by continuously spraying it's surroundings with a liquid it secretes from the top of it's head. Seems relatively harmless.[-]
+[#FFFFFF]This normally aquatic creature has adapted to the environment of the Dungeons of Doom by continuously spraying its surroundings with a liquid it secretes from the top of its head. Seems relatively harmless.[-]
+
+[#f5e342]Origin[-]
+
+The aquator has no source in Dungeons & Dragons, folklore or fiction. Its name comes from the Latin "aqua", water, and it is the rust monster in all but name: in Rogue 5.x it has the rust monster's level, armor class and armor-rusting touch, and is worth only a little less experience.
 
 [#f5e342]Rogue Trivia[-]
 
 The original name of this monster is rust monster.
 
-It was then changed to dodge copyright issues.
+Rogue 5.x moved it to the letter A, replacing the giant ant. Why it was renamed is not documented, but the pattern is telling: 5.x dropped every monster that Dungeons & Dragons had invented, among them the rust monster, xorn, umber hulk, purple worm, quasit and invisible stalker, and kept the ones from myth and folklore. Avoiding TSR's own creations is the likely reason.
 
 The original code for rusting armor was pretty simple:
 
@@ -47,7 +51,7 @@ if (cur_armor != NULL && cur_armor->o_ac < 9 && cur_armor->o_which != LEATHER)
 
 This version also gave the player a chance to save their armor by wearing a ring of sustain armor.
 
-For the 5.4 release, the code for rusting the armor was extracted into it's own function:
+For the 5.4 release, the code for rusting the armor was extracted into its own function:
 
 /*
  * rust_armor:
@@ -79,7 +83,7 @@ rust_armor(THING *arm)
 Especially interesting is the fact, that an armor can now be flagged as protected from rust.
 To this end rogue 5.4 provides a scroll of protection, which can be read to protect the armor from rusting.
 
-The DOS Release 1.48 the simplified things back to where they were in 5.2.1:
+The DOS release 1.48 simplified things back to where they were in 5.2.1:
 
 case 'A': //If a rust monster hits, you lose armor, unless that armor is leather or there is a magic ring
 	if (cur_armor != NULL && cur_armor->o_ac < 9 && cur_armor->o_which != LEATHER)
@@ -93,3 +97,5 @@ case 'A': //If a rust monster hits, you lose armor, unless that armor is leather
 		}
 	}
 	break;
+
+The description at the top comes from the Macintosh version of Rogue.

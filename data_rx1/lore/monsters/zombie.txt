@@ -1,1 +1,16 @@
 [#FFFFFF]These creatures are the reanimated bodies of the once dead adventurers who didn't quite make it out of the Dungeons of Doom. A similar fate awaits you unless ...[-]
+
+[#f5e342]Origin[-]
+
+The zombie comes from Haitian Vodou, where a "zonbi" is a corpse raised by a sorcerer and kept as a mindless slave. William Seabrook's travel book The Magic Island (1929) brought the word to America, and films did the rest. Dungeons & Dragons kept the sorcerer:
+
+    "Zombies are magically animated corpses, undead creatures under the command of the evil magic-users or clerics who animated them."
+    - Monster Manual (1977), p. 103
+
+The same entry makes them slow, gives them armor class 8 and 2 hit dice, and has them "always doing 1-8 hit points of damage when they hit". Rogue kept every number.
+
+[#f5e342]Rogue Trivia[-]
+
+The zombie holds Z in every version of Rogue, the last monster of the alphabet. The rx1 zombie is as slow as its Monster Manual ancestor, still carries the gold of the adventurer it once was, and its bite leaves a gnawing hunger. Like all undead in the Monster Manual it cannot be held, and cold does not harm it.
+
+The description at the top comes from the Macintosh version of Rogue.

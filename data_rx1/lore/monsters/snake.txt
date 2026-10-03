@@ -1,1 +1,14 @@
-[#FFFFFF]
+[#FFFFFF]An ordinary serpent that slid into the dungeon long ago. Its bite is weak, but it is quick to strike.[-]
+
+[#f5e342]Origin[-]
+
+The snake is the oldest monster of them all. In Genesis it is the serpent "more subtle than any beast of the field" that tempts Eve, and it has stood for cunning, danger and temptation ever since.
+
+Dungeons & Dragons only knew the giant kinds: amphisbaena, constrictor, poisonous, sea and spitting snakes. The Monster Manual dismisses the most common of them in a single line:
+
+    "Giant poisonous snakes need no lengthy explanation or description."
+    - Monster Manual (1977), p. 89
+
+[#f5e342]Rogue Trivia[-]
+
+The snake holds S in Rogue 3.6 and 5.x, a level 1 monster with armor class 5 and a 1d3 bite. In 5.x it is joined by its far more dangerous cousin, the rattlesnake. The IBM PC version of Rogue gave S to the slime and dropped the snake. In Rogue the snake's bite is harmless beyond its damage; the rx1 snake is mildly venomous and now and then poisons its victim.

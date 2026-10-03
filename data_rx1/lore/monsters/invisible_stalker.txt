@@ -1,1 +1,14 @@
-[#FFFFFF]
+[#FFFFFF]You hear it before you see it. Actually, you never see it.[-]
+
+[#f5e342]Origin[-]
+
+The invisible stalker comes from Dungeons & Dragons. It is a creature of the elemental plane of air, conjured by a wizard to hunt down a quarry:
+
+    "Once set upon a mission, an invisible stalker will follow through unceasingly until it is accomplished. They are faultless trackers within one day of a quarry's passing."
+    - Monster Manual (1977), p. 55
+
+The same entry gives it 8 hit dice, armor class 3 and one attack for 4-16 damage. Rogue took all three, rolling the damage as 4d4.
+
+[#f5e342]Rogue Trivia[-]
+
+The invisible stalker held I in Rogue 3.6. The source notes that "Invisible Stalkers are slightly confused all of the time": one move in five is random. Rogue 5.x gave I to the ice monster but kept the stalker in all but name: the phantom has exactly the same stats and is just as invisible.

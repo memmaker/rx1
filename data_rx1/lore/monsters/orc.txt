@@ -1,1 +1,18 @@
 [#FFFFFF]These fierce fighters were hired by Yendor to guard his underground treasure. Over the years they have come to regard the gold in the Dungeons as their own and will attack anyone seen carrying some.[-]
+
+[#f5e342]Origin[-]
+
+The word is old: Old English "orc" meant a demon or ogre, and Beowulf counts the "orcneas" among the evil brood of Cain. J. R. R. Tolkien borrowed it for the goblin soldiers of Sauron and Saruman in The Lord of the Rings, and from there the orc marched into Dungeons & Dragons. The Monster Manual's orcs are tribal bullies:
+
+    "Orcs dwell in places where sunlight is dim or non-existent, for they hate the light."
+    - Monster Manual (1977), p. 76
+
+The same entry gives the orc one hit die, armor class 6 and 1-8 damage. Rogue copied all three.
+
+[#f5e342]Rogue Trivia[-]
+
+The orc holds O in every version of Rogue. In 5.x it is greedy: an orc in a room with gold stands guard over it, and once the gold is taken it comes after the thief. This is the behaviour behind its flavor text.
+
+The rx1 orc has also learned to charge: from a distance it can rush the hero and strike in a single move.
+
+The description at the top comes from the Macintosh version of Rogue.

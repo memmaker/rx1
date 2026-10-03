@@ -25,8 +25,8 @@ func TestHitEffectsParse(t *testing.T) {
 			}
 		}
 	}
-	if n != 23 {
-		t.Errorf("expected 23 hit effects, got %d", n)
+	if n != 25 {
+		t.Errorf("expected 25 hit effects, got %d", n)
 	}
 }
 
@@ -62,5 +62,40 @@ func TestBreathLine(t *testing.T) {
 	if !inBreathLine(o, geometry.Point{X: 16, Y: 10}) || !inBreathLine(o, geometry.Point{X: 13, Y: 7}) ||
 		inBreathLine(o, geometry.Point{X: 17, Y: 10}) || inBreathLine(o, geometry.Point{X: 12, Y: 11}) {
 		t.Error("breath line mismatch")
+	}
+}
+
+// D&D ochre jelly rules: the slime halves do half damage, and lightning divides it instead of hurting it.
+func TestSlimeSplitHalvesDamage(t *testing.T) {
+	g := newMagicTestGame()
+	def, _ := g.monsterDefByInternalName("slime")
+	slime := g.NewEnemyFromDef(def)
+	slime.stats.HP = 10
+	g.gridMap.AddActor(slime, g.Player.Position().Add(geometry.Point{X: 2}))
+	if !splits(slime) {
+		t.Fatal("slime should split")
+	}
+	split(g, slime, g.Player)
+	if slime.stats.HP != 5 || slime.stats.Dmg != "1d2" {
+		t.Errorf("after split: hp %d dmg %s", slime.stats.HP, slime.stats.Dmg)
+	}
+}
+
+// D&D trolls: a killing blow of fire or acid keeps them dead.
+func TestFinalBlowCancelsRevive(t *testing.T) {
+	g := newMagicTestGame()
+	def, _ := g.monsterDefByInternalName("troll")
+	troll := g.NewEnemyFromDef(def)
+	fireDamage(troll, troll.GetHitPoints()-1)
+	if !troll.HasFlag(foundation.FlagRevive) {
+		t.Fatal("a non-lethal burn must not cancel the revive")
+	}
+	fireDamage(troll, troll.GetHitPoints())
+	if troll.HasFlag(foundation.FlagRevive) {
+		t.Error("a lethal burn should cancel the revive")
+	}
+	aq, _ := g.monsterDefByInternalName("aquator")
+	if !isAcidic(g.NewEnemyFromDef(aq)) {
+		t.Error("the aquator strikes with acid")
 	}
 }

@@ -1,1 +1,14 @@
 [#FFFFFF]Centaurs are peaceful creatures whose chief joys in life are eating and sleeping. When deprived of either of these things, they can be quite fierce.[-]
+
+[#f5e342]Origin[-]
+
+In Greek myth the centaurs were wild horse-men of the mountains of Thessaly, best remembered for getting drunk at a wedding feast and starting a war with the Lapiths. The wise Chiron, tutor of Achilles and Asclepius, was the great exception. Dungeons & Dragons made them armed bands of the wild places:
+
+    "Roving bands of these creatures always carry weapons... one-quarter will have composite long bows and 10-30 arrows... In melee each centaur attacks two times, once with his weapon and then as a horse with his two fore hooves."
+    - Monster Manual (1977), p. 14
+
+[#f5e342]Rogue Trivia[-]
+
+The centaur holds C in every version of Rogue. In 3.6 it attacks twice for 1d6, just like the Monster Manual's centaur; 5.x splits this into three attacks, a weak 1d2 and two 1d5 hoof kicks. The rx1 centaur also brings its bow and shoots arrows at the hero from a distance.
+
+The description at the top comes from the Macintosh version of Rogue.
