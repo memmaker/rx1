@@ -483,6 +483,15 @@ func (u *UI) getIconForActor(actor foundation.ActorForUI) foundation.TextIcon {
 	icon := actor.TextIcon(u.currentTheme.GetIconForMap(foundation.TileFloor).Bg, u.currentTheme.GetColorByName)
 	if actor == u.game.ActorAt(u.game.GetPlayerPosition()) { // the player looks as the theme says
 		icon.Rune, icon.Fg = u.currentTheme.playerIcon.Rune, u.currentTheme.playerIcon.Fg
+	} else if len(u.currentTheme.monsterIcons) > 0 { // tiles mode: the monster's tile
+		tile, ok := u.currentTheme.monsterIcons[actor.GetInternalName()]
+		if !ok {
+			return icon
+		}
+		icon.Rune = tile.Rune
+		if tile.Fg.A != 0 {
+			icon.Fg = tile.Fg
+		}
 	}
 	if actor.HasFlag(foundation.FlagHeld) {
 		icon.Fg, icon.Bg = u.currentTheme.GetColorByName("Blue"), u.currentTheme.GetColorByName("White")
@@ -1012,6 +1021,8 @@ func (u *UI) setColoredText(view *cview.TextView, text string) {
 
 func (u *UI) UpdateLogWindow() {
 	logMessages := u.game.GetLog()
+	// the window only shows the latest lines; the whole log made every message slower (ShowLog has it all)
+	logMessages = logMessages[max(0, len(logMessages)-100):]
 	var asColoredStrings []string
 	for i, message := range logMessages {
 		fadePercent := min(max(float64(i+1)/float64(len(logMessages)), 0.2), 1.0)
@@ -1324,6 +1335,13 @@ func (u *UI) applyStylingToUI() {
 func (u *UI) setTheme(fileName string) {
 	u.currentTheme = NewThemeFromFile(fileName)
 	u.currentTheme.SetBorders()
+	if u.panes != nil { // the graphical clients draw the map with the tile font in tiles mode
+		mode := "off"
+		if u.currentTheme.IsTiles() {
+			mode = "on"
+		}
+		u.sendPane("tiles", Pane{Text: mode})
+	}
 	u.applyStylingToUI()
 	u.UpdateInventory()
 	u.UpdateVisibleEnemies()

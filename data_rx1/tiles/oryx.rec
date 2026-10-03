@@ -1,0 +1,793 @@
+# Oryx Roguelike 2.0 tiles for rx1's tiles theme (themes/tiles.rec), edited with the remapper:
+#     remapper data_rx1/tiles/oryx.rec
+# icon: cell of oryx.png (mkoryx.py builds it and the font Oryx_Tiles.woff, glyph U+E000+icon); -1 keeps the theme's glyph.
+# color: the tile's foreground, a name from the palette (the theme's colors); empty keeps the theme's (or the monster's) colour.
+
+%rec: Tileset
+id: oryx
+name: Oryx Roguelike 2.0
+file: oryx.png
+tile_w: 16
+tile_h: 24
+off_x: 0
+off_y: 0
+gap_x: 0
+gap_y: 0
+palette: ../themes/tiles.rec
+
+%rec: map
+%doc: Map tiles
+
+id: TileFloor
+name: tile floor
+icon: 772
+color: DirtyBlue
+reference_image: ref/preview_dungeons.png
+
+id: TileWall
+name: tile wall
+icon: 802
+color: DirtyBlue
+reference_image: ref/preview_dungeons.png
+
+id: TileRoomFloor
+name: tile room floor
+icon: 772
+color: DirtyBlue
+reference_image: ref/preview_dungeons.png
+
+id: TileCaveFloor
+name: tile cave floor
+icon: 773
+color: CaveDirtDot
+reference_image: ref/preview_dungeons.png
+
+id: TileRoomWallHorizontal
+name: tile room wall horizontal
+icon: 802
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileRoomWallVertical
+name: tile room wall vertical
+icon: 805
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileRoomWallCornerTopLeft
+name: tile room wall corner top left
+icon: 804
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileRoomWallCornerTopRight
+name: tile room wall corner top right
+icon: 804
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileRoomWallCornerBottomRight
+name: tile room wall corner bottom right
+icon: 804
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileRoomWallCornerBottomLeft
+name: tile room wall corner bottom left
+icon: 804
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileCorridorFloor
+name: tile corridor floor
+icon: 766
+color: DirtyBlue
+reference_image: ref/preview_dungeons.png
+
+id: TileCorridorWall
+name: tile corridor wall
+icon: 866
+color: Black
+reference_image: ref/preview_dungeons.png
+
+id: TileCorridorWallHorizontal
+name: tile corridor wall horizontal
+icon: 866
+color: Black
+reference_image: ref/preview_dungeons.png
+
+id: TileCorridorWallVertical
+name: tile corridor wall vertical
+icon: 866
+color: Black
+reference_image: ref/preview_dungeons.png
+
+id: TileCorridorWallCornerTopLeft
+name: tile corridor wall corner top left
+icon: 866
+color: Black
+reference_image: ref/preview_dungeons.png
+
+id: TileCorridorWallCornerTopRight
+name: tile corridor wall corner top right
+icon: 866
+color: Black
+reference_image: ref/preview_dungeons.png
+
+id: TileCorridorWallCornerBottomRight
+name: tile corridor wall corner bottom right
+icon: 866
+color: Black
+reference_image: ref/preview_dungeons.png
+
+id: TileCorridorWallCornerBottomLeft
+name: tile corridor wall corner bottom left
+icon: 866
+color: Black
+reference_image: ref/preview_dungeons.png
+
+id: TileWallTJunctionTop
+name: tile wall tjunction top
+icon: 803
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileWallTJunctionRight
+name: tile wall tjunction right
+icon: 803
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileWallTJunctionBottom
+name: tile wall tjunction bottom
+icon: 803
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileWallTJunctionLeft
+name: tile wall tjunction left
+icon: 803
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileWallFull
+name: tile wall full
+icon: 802
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileWallHalf
+name: tile wall half
+icon: 802
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileWallCross
+name: tile wall cross
+icon: 803
+color: DirtyYellow
+reference_image: ref/preview_dungeons.png
+
+id: TileDoorOpen
+name: tile door open
+icon: 952
+color: LightGray
+reference_image: ref/preview_dungeons.png
+
+id: TileDoorClosed
+name: tile door closed
+icon: 950
+color: LightGray
+reference_image: ref/preview_dungeons.png
+
+id: TileDoorBroken
+name: tile door broken
+icon: 961
+color: DarkBrown
+reference_image: ref/preview_dungeons.png
+
+id: TileDoorLocked
+name: tile door locked
+icon: 954
+color: DarkBrown
+reference_image: ref/preview_dungeons.png
+
+id: TileStairsUp
+name: tile stairs up
+icon: 785
+color: White
+reference_image: ref/preview_dungeons.png
+
+id: TileStairsDown
+name: tile stairs down
+icon: 784
+color: White
+reference_image: ref/preview_dungeons.png
+
+id: TileCaveStairsUp
+name: tile cave stairs up
+icon: 785
+color: White
+reference_image: ref/preview_dungeons.png
+
+id: TileCaveStairsDown
+name: tile cave stairs down
+icon: 784
+color: White
+reference_image: ref/preview_dungeons.png
+
+id: TileTownStairsDown
+name: tile town stairs down
+icon: 784
+color: White
+reference_image: ref/preview_dungeons.png
+
+id: TileMountain
+name: tile mountain
+icon: 1046
+color: RockHi
+reference_image: ref/preview_dungeons.png
+
+id: TileMountainPeak
+name: tile mountain peak
+icon: 1046
+color: Peak
+reference_image: ref/preview_dungeons.png
+
+id: TileTownGrass
+name: tile town grass
+icon: 1050
+color: TownGrass
+reference_image: ref/preview_dungeons.png
+
+id: TileTownGrassTuft
+name: tile town grass tuft
+icon: 1051
+color: Green
+reference_image: ref/preview_dungeons.png
+
+id: TileTownGrassShade
+name: tile town grass shade
+icon: 1052
+color: GrassShade
+reference_image: ref/preview_dungeons.png
+
+id: TileTownGrassDot
+name: tile town grass dot
+icon: 1053
+color: GrassDot
+reference_image: ref/preview_dungeons.png
+
+id: TileRoof
+name: tile roof
+icon: 767
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+id: TileTownWallBase
+name: tile town wall base
+icon: 866
+color: LightGray
+reference_image: ref/preview_dungeons.png
+
+id: TileTownWallSide
+name: tile town wall side
+icon: 867
+color: LightGray
+reference_image: ref/preview_dungeons.png
+
+id: TileTownInterior
+name: tile town interior
+icon: 772
+color: LightGray
+reference_image: ref/preview_dungeons.png
+
+id: TileTownCornerTopLeft
+name: tile town corner top left
+icon: 866
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+id: TileTownCornerTopRight
+name: tile town corner top right
+icon: 866
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+id: TileTownCornerBottomLeft
+name: tile town corner bottom left
+icon: 866
+color: LightGray
+reference_image: ref/preview_dungeons.png
+
+id: TileTownCornerBottomRight
+name: tile town corner bottom right
+icon: 866
+color: LightGray
+reference_image: ref/preview_dungeons.png
+
+id: TileGrass
+name: tile grass
+icon: 1050
+color: LightGray
+reference_image: ref/preview_dungeons.png
+
+id: TileTree
+name: tile tree
+icon: 1056
+color: LightGray
+reference_image: ref/preview_dungeons.png
+
+id: TileWater
+name: tile water
+icon: 770
+color: Blue
+reference_image: ref/preview_dungeons.png
+
+id: TileLava
+name: tile lava
+icon: 771
+color: LavaHi
+reference_image: ref/preview_dungeons.png
+
+id: TileChasm
+name: tile chasm
+icon: 766
+color: DarkGray
+reference_image: ref/preview_dungeons.png
+
+id: TileShallowWater
+name: tile shallow water
+icon: 770
+color: Blue
+reference_image: ref/preview_dungeons.png
+
+id: TileChasmEdge
+name: tile chasm edge
+icon: 1114
+color: White
+reference_image: ref/preview_dungeons.png
+
+id: TileBridge
+name: tile bridge
+icon: 1006
+color: Brown
+reference_image: ref/preview_dungeons.png
+
+id: TileFungus
+name: tile fungus
+icon: 1136
+color: LightGreen
+reference_image: ref/preview_dungeons.png
+
+id: TileFungusForest
+name: tile fungus forest
+icon: 1137
+color: LightGreen
+reference_image: ref/preview_dungeons.png
+
+id: TileVendorCurator
+name: tile vendor curator
+icon: 1110
+color: Black
+reference_image: ref/preview_dungeons.png
+
+id: TileVendorBlacksmith
+name: tile vendor blacksmith
+icon: 1111
+color: Black
+reference_image: ref/preview_dungeons.png
+
+id: TileVendorGeneral
+name: tile vendor general
+icon: 1068
+color: Black
+reference_image: ref/preview_dungeons.png
+
+id: TileVendorHome
+name: tile vendor home
+icon: 978
+color: Black
+reference_image: ref/preview_dungeons.png
+
+%rec: items
+%doc: Items
+
+id: ItemGold
+name: item gold
+icon: 744
+color: Yellow
+reference_image: ref/preview_items.png
+
+id: ItemFood
+name: item food
+icon: 568
+color: LightGreen
+reference_image: ref/preview_items.png
+
+id: ItemWeapons
+name: item weapons
+icon: 494
+color: LightBrown
+reference_image: ref/preview_items.png
+
+id: ItemArmor
+name: item armor
+icon: 654
+color: Orange
+reference_image: ref/preview_items.png
+
+id: ItemRings
+name: item rings
+icon: 540
+color: LightRed
+reference_image: ref/preview_items.png
+
+id: ItemScrolls
+name: item scrolls
+icon: 562
+color: Black
+reference_image: ref/preview_items.png
+
+id: ItemPotions
+name: item potions
+icon: 554
+color: Blue
+reference_image: ref/preview_items.png
+
+id: ItemWands
+name: item wands
+icon: 587
+color: Green
+reference_image: ref/preview_items.png
+
+id: ItemAmulets
+name: item amulets
+icon: 588
+color: LightMagenta
+reference_image: ref/preview_items.png
+
+id: ItemDocuments
+name: item documents
+icon: 715
+color: Black
+reference_image: ref/preview_items.png
+
+id: ItemLight
+name: item light
+icon: 575
+color: Yellow
+reference_image: ref/preview_items.png
+
+%rec: objects
+%doc: Traps
+
+id: ExplodingTrap
+name: exploding trap
+icon: 1018
+color: LightGray
+reference_image: ref/preview_dungeons.png
+
+id: SlowTrap
+name: slow trap
+icon: 1017
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+id: TeleportTrap
+name: teleport trap
+icon: 1074
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+id: DartTrap
+name: dart trap
+icon: 1072
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+id: ArrowTrap
+name: arrow trap
+icon: 1073
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+id: DescendTrap
+name: descend trap
+icon: 1079
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+id: BearTrap
+name: bear trap
+icon: 1077
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+id: SleepTrap
+name: sleep trap
+icon: 1075
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+id: RustTrap
+name: rust trap
+icon: 1076
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+id: MysteryTrap
+name: mystery trap
+icon: 1070
+color: LightRed
+reference_image: ref/preview_dungeons.png
+
+%rec: player
+%doc: Player
+
+id: Player
+name: player
+icon: 1171
+color: White
+reference_image: ref/preview_creatures.png
+
+%rec: monster
+%doc: Monsters
+
+id: bat
+name: bat
+icon: 82
+color: LightGray
+reference_image: ref/preview_creatures.png
+
+id: emu
+name: emu
+icon: 91
+color: White
+reference_image: ref/preview_creatures.png
+
+id: hobgoblin
+name: hobgoblin
+icon: 160
+color: Green
+reference_image: ref/preview_creatures.png
+
+id: kestrel
+name: kestrel
+icon: 92
+color: Orange
+reference_image: ref/preview_creatures.png
+
+id: jackal
+name: jackal
+icon: 79
+color: Orange
+reference_image: ref/preview_creatures.png
+
+id: floating_eye
+name: floating eye
+icon: 268
+color: Red
+reference_image: ref/preview_creatures.png
+
+id: ice_monster
+name: ice monster
+icon: 350
+color: LightBlue
+reference_image: ref/preview_creatures.png
+
+id: slime
+name: slime
+icon: 349
+color: LightCyan
+reference_image: ref/preview_creatures.png
+
+id: snake
+name: snake
+icon: 84
+color: LightGreen
+reference_image: ref/preview_creatures.png
+
+id: gnome
+name: gnome
+icon: 193
+color: White
+reference_image: ref/preview_creatures.png
+
+id: orc
+name: orc
+icon: 159
+color: LightGreen
+reference_image: ref/preview_creatures.png
+
+id: rattlesnake
+name: rattlesnake
+icon: 85
+color: LightGreen
+reference_image: ref/preview_creatures.png
+
+id: invisible_stalker
+name: invisible stalker
+icon: 307
+color: White
+reference_image: ref/preview_creatures.png
+
+id: rust_monster
+name: rust monster
+icon: 381
+color: Orange
+reference_image: ref/preview_creatures.png
+
+id: zombie
+name: zombie
+icon: 351
+color: Orange
+reference_image: ref/preview_creatures.png
+
+id: ant
+name: ant
+icon: 125
+color: Red
+reference_image: ref/preview_creatures.png
+
+id: leprechaun
+name: leprechaun
+icon: 386
+color: Cyan
+reference_image: ref/preview_creatures.png
+
+id: centaur
+name: centaur
+icon: 152
+color: Orange
+reference_image: ref/preview_creatures.png
+
+id: kobold
+name: kobold
+icon: 164
+color: Red
+reference_image: ref/preview_creatures.png
+
+id: aquator
+name: aquator
+icon: 116
+color: Blue
+reference_image: ref/preview_creatures.png
+
+id: black_unicorn
+name: black unicorn
+icon: 312
+color: Gray
+reference_image: ref/preview_creatures.png
+
+id: quagga
+name: quagga
+icon: 314
+color: White
+reference_image: ref/preview_creatures.png
+
+id: nymph
+name: nymph
+icon: 205
+color: LightMagenta
+reference_image: ref/preview_creatures.png
+
+id: mimic
+name: mimic
+icon: 344
+color: White
+reference_image: ref/preview_creatures.png
+
+id: yeti
+name: yeti
+icon: 127
+color: White
+reference_image: ref/preview_creatures.png
+
+id: troll
+name: troll
+icon: 353
+color: Orange
+reference_image: ref/preview_creatures.png
+
+id: violet_fungi
+name: violet fungi
+icon: 1136
+color: Magenta
+reference_image: ref/preview_creatures.png
+
+id: wraith
+name: wraith
+icon: 308
+color: Red
+reference_image: ref/preview_creatures.png
+
+id: venus_flytrap
+name: venus flytrap
+icon: 359
+color: Green
+reference_image: ref/preview_creatures.png
+
+id: phantom
+name: phantom
+icon: 306
+color: LightGray
+reference_image: ref/preview_creatures.png
+
+id: purple_worm
+name: purple worm
+icon: 266
+color: LightMagenta
+reference_image: ref/preview_creatures.png
+
+id: ur_vile
+name: ur vile
+icon: 309
+color: White
+reference_image: ref/preview_creatures.png
+
+id: umber_hulk
+name: umber hulk
+icon: 128
+color: Green
+reference_image: ref/preview_creatures.png
+
+id: griffin
+name: griffin
+icon: 132
+color: Yellow
+reference_image: ref/preview_creatures.png
+
+id: medusa
+name: medusa
+icon: 157
+color: LightMagenta
+reference_image: ref/preview_creatures.png
+
+id: quasit
+name: quasit
+icon: 119
+color: Green
+reference_image: ref/preview_creatures.png
+
+id: xeroc
+name: xeroc
+icon: 273
+color: White
+reference_image: ref/preview_creatures.png
+
+id: xeroc_2
+name: xeroc 2
+icon: 274
+color: White
+reference_image: ref/preview_creatures.png
+
+id: xorn
+name: xorn
+icon: 275
+color: Orange
+reference_image: ref/preview_creatures.png
+
+id: vampire
+name: vampire
+icon: 304
+color: Red
+reference_image: ref/preview_creatures.png
+
+id: jabberwock
+name: jabberwock
+icon: 284
+color: Yellow
+reference_image: ref/preview_creatures.png
+
+id: dragon
+name: dragon
+icon: 283
+color: Green
+reference_image: ref/preview_creatures.png
+
+id: shrieker
+name: shrieker
+icon: 1137
+color: Magenta
+reference_image: ref/preview_creatures.png

@@ -9,6 +9,7 @@ gzip -9 -k -f "$OUT/rx1.wasm"
 install -m 644 "$(go env GOROOT)/lib/wasm/wasm_exec.js" ~/Games/rvip-tools/web/rvip-wm.js "$OUT/"
 # RVIP font list (RvipWM.FONTS) is served as fonts/<name>.woff
 rsync -a --delete ~/Games/roguelikes-index/fonts/ "$OUT/fonts/"
+install -m 644 web/fonts/Oryx_Tiles.woff "$OUT/fonts/" # the tile font (data_rx1/tiles/mkoryx.py), for tiles mode
 # monster pictures for the Visible window's Images mode (index.html: monsters/<name>.png)
 rsync -a --delete web/monsters/ "$OUT/monsters/"
 # tcell's DOM renderer, minus its own loader (index.html loads the wasm)

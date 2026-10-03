@@ -1,0 +1,300 @@
+# Tiles theme: fancy with the Oryx tiles of tiles/oryx.rec laid over its glyphs (%rec: tiles at the end).
+%rec: player
+
+# Special
+Player: @
+Player_Color: White
+
+%rec: colors
+
+Black: 0 | 0 | 0
+DarkGray: 60 | 60 | 60
+ChasmEdge: 16 | 16 | 57
+Gray: 128 | 128 | 128
+VeryDarkGray: 40 | 40 | 40
+Blue: 60 | 183 | 250
+LightBlue: 85 | 183 | 255
+VeryLightBlue: 149 | 183 | 255
+Green: 0 | 170 | 0
+LightGreen: 85 | 255 | 85
+Cyan: 56 | 90 | 90
+LightCyan: 85 | 255 | 255
+Red: 255 | 20 | 20
+LightRed: 255 | 85 | 85
+Magenta: 209 | 31 | 209
+LightMagenta: 255 | 85 | 255
+Orange: 227 | 114 | 0
+Brown: 150 | 89 | 0
+LightBrown: 255 | 188 | 105
+Yellow: 255 | 255 | 85
+DarkYellow: 191 | 188 | 2
+DirtyBlue: 90 | 126 | 166
+DirtyYellow: 210 | 210 | 168
+LightGray: 170 | 170 | 170
+TownGrass: 10 | 42 | 10
+GrassShade: 47 | 111 | 47
+GrassDot: 59 | 109 | 17
+CaveDirt: 74 | 52 | 32
+CaveDirtDot: 120 | 88 | 56
+DeepWaterBg: 16 | 40 | 110
+ShallowWaterBg: 40 | 80 | 130
+LavaBg: 150 | 30 | 0
+LavaHi: 255 | 170 | 40
+FungusBg: 20 | 70 | 40
+ForestBg: 10 | 50 | 20
+Rock: 68 | 68 | 65
+RockHi: 136 | 135 | 128
+Peak: 211 | 209 | 199
+White: 255 | 255 | 255
+
+%rec: ui
+
+BorderBackground: Black
+BorderForeground: LightGray
+#
+MapDefaultForeground: DirtyBlue
+MapDefaultBackground: Cyan
+#
+MapDefaultForegroundLight: White
+MapDefaultForegroundDark: DarkGray
+#
+UIForeground: LightGray
+UIBackground: Black
+#
+UIForegroundHighlighted: White
+
+%rec: inventory
+#
+# Inventory Item colors
+ItemGold: Yellow
+ItemFood: LightGreen
+ItemWeapons: LightGray
+ItemArmor: Brown
+ItemScrolls: LightGray
+ItemPotions: Blue
+ItemWands: Green
+ItemRings: Red
+ItemAmulets: LightMagenta
+ItemLight: Yellow
+ItemDocuments: White
+
+%rec: map
+
+# World Map
+TileEmpty: $
+TileEmpty_Colors: Black | Black
+TileFloor: ∙
+TileFloor_Colors: DirtyBlue | Cyan
+TileWall: #
+TileWall_Colors: DirtyBlue | Cyan
+TileRoomFloor: ∙
+TileRoomFloor_Colors: DirtyBlue | Cyan
+TileCaveFloor: ∙
+TileCaveFloor_Colors: CaveDirtDot | CaveDirt
+TileRoomWallHorizontal: ▀
+TileRoomWallHorizontal_Colors: DirtyYellow | DirtyBlue
+TileRoomWallVertical: █
+TileRoomWallVertical_Colors: DirtyYellow | DirtyBlue
+TileRoomWallCornerTopLeft: █
+TileRoomWallCornerTopLeft_Colors: DirtyYellow | DirtyBlue
+TileRoomWallCornerTopRight: █
+TileRoomWallCornerTopRight_Colors: DirtyYellow | DirtyBlue
+TileRoomWallCornerBottomRight: ▀
+TileRoomWallCornerBottomRight_Colors: DirtyYellow | DirtyBlue
+TileRoomWallCornerBottomLeft: ▀
+TileRoomWallCornerBottomLeft_Colors: DirtyYellow | DirtyBlue
+TileCorridorFloor: ∙
+TileCorridorFloor_Colors: DirtyBlue | Cyan
+TileCorridorWall: #
+TileCorridorWall_Colors: Black | Black
+TileCorridorWallHorizontal: #
+TileCorridorWallHorizontal_Colors: Black | Black
+TileCorridorWallVertical: #
+TileCorridorWallVertical_Colors: Black | Black
+TileCorridorWallCornerTopLeft: #
+TileCorridorWallCornerTopLeft_Colors: Black | Black
+TileCorridorWallCornerTopRight: #
+TileCorridorWallCornerTopRight_Colors: Black | Black
+TileCorridorWallCornerBottomRight: #
+TileCorridorWallCornerBottomRight_Colors: Black | Black
+TileCorridorWallCornerBottomLeft: #
+TileCorridorWallCornerBottomLeft_Colors: Black | Black
+TileWallTJunctionTop: █
+TileWallTJunctionTop_Colors: DirtyYellow | DirtyBlue
+TileWallTJunctionRight: █
+TileWallTJunctionRight_Colors: DirtyYellow | DirtyBlue
+TileWallTJunctionBottom: ▀
+TileWallTJunctionBottom_Colors: DirtyYellow | DirtyBlue
+TileWallTJunctionLeft: █
+TileWallTJunctionLeft_Colors: DirtyYellow | DirtyBlue
+TileWallCross: █
+TileWallCross_Colors: DirtyYellow | DirtyBlue
+TileWallFull: █
+TileWallFull_Colors: DirtyYellow | DirtyBlue
+TileWallHalf: ▀
+TileWallHalf_Colors: DirtyYellow | DirtyBlue
+TileDoorOpen: ╺
+TileDoorOpen_Colors: LightGray | Brown
+TileDoorClosed: ╺
+TileDoorClosed_Colors: LightGray | Brown
+TileDoorBroken: ≡
+TileDoorBroken_Colors: DarkBrown | LightBrown
+TileDoorLocked: ≡
+TileDoorLocked_Colors: DarkBrown | LightBrown
+TileStairsUp: <
+TileStairsUp_Colors: White | Cyan
+TileStairsDown: >
+TileStairsDown_Colors: White | Cyan
+TileCaveStairsUp: <
+TileCaveStairsUp_Colors: White | CaveDirt
+TileCaveStairsDown: >
+TileCaveStairsDown_Colors: White | CaveDirt
+TileTownStairsDown: >
+TileTownStairsDown_Colors: White | TownGrass
+TileMountain: ▓
+TileMountain_Colors: RockHi | Rock
+TileMountainPeak: ▲
+TileMountainPeak_Colors: Peak | Rock
+TileTownGrass: .
+TileTownGrass_Colors: TownGrass | TownGrass
+TileTownGrassShade: ░
+TileTownGrassShade_Colors: GrassShade | TownGrass
+TileTownGrassTuft: "
+TileTownGrassTuft_Colors: Green | TownGrass
+TileTownGrassDot: ∙
+TileTownGrassDot_Colors: GrassDot | TownGrass
+TileRoof: ▄
+TileRoof_Colors: LightRed | TownGrass
+TileTownWallBase: ▌
+TileTownWallBase_Colors: LightGray | Gray
+TileTownInterior: █
+TileTownInterior_Colors: LightGray | Gray
+TileTownWallSide: █
+TileTownWallSide_Colors: LightGray | Gray
+TileTownCornerTopLeft: ▄
+TileTownCornerTopLeft_Colors: LightRed | TownGrass
+TileTownCornerTopRight: ▄
+TileTownCornerTopRight_Colors: LightRed | TownGrass
+TileTownCornerBottomLeft: ▌
+TileTownCornerBottomLeft_Colors: LightGray | Gray
+TileTownCornerBottomRight: ▌
+TileTownCornerBottomRight_Colors: LightGray | Gray
+TileGrass: ,
+TileGrass_Colors: LightGray | Black
+TileTree: §
+TileTree_Colors: LightGray | Black
+TileWater: ≈
+TileWater_Colors: Blue | DeepWaterBg
+TileLava: ≈
+TileLava_Colors: LavaHi | LavaBg
+TileChasm: .
+TileChasm_Colors: DarkGray | Black
+TileShallowWater: ≈
+TileShallowWater_Colors: Blue | ShallowWaterBg
+TileChasmEdge: ∙
+TileChasmEdge_Colors: White | ChasmEdge
+TileBridge: =
+TileBridge_Colors: Brown | Black
+TileFungus: "
+TileFungus_Colors: LightGreen | FungusBg
+TileFungusForest: ♠
+TileFungusForest_Colors: LightGreen | ForestBg
+TileVendorCurator: 1
+TileVendorCurator_Colors: Black | Yellow
+TileVendorBlacksmith: 2
+TileVendorBlacksmith_Colors: Black | LightGray
+TileVendorGeneral: 3
+TileVendorGeneral_Colors: Black | LightBrown
+TileVendorHome: 4
+TileVendorHome_Colors: Black | Blue
+
+%rec: items
+
+# Items
+ItemGold: ⣴
+ItemGold_Colors: Yellow | Cyan
+#
+ItemFood: ☙
+ItemFood_Colors: LightGreen | Cyan
+#
+ItemWeapons: ↑
+ItemWeapons_Colors: LightBrown | Cyan
+#
+ItemArmor: ❖
+ItemArmor_Colors: Orange | Cyan
+# ☥
+ItemScrolls: ≡
+ItemScrolls_Colors: Black | LightBrown
+#
+ItemPotions: ⚱
+ItemPotions_Colors: Blue | Cyan
+#
+ItemWands: τ
+ItemWands_Colors: Green | Cyan
+#
+ItemRings: ○
+ItemRings_Colors: LightRed | Cyan
+#
+ItemAmulets: &
+ItemLight: ~
+ItemAmulets_Colors: LightMagenta | Cyan
+ItemLight_Colors: Yellow | Cyan
+#
+ItemDocuments: ♪
+ItemDocuments_Colors: Black | White
+
+%rec: objects
+
+# Objects
+ClosedDoor: ■
+ClosedDoor_Colors: LightGray | Black
+#
+OpenDoor: ■
+OpenDoor_Colors: LightGray | Black
+#
+ExplodingTrap: ♦
+ExplodingTrap_Colors: LightGray | Cyan
+#
+SlowTrap: Θ
+SlowTrap_Colors: LightRed | Cyan
+#
+TeleportTrap: ^
+TeleportTrap_Colors: LightRed | Cyan
+#
+DartTrap: ^
+DartTrap_Colors: LightRed | Cyan
+#
+ArrowTrap: ^
+ArrowTrap_Colors: LightRed | Cyan
+#
+DescendTrap: ^
+DescendTrap_Colors: LightRed | Cyan
+
+%rec: borders
+
+UIBorder_Horizontal: ─
+UIBorder_Vertical: │
+UIBorder_TopLeft: ┌
+UIBorder_TopRight: ┐
+UIBorder_BottomLeft: └
+UIBorder_BottomRight: ┘
+UIBorder_LeftT: ├
+UIBorder_RightT: ┤
+UIBorder_TopT: ┬
+UIBorder_BottomT: ┴
+UIBorder_Cross: ┼
+UIBorder_HorizontalFocus: ─
+UIBorder_VerticalFocus: │
+UIBorder_TopLeftFocus: ┌
+UIBorder_TopRightFocus: ┐
+UIBorder_BottomLeftFocus: └
+UIBorder_BottomRightFocus: ┘
+
+%rec: hidden_trap
+
+Brightness: 0.75
+
+%rec: tiles
+
+# Tiles mode: the mapping rec (edit it with the remapper) overlays its tiles on the glyphs above
+File: ../tiles/oryx.rec
