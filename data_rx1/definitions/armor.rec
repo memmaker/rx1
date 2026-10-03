@@ -1,6 +1,6 @@
 name: leather armor
 internal_name: leather_armor
-description: Worn on the torso. One found in five is cursed at -1 to -3 and cannot be taken off for 100 to 400 turns once worn.
+description: Worn on the torso.
 category: armor
 slot: torso
 armor: 2
@@ -9,7 +9,7 @@ worth: 20
 
 name: ring mail
 internal_name: ring_mail
-description: Worn on the torso. One found in five is cursed at -1 to -3 and cannot be taken off for 100 to 400 turns once worn.
+description: Worn on the torso.
 category: armor
 slot: torso
 armor: 3
@@ -18,7 +18,7 @@ worth: 25
 
 name: studded leather armor
 internal_name: studded_leather
-description: Worn on the torso. One found in five is cursed at -1 to -3 and cannot be taken off for 100 to 400 turns once worn.
+description: Worn on the torso.
 category: armor
 slot: torso
 armor: 3
@@ -27,7 +27,7 @@ worth: 20
 
 name: chain mail
 internal_name: chain_mail
-description: Worn on the torso. One found in five is cursed at -1 to -3 and cannot be taken off for 100 to 400 turns once worn.
+description: Worn on the torso.
 category: armor
 slot: torso
 armor: 5
@@ -36,7 +36,7 @@ worth: 75
 
 name: scale armor
 internal_name: scale_mail
-description: Worn on the torso. One found in five is cursed at -1 to -3 and cannot be taken off for 100 to 400 turns once worn.
+description: Worn on the torso.
 category: armor
 slot: torso
 armor: 4
@@ -45,7 +45,7 @@ worth: 30
 
 name: lorica segmentata
 internal_name: banded_mail
-description: Worn on the torso. One found in five is cursed at -1 to -3 and cannot be taken off for 100 to 400 turns once worn.
+description: Worn on the torso.
 category: armor
 slot: torso
 armor: 6
@@ -54,7 +54,7 @@ worth: 90
 
 name: steel breastplate
 internal_name: splint_mail
-description: Worn on the torso. One found in five is cursed at -1 to -3 and cannot be taken off for 100 to 400 turns once worn.
+description: Worn on the torso.
 category: armor
 slot: torso
 armor: 6
@@ -63,7 +63,7 @@ worth: 80
 
 name: plate mail
 internal_name: plate_mail
-description: Worn on the torso. One found in five is cursed at -1 to -3 and cannot be taken off for 100 to 400 turns once worn.
+description: Worn on the torso.
 category: armor
 slot: torso
 armor: 7
