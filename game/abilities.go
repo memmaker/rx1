@@ -122,7 +122,7 @@ func (g *GameState) aiGoToItem(enemy *Actor, wanted func(*Item) bool) bool {
 // aiGaze: once per monster, when it first gets a look at the player. A Will roll resists.
 func (g *GameState) aiGaze(enemy *Actor) bool {
 	gazes := enemy.GetIntrinsicGazeEffects()
-	if len(gazes) == 0 || enemy.HasFlag(foundation.FlagGazed) || enemy.HasFlag(foundation.FlagCancel) || g.Player.IsBlind() {
+	if len(gazes) == 0 || enemy.HasFlag(foundation.FlagGazed) || enemy.HasFlag(foundation.FlagCancel) || g.Player.IsBlind() || g.Player.HasFlag(foundation.FlagHallucinating) { // Rogue 5.4: no gaze on a hallucinating hero
 		return false
 	}
 	enemy.GetFlags().Set(foundation.FlagGazed)

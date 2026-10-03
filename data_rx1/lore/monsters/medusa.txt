@@ -1,1 +1,17 @@
 [#FFFFFF]Beware of this ugly beast. One look at the face of a medusa can reduce even the most experienced adventurer to a quivering pile of monster chow.[-]
+
+[#f5e342]Origin[-]
+
+In Greek myth Medusa was one of the three Gorgons, the only one who was mortal, with snakes for hair and a face that turned anyone who looked at it to stone. Perseus cut off her head by watching her only in the reflection of his polished shield. Dungeons & Dragons made medusae a whole race:
+
+    The gaze of a medusa's eyes will turn creatures within 3" to stone unless they make their saving throw versus petrifaction.
+    - Monster Manual (1977), p. 66
+
+    If the medusa's gaze is reflected back, the creature will turn itself to stone!
+    - Monster Manual (1977), p. 66
+
+[#f5e342]Rogue Trivia[-]
+
+The medusa is new in Rogue 5.x, and it is the umber hulk in disguise: when the umber hulk was removed along with the other Dungeons & Dragons inventions, the medusa took over its exact numbers and its gaze. So the face that turns heroes to stone in myth only confuses them in Rogue, unless they save against magic. A blind or hallucinating hero never meets its eyes.
+
+The description at the top comes from the Macintosh version of Rogue.
