@@ -1,1 +1,17 @@
 [#FFFFFF]Yendor kept a few of the behemoths in the deepest parts of the Dungeons. Besides their powerful bite, they have breath which can fry your hair at 60 feet.[-]
+
+[#f5e342]Origin[-]
+
+Dragons are among the oldest monsters in human story, from the Babylonian Tiamat and the serpent slain by Saint George to Fafnir brooding on his gold and the beast that killed Beowulf. Rogue's dragon is the red dragon of Dungeons & Dragons, with the same armor class of -1 and the same claw, claw and bite:
+
+    The red dragon is usually found dwelling in great hills or mountainous regions. As with most others of this species, they make their lairs in subterranean coves and similar places. They are very greedy and avaricious.
+    - Monster Manual (1977), p. 34
+
+    A red dragon is able to attack by means of a claw/claw/bite routine or by breathing a cone of fire, 9" long by 3" base diameter.
+    - Monster Manual (1977), p. 34
+
+[#f5e342]Rogue Trivia[-]
+
+In Rogue 3.6 the dragon is worth 9000 experience, the most of any monster, and it is greedy, drawn to gold; it has no breath at all. Rogue 5.x cut its worth to 5000 but taught it to breathe: when the hero stands in a straight line or on a diagonal from it, one turn in five it sends a bolt of flame. Even so it is still the most valuable kill in the game. In rx1 it keeps both: it hoards gold and breathes fire, and it flies and regenerates as well.
+
+The description at the top comes from the Macintosh version of Rogue.
