@@ -60,6 +60,8 @@ func (i InventoryStack) InventoryNameWithColorsAndShortcut(lineColor string) str
 func (i InventoryStack) GetListInfo() string {
 	return appendStacks(i.items[0].GetListInfo(), len(i.items))
 }
+func (i InventoryStack) WeaponTypeName() string { return i.items[0].WeaponTypeName() }
+
 func (i InventoryStack) Description() string {
 	return i.items[0].Description()
 }

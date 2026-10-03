@@ -96,6 +96,7 @@ type GameForUI interface {
 	ItemAt(loc geometry.Point) ItemForUI
 	ObjectAt(loc geometry.Point) ObjectCategory
 	ActorAt(loc geometry.Point) ActorForUI
+	IsPlayer(actor ActorForUI) bool // also once dead and off the map
 
 	// Wizard
 	Descend()

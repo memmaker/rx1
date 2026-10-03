@@ -480,8 +480,12 @@ func (u *UI) getIconForActor(actor foundation.ActorForUI) foundation.TextIcon {
 		return u.getIconForItem(category)
 	}
 
-	icon := actor.TextIcon(u.currentTheme.GetIconForMap(foundation.TileFloor).Bg, u.currentTheme.GetColorByName)
-	if actor == u.game.ActorAt(u.game.GetPlayerPosition()) { // the player looks as the theme says, wielding their weapon in tiles
+	bg := u.currentTheme.GetIconForMap(foundation.TileFloor).Bg
+	if u.currentTheme.IsTiles() { // tiles sit on black, also while a move animates
+		bg = color.RGBA{A: 255}
+	}
+	icon := actor.TextIcon(bg, u.currentTheme.GetColorByName)
+	if u.game.IsPlayer(actor) { // the player looks as the theme says, wielding their weapon in tiles
 		icon.Rune, icon.Fg = u.currentTheme.playerIcon.Rune, u.currentTheme.playerIcon.Fg
 		if sprite := u.currentTheme.PlayerSprite(u.game.PlayerWielding()); sprite != 0 {
 			icon.Rune = sprite
@@ -837,7 +841,7 @@ func (u *UI) GetAnimThrow(item foundation.ItemForUI, origin geometry.Point, targ
 	if !u.settings.AnimationsEnabled || !u.settings.AnimateProjectiles {
 		return noAnimation(nil), 0
 	}
-	textIcon := u.getIconForItem(item.GetCategory())
+	textIcon := u.getIconForThisItem(item)
 
 	anim, length := u.GetAnimProjectileWithIcon(textIcon, origin, target, nil)
 	if missile, ok := item.(interface{ IsMissile() bool }); ok && missile.IsMissile() {
@@ -1478,7 +1482,7 @@ func (u *UI) UpdateInventory() {
 			return
 		}
 		getItemName = func(item foundation.ItemForUI, isEquipped bool) string {
-			itemIcon := u.currentTheme.GetIconForItem(item.GetCategory()).WithFg(u.currentTheme.GetInventoryItemColor(item.GetCategory())).WithBg(u.currentTheme.GetUIColor(UIColorUIBackground))
+			itemIcon := u.getIconForThisItem(item).WithFg(u.currentTheme.GetInventoryItemColor(item.GetCategory())).WithBg(u.currentTheme.GetUIColor(UIColorUIBackground))
 			if isEquipped {
 				itemIcon = itemIcon.Reversed()
 			}
@@ -2221,7 +2225,7 @@ func (u *UI) ShowVisibleItems() {
 	var infoTexts []string
 	for _, item := range listOfItems {
 		info := item.GetListInfo()
-		info = fmt.Sprintf("%c - %s", u.getIconForItem(item.GetCategory()).Rune, info)
+		info = fmt.Sprintf("%c - %s", u.getIconForThisItem(item).Rune, info)
 		infoTexts = append(infoTexts, info)
 	}
 	u.OpenTextWindow(infoTexts)
@@ -2435,7 +2439,16 @@ func directionToRune(dir geometry.CompassDirection) rune {
 	return 'w'
 }
 
+// mapLookup is what the map shows at loc; in tiles themes always on black (map, animations, projectiles).
 func (u *UI) mapLookup(loc geometry.Point) (foundation.TextIcon, bool) {
+	icon, ok := u.themedLookup(loc)
+	if u.currentTheme.IsTiles() {
+		icon.Bg = color.RGBA{A: 255}
+	}
+	return icon, ok
+}
+
+func (u *UI) themedLookup(loc geometry.Point) (foundation.TextIcon, bool) {
 	if u.game.IsVisibleToPlayer(loc) {
 		icon, ok := u.visibleLookup(loc)
 		// entities are themed on the floor background; give them the ground they stand on (town grass)
@@ -2506,7 +2519,7 @@ func (u *UI) visibleLookup(loc geometry.Point) (foundation.TextIcon, bool) {
 		return u.getIconForActor(actor), true
 	case foundation.EntityTypeItem:
 		item := u.game.ItemAt(loc)
-		return u.getIconForItem(item.GetCategory()), true
+		return u.getIconForThisItem(item), true
 	case foundation.EntityTypeObject:
 		object := u.game.ObjectAt(loc)
 		return u.getIconForObject(object), true
@@ -2536,6 +2549,14 @@ func (u *UI) onRightPanelClicked(clickPos geometry.Point) {
 	} else {
 		u.game.PlayerApplyItem(item)
 	}
+}
+
+// getIconForThisItem is getIconForItem with a weapon's own icon (per weapon type) in tiles themes.
+func (u *UI) getIconForThisItem(item foundation.ItemForUI) foundation.TextIcon {
+	if w, ok := item.(interface{ WeaponTypeName() string }); ok && !u.isPlayerHallucinating() {
+		return u.currentTheme.GetIconForWeapon(item.GetCategory(), w.WeaponTypeName())
+	}
+	return u.getIconForItem(item.GetCategory())
 }
 
 func (u *UI) getIconForItem(itemCategory foundation.ItemCategory) foundation.TextIcon {

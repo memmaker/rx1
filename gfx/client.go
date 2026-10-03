@@ -44,6 +44,8 @@ type state struct {
 	Face    string         `json:"face"`
 	MapFace string         `json:"mapFace"`
 	Images  bool           `json:"images"`
+	Scroll  bool           `json:"mapScroll"` // Map scroll: the map keeps its cell size (MapRow) and scrolls instead of fitting whole
+	MapRow  int            `json:"mapRow"`    // the map's cell height in CSS px while Scroll is on
 }
 
 type window struct {
@@ -67,7 +69,8 @@ type hot struct {
 // Client is the window: an Ebitengine game that paints the Screen as the map window and the panes as the others.
 type Client struct {
 	Screen     *Screen
-	cols, rows int
+	cols, rows int // the map window's grid: the level's size, or what fits at MapRow with Map scroll on
+	mapW, mapH int // the level's size
 	fonts      *fontSet
 	pics       fs.FS
 	picCache   map[string]*ebiten.Image
@@ -127,7 +130,7 @@ var titles = map[string]string{"map": "Map", "messages": "Messages", "inventory"
 
 // New makes the client for a cols x rows map; fonts holds the .woff files, pics the monster pictures.
 func New(cols, rows int, fonts, pics fs.FS, stateFile string) *Client {
-	c := &Client{Screen: NewScreen(cols, rows), cols: cols, rows: rows, fonts: newFontSet(fonts), pics: pics,
+	c := &Client{Screen: NewScreen(cols, rows), cols: cols, rows: rows, mapW: cols, mapH: rows, fonts: newFontSet(fonts), pics: pics,
 		picCache: map[string]*ebiten.Image{}, stateFile: stateFile, tree: defaultTree(),
 		panes: map[string][][]console.Span{}, dirtyP: map[string]bool{}, wins: map[string]*window{},
 		order: []string{"messages", "map", "inventory", "visible", "status"}, lastCell: image.Pt(-1, -1)}
@@ -277,9 +280,21 @@ func (c *Client) chrome() {
 	c.addButton(image.Pt(int(c.px(60)), int(c.px(6))), 13, "Windows ▾", c.windowsMenu)
 	font := "Font: " + c.faceLabel(c.st.Face) + " ▾"
 	c.addButton(image.Pt(int(c.px(160)), int(c.px(6))), 13, font, func() { c.fontMenu(false) })
+	x := int(c.px(168)) + c.buttonW(13, font)
+	scroll := "☐ Map scroll"
+	if c.st.Scroll {
+		scroll = "☑ Map scroll"
+	}
+	c.addButton(image.Pt(x, int(c.px(6))), 13, scroll, func() { c.st.Scroll = !c.st.Scroll; c.save(); c.relayout() })
+	x += c.buttonW(13, scroll) + int(c.px(8))
 	if c.single() {
-		x := int(c.px(168)) + c.buttonW(13, font)
-		c.addButton(image.Pt(x, int(c.px(6))), 13, "Map font: "+c.faceLabel(c.st.MapFace)+" ▾", func() { c.fontMenu(true) })
+		mf := "Map font: " + c.faceLabel(c.st.MapFace) + " ▾"
+		c.addButton(image.Pt(x, int(c.px(6))), 13, mf, func() { c.fontMenu(true) })
+		if c.st.Scroll { // no title bar in one-window mode: the map's zoom sits in the top bar
+			x += c.buttonW(13, mf) + int(c.px(8))
+			c.addButton(image.Pt(x, int(c.px(6))), 13, "−", func() { c.zoomMap(-1) })
+			c.addButton(image.Pt(x+c.buttonW(13, "−")+int(c.px(2)), int(c.px(6))), 13, "+", func() { c.zoomMap(1) })
+		}
 		return
 	}
 	for _, w := range c.wins {
@@ -294,6 +309,10 @@ func (c *Client) chrome() {
 		id := w.id
 		if id == "map" {
 			at("Font: "+c.faceLabel(c.st.MapFace)+" ▾", func() { c.fontMenu(true) })
+			if c.st.Scroll {
+				at("+", func() { c.zoomMap(1) })
+				at("−", func() { c.zoomMap(-1) })
+			}
 			continue
 		}
 		at("A+", func() { c.zoom(id, 1) })
@@ -329,6 +348,16 @@ func (c *Client) zoom(id string, d int) {
 	c.redraw = true
 }
 
+// zoomMap changes the map's cell height with Map scroll on (4 px steps; 8 to 96 px).
+func (c *Client) zoomMap(d int) {
+	c.st.MapRow = max(8, min(96, c.mapRow()+4*d))
+	c.save()
+	c.fitMap()
+	c.redraw = true
+}
+
+func (c *Client) mapRow() int { return cmp.Or(c.st.MapRow, 24) }
+
 func (c *Client) faceLabel(name string) string {
 	if name == "" {
 		return "default"
@@ -345,8 +374,21 @@ func (c *Client) fitMap() {
 	// whole-pixel cells in the font's proportions, the font sized to the cell height, glyphs stretched to the cell
 	c.fonts.setMapFace(cmp.Or(c.st.MapFace, defaultMapFace))
 	cwEm, rhEm := c.fonts.em(c.mapFace())
+	cols, rows := c.mapW, c.mapH
+	if c.st.Scroll { // fixed cells, as many as the window holds: the game scrolls the map in them
+		rh := max(1, int(c.px(float64(c.mapRow()))))
+		cw := max(1, int(math.Round(float64(rh)*cwEm/rhEm)))
+		cols, rows = max(1, m.body.Dx()/cw), max(1, m.body.Dy()/rh)
+	}
+	if cols != c.cols || rows != c.rows {
+		c.cols, c.rows = cols, rows
+		c.Screen.SetSize(cols, rows)
+	}
 	cw, rh := max(1, m.body.Dx()/c.cols), max(1, m.body.Dy()/c.rows)
-	if float64(cw)/float64(rh) > cwEm/rhEm {
+	if c.st.Scroll {
+		rh = max(1, int(c.px(float64(c.mapRow()))))
+		cw = max(1, int(math.Round(float64(rh)*cwEm/rhEm)))
+	} else if float64(cw)/float64(rh) > cwEm/rhEm {
 		cw = max(1, int(math.Round(float64(rh)*cwEm/rhEm)))
 	} else {
 		rh = max(1, int(math.Round(float64(cw)*rhEm/cwEm)))
@@ -354,7 +396,7 @@ func (c *Client) fitMap() {
 	cf := c.fonts.font(c.mapFace(), math.Floor(float64(rh)/rhEm*100)/100).tiles(cw, rh)
 	gw, gh := c.cols*cw, c.rows*rh
 	c.mapGrid = image.Rect(0, 0, gw, gh).Add(image.Pt(m.body.Min.X+(m.body.Dx()-gw)/2, m.body.Min.Y+(m.body.Dy()-gh)/2))
-	if c.mapFont == nil || *cf != *c.mapFont || c.mapImg == nil {
+	if c.mapFont == nil || *cf != *c.mapFont || c.mapImg == nil || c.mapImg.Bounds().Size() != image.Pt(gw, gh) {
 		c.mapFont, c.mapImg, c.mapAll = cf, ebiten.NewImage(gw, gh), true
 	}
 }
@@ -828,11 +870,7 @@ func (c *Client) paintMap() {
 			continue
 		}
 		s.dirty[i] = false
-		bg := cell.Bg
-		if c.tiles { // tiles mode: the tinted tiles sit on black, never on the theme's cell backgrounds
-			bg = color.RGBA{A: 255}
-		}
-		c.fonts.cell(c.mapImg, cf, float64(i%c.cols)*cf.cw, float64(i/c.cols)*cf.rh, cell.Str, cell.Fg, bg)
+		c.fonts.cell(c.mapImg, cf, float64(i%c.cols)*cf.cw, float64(i/c.cols)*cf.rh, cell.Str, cell.Fg, cell.Bg)
 	}
 	s.changed, c.mapAll, c.redraw = false, false, true
 }

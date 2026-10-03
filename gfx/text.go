@@ -230,14 +230,17 @@ func fillRect(dst *ebiten.Image, x, y, w, h float64, c color.Color) {
 // the glyph centred; a glyph wider than the cell (from the fallback font) is drawn smaller, in the middle of the row.
 func (f *fontSet) cell(dst *ebiten.Image, cf *cellFont, x, y float64, str string, fg, bg color.RGBA) {
 	hair := 0.5
-	if cf.sx > 0 {
+	op := &text.DrawOptions{}
+	if cf.sx > 0 { // tile cells are whole pixels: draw only inside the cell (a glyph's edge spilling over stays as a
+		// ghost, as only changed cells are redrawn), crisp, not blurred over the cell edge
 		hair = 0
+		dst = dst.SubImage(image.Rect(int(x), int(y), int(x+cf.cw), int(y+cf.rh))).(*ebiten.Image)
+		op.Filter = ebiten.FilterNearest
 	}
 	fillRect(dst, x, y, cf.cw+hair, cf.rh+hair, bg)
 	if str == "" || str == " " {
 		return
 	}
-	op := &text.DrawOptions{}
 	op.PrimaryAlign = text.AlignCenter
 	sx, sy := math.Max(cf.sx, 1e-9), math.Max(cf.sy, 1e-9)
 	if cf.sx == 0 {

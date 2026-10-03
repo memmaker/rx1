@@ -31,6 +31,7 @@ func (roomGame) GetPlayerLight() (foundation.LightInfo, bool) {
 }
 func (roomGame) GlowAt(geometry.Point) (color.RGBA, bool)          { return color.RGBA{}, false }
 func (roomGame) ObjectAt(geometry.Point) foundation.ObjectCategory { return -1 }
+func (g roomGame) IsPlayer(a foundation.ActorForUI) bool { return a == g.player }
 func (g roomGame) ActorAt(p geometry.Point) foundation.ActorForUI {
 	if p == previewCenter {
 		return g.player

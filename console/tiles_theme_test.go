@@ -1,6 +1,9 @@
 package console
 
-import "testing"
+import (
+	"rx1/foundation"
+	"testing"
+)
 
 // A theme with %rec: tiles draws map, items and monsters with the tile font's runes (U+E000 + icon of the mapping rec).
 func TestTilesThemeOverlaysIcons(t *testing.T) {
@@ -26,5 +29,20 @@ func TestTilesThemeOverlaysIcons(t *testing.T) {
 	}
 	if plain := NewThemeFromFile("../data_rx1/themes/fancy.rec"); plain.IsTiles() || plain.GetIconForMap("TileFloor").Rune >= 0xE000 {
 		t.Error("fancy must stay glyphs")
+	}
+}
+
+func TestTilesWeaponIcons(t *testing.T) {
+	theme := NewThemeFromFile("../data_rx1/themes/tiles.rec")
+	base := theme.GetIconForItem(foundation.ItemCategoryWeapons)
+	theme.weaponIcons["axe"] = foundation.TextIcon{Rune: 0xE000 + 7}
+	if got := theme.GetIconForWeapon(foundation.ItemCategoryWeapons, "axe"); got.Rune != 0xE000+7 || got.Fg != base.Fg {
+		t.Errorf("axe icon %+v, want rune U+E007 and the weapons colour", got)
+	}
+	if got := theme.GetIconForWeapon(foundation.ItemCategoryWeapons, ""); got != base {
+		t.Errorf("no weapon type: %+v, want the category icon", got)
+	}
+	if len(theme.weaponIcons) < 12 {
+		t.Errorf("oryx.rec weapon_items: %d types loaded", len(theme.weaponIcons))
 	}
 }

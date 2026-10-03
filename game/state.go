@@ -100,6 +100,8 @@ func (g *GameState) ObjectAt(loc geometry.Point) foundation.ObjectCategory {
 	return -1
 }
 
+func (g *GameState) IsPlayer(actor foundation.ActorForUI) bool { return actor == foundation.ActorForUI(g.Player) }
+
 func (g *GameState) ActorAt(loc geometry.Point) foundation.ActorForUI {
 	if g.gridMap.Contains(loc) && g.gridMap.IsActorAt(loc) {
 		actorAt := g.gridMap.ActorAt(loc)

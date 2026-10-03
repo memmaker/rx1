@@ -53,6 +53,7 @@ type Theme struct {
 	monsterAnim          map[string]rune                // tiles: a monster's second idle frame (its tile one sheet row down)
 	hiddenTrapBrightness float64                        // optional %rec: hidden_trap, the foreground brightness of the floor over a trap not found yet
 	tiles                bool                           // optional %rec: tiles, File: a tiles mapping rec (loadTiles); the clients switch the map to the tile font
+	weaponIcons          map[string]foundation.TextIcon // tiles: weapon_type -> the weapon lying on the map (%rec: weapon_items), over ItemWeapons
 	monsterIcons         map[string]foundation.TextIcon // tiles: internal_name -> tile rune, and its colour when Fg.A != 0
 }
 
@@ -101,6 +102,11 @@ func (t *Theme) loadTiles(filename string) {
 			case "objects":
 				c := foundation.ObjectCategoryFromString(id)
 				t.iconsForObjects[c] = apply(t.iconsForObjects[c])
+			case "weapon_items":
+				if t.weaponIcons == nil {
+					t.weaponIcons = map[string]foundation.TextIcon{}
+				}
+				t.weaponIcons[id] = apply(foundation.TextIcon{})
 			case "monster":
 				t.monsterIcons[id] = apply(foundation.TextIcon{})
 				t.monsterAnim[id] = t.monsterIcons[id].Rune
@@ -168,6 +174,20 @@ var caveFallback = map[foundation.TileType]foundation.TileType{
 	foundation.TileCaveFloor:      foundation.TileRoomFloor,
 	foundation.TileCaveStairsUp:   foundation.TileStairsUp,
 	foundation.TileCaveStairsDown: foundation.TileStairsDown,
+}
+
+// GetIconForWeapon is a weapon's icon: the category's, with its weapon type's tile and colour where the tiles give one.
+func (t Theme) GetIconForWeapon(category foundation.ItemCategory, weaponType string) foundation.TextIcon {
+	icon := t.GetIconForItem(category)
+	if w, ok := t.weaponIcons[weaponType]; ok && weaponType != "" {
+		if w.Rune != 0 {
+			icon.Rune = w.Rune
+		}
+		if w.Fg.A != 0 {
+			icon.Fg = w.Fg
+		}
+	}
+	return icon
 }
 
 func (t Theme) GetIconForMap(tileType foundation.TileType) foundation.TextIcon {

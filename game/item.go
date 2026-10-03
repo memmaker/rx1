@@ -156,6 +156,14 @@ func (i *Item) GetListInfo() string {
 }
 
 // Description: stats and rules; an unidentified item tells nothing beyond its looks
+// WeaponTypeName is the weapon_type word (sword, axe, ...) of a weapon, "" for other items: tiles themes give each its own icon.
+func (i *Item) WeaponTypeName() string {
+	if !i.IsWeapon() && !i.IsMissile() {
+		return ""
+	}
+	return i.GetWeapon().GetWeaponType().String()
+}
+
 func (i *Item) Description() string {
 	lines := []string{i.InventoryNameWithColors(""), " " + i.category.String()}
 	if i.IsMagic() && !i.id.IsItemIdentified(i.internalName) {

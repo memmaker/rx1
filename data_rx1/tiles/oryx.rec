@@ -27,7 +27,7 @@ reference_image: ref/preview_dungeons.png
 id: TileWall
 name: tile wall
 icon: 786
-color: DirtyBlue
+color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
 id: TileRoomFloor
@@ -45,37 +45,37 @@ reference_image: ref/preview_dungeons.png
 id: TileRoomWallHorizontal
 name: tile room wall horizontal
 icon: 802
-color: DirtyYellow
+color: LightGray
 reference_image: ref/preview_dungeons.png
 
 id: TileRoomWallVertical
 name: tile room wall vertical
 icon: 786
-color: DirtyYellow
+color: LightGray
 reference_image: ref/preview_dungeons.png
 
 id: TileRoomWallCornerTopLeft
 name: tile room wall corner top left
 icon: 786
-color: DirtyYellow
+color: LightGray
 reference_image: ref/preview_dungeons.png
 
 id: TileRoomWallCornerTopRight
 name: tile room wall corner top right
 icon: 786
-color: DirtyYellow
+color: LightGray
 reference_image: ref/preview_dungeons.png
 
 id: TileRoomWallCornerBottomRight
 name: tile room wall corner bottom right
 icon: 802
-color: DirtyYellow
+color: LightGray
 reference_image: ref/preview_dungeons.png
 
 id: TileRoomWallCornerBottomLeft
 name: tile room wall corner bottom left
 icon: 802
-color: DirtyYellow
+color: LightGray
 reference_image: ref/preview_dungeons.png
 
 id: TileCorridorFloor
@@ -128,25 +128,25 @@ reference_image: ref/preview_dungeons.png
 
 id: TileWallTJunctionTop
 name: tile wall tjunction top
-icon: 803
+icon: 786
 color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
 id: TileWallTJunctionRight
 name: tile wall tjunction right
-icon: 803
+icon: 802
 color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
 id: TileWallTJunctionBottom
 name: tile wall tjunction bottom
-icon: 803
+icon: 802
 color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
 id: TileWallTJunctionLeft
 name: tile wall tjunction left
-icon: 803
+icon: 802
 color: DirtyYellow
 reference_image: ref/preview_dungeons.png
 
@@ -236,32 +236,32 @@ reference_image: ref/preview_dungeons.png
 
 id: TileTownGrass
 name: tile town grass
-icon: 1050
-color: TownGrass
+icon: 1131
+color: Green
 reference_image: ref/preview_dungeons.png
 
 id: TileTownGrassTuft
 name: tile town grass tuft
-icon: 1051
-color: Green
+icon: 1050
+color: TownGrass
 reference_image: ref/preview_dungeons.png
 
 id: TileTownGrassShade
 name: tile town grass shade
-icon: 1052
-color: GrassShade
+icon: 1132
+color: LightGreen
 reference_image: ref/preview_dungeons.png
 
 id: TileTownGrassDot
 name: tile town grass dot
-icon: 1053
-color: GrassDot
+icon: 1130
+color: GrassShade
 reference_image: ref/preview_dungeons.png
 
 id: TileRoof
 name: tile roof
-icon: 794
-color: LightRed
+icon: 866
+color: LightGray
 reference_image: ref/preview_dungeons.png
 
 id: TileTownWallBase
@@ -278,20 +278,20 @@ reference_image: ref/preview_dungeons.png
 
 id: TileTownInterior
 name: tile town interior
-icon: 1065
+icon: 1063
 color: VeryDarkGray
 reference_image: ref/preview_dungeons.png
 
 id: TileTownCornerTopLeft
 name: tile town corner top left
-icon: 821
-color: LightRed
+icon: 826
+color: LightGray
 reference_image: ref/preview_dungeons.png
 
 id: TileTownCornerTopRight
 name: tile town corner top right
-icon: 821
-color: LightRed
+icon: 826
+color: LightGray
 reference_image: ref/preview_dungeons.png
 
 id: TileTownCornerBottomLeft
@@ -308,8 +308,8 @@ reference_image: ref/preview_dungeons.png
 
 id: TileGrass
 name: tile grass
-icon: 1050
-color: LightGray
+icon: 1130
+color: Green
 reference_image: ref/preview_dungeons.png
 
 id: TileTree
@@ -326,7 +326,7 @@ reference_image: ref/preview_dungeons.png
 
 id: TileLava
 name: tile lava
-icon: 771
+icon: 939
 color: Red
 reference_image: ref/preview_dungeons.png
 
@@ -368,26 +368,26 @@ reference_image: ref/preview_dungeons.png
 
 id: TileVendorCurator
 name: tile vendor curator
-icon: 1110
-color: Black
+icon: 1176
+color: LightRed
 reference_image: ref/preview_dungeons.png
 
 id: TileVendorBlacksmith
 name: tile vendor blacksmith
-icon: 1111
-color: Black
+icon: 1176
+color: LightBrown
 reference_image: ref/preview_dungeons.png
 
 id: TileVendorGeneral
 name: tile vendor general
-icon: 1068
-color: Black
+icon: 1176
+color: LightGreen
 reference_image: ref/preview_dungeons.png
 
 id: TileVendorHome
 name: tile vendor home
-icon: 978
-color: Black
+icon: 967
+color: Blue
 reference_image: ref/preview_dungeons.png
 
 %rec: items
@@ -395,26 +395,26 @@ reference_image: ref/preview_dungeons.png
 
 id: ItemGold
 name: item gold
-icon: 744
+icon: 572
 color: Yellow
 reference_image: ref/preview_items.png
 
 id: ItemFood
 name: item food
-icon: 568
-color: LightGreen
+icon: 547
+color: Brown
 reference_image: ref/preview_items.png
 
 id: ItemWeapons
 name: item weapons
-icon: 494
+icon: 495
 color: Peak
 reference_image: ref/preview_items.png
 
 id: ItemArmor
 name: item armor
-icon: 641
-color: LightGray
+icon: 635
+color: Peak
 reference_image: ref/preview_items.png
 
 id: ItemRings
@@ -431,7 +431,7 @@ reference_image: ref/preview_items.png
 
 id: ItemPotions
 name: item potions
-icon: 554
+icon: 557
 color: Blue
 reference_image: ref/preview_items.png
 
@@ -450,13 +450,76 @@ reference_image: ref/preview_items.png
 id: ItemDocuments
 name: item documents
 icon: 737
-color: Yellow
+color: Gray
 reference_image: ref/preview_items.png
 
 id: ItemLight
 name: item light
 icon: 582
 color: LavaHi
+reference_image: ref/preview_items.png
+
+%rec: weapon_items
+%doc: Weapons lying on the map and in the inventory, by weapon_type (over ItemWeapons)
+
+id: sword
+name: item sword
+icon: 495
+reference_image: ref/preview_items.png
+
+id: club
+name: item club
+icon: 504
+reference_image: ref/preview_items.png
+
+id: axe
+name: item axe
+icon: 503
+reference_image: ref/preview_items.png
+
+id: dagger
+name: item dagger
+icon: 498
+reference_image: ref/preview_items.png
+
+id: spear
+name: item spear
+icon: 520
+reference_image: ref/preview_items.png
+
+id: bow
+name: item bow
+icon: 511
+reference_image: ref/preview_items.png
+
+id: arrow
+name: item arrow
+icon: 526
+reference_image: ref/preview_items.png
+
+id: crossbow
+name: item crossbow
+icon: 512
+reference_image: ref/preview_items.png
+
+id: bolt
+name: item bolt
+icon: 525
+reference_image: ref/preview_items.png
+
+id: dart
+name: item dart
+icon: 526
+reference_image: ref/preview_items.png
+
+id: rapier
+name: item rapier
+icon: 494
+reference_image: ref/preview_items.png
+
+id: whip
+name: item whip
+icon: 528
 reference_image: ref/preview_items.png
 
 %rec: objects
