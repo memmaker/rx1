@@ -143,6 +143,7 @@ type GameUI interface {
 	AfterPlayerMoved(moveInfo MoveInfo)
 
 	// Animations
+	// With an animation switched off the UI returns one that plays no frame but still runs done and its follow-ups.
 
 	// AddAnimations takes a list of list of animations.
 	// Each list contains animations that should be played in parallel.
@@ -183,6 +184,8 @@ type GameUI interface {
 	GetAnimBackgroundColor(position geometry.Point, colorName string, frameCount int, done func()) Animation
 	GetAnimAppearance(actor ActorForUI, position geometry.Point, done func()) Animation
 	GetAnimWakeUp(position geometry.Point, done func()) Animation
+	// GetAnimEffect plays a named effect (haste, slow, sleep, light, detect_traps, ...) at center; area is the region it concerns, or nil.
+	GetAnimEffect(effect string, center geometry.Point, area []geometry.Point, done func()) Animation
 }
 
 type Animation interface {
