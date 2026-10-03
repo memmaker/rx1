@@ -288,6 +288,9 @@ func invisibilityTarget(g *GameState, zapper *Actor, targetPos geometry.Point) [
 	if g.gridMap.IsActorAt(targetPos) {
 		targetActor := g.gridMap.ActorAt(targetPos)
 		makeInvisible(g, targetActor)
+		if projAnim != nil {
+			projAnim.SetFollowUp(g.effectAnim("invisible", targetPos, nil))
+		}
 		if zapper == g.Player && !g.Player.IsBlind() && (g.isInPlayerRoom(targetPos) || g.canPlayerSee(targetPos)) {
 			g.identification.EffectWitnessed()
 		}
@@ -388,6 +391,9 @@ func cancelTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []found
 	if g.gridMap.IsActorAt(targetPos) {
 		targetActor := g.gridMap.ActorAt(targetPos)
 		cancel(g, targetActor)
+		if projAnim != nil {
+			projAnim.SetFollowUp(g.effectAnim("cancel", targetPos, nil))
+		}
 		if zapper == g.Player && !g.Player.IsBlind() && (g.isInPlayerRoom(targetPos) || g.canPlayerSee(targetPos)) {
 			g.identification.EffectWitnessed()
 		}
@@ -410,6 +416,9 @@ func holdTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []foundat
 	if g.gridMap.IsActorAt(targetPos) {
 		targetActor := g.gridMap.ActorAt(targetPos)
 		targetActor.GetFlags().Increase(foundation.FlagHeld, rand.Intn(10)+5)
+		if projAnim != nil {
+			projAnim.SetFollowUp(g.effectAnim("hold", targetPos, nil))
+		}
 		if zapper == g.Player && !g.Player.IsBlind() && (g.isInPlayerRoom(targetPos) || g.canPlayerSee(targetPos)) {
 			g.identification.EffectWitnessed()
 		}
@@ -432,6 +441,9 @@ func slowTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []foundat
 	if g.gridMap.IsActorAt(targetPos) {
 		targetActor := g.gridMap.ActorAt(targetPos)
 		slow(g, targetActor)
+		if projAnim != nil {
+			projAnim.SetFollowUp(g.effectAnim("slow", targetPos, nil))
+		}
 		if zapper == g.Player && !g.Player.IsBlind() && (g.isInPlayerRoom(targetPos) || g.canPlayerSee(targetPos)) {
 			g.identification.EffectWitnessed()
 		}
@@ -454,6 +466,9 @@ func hasteTarget(g *GameState, zapper *Actor, targetPos geometry.Point) []founda
 	if g.gridMap.IsActorAt(targetPos) {
 		targetActor := g.gridMap.ActorAt(targetPos)
 		haste(g, targetActor)
+		if projAnim != nil {
+			projAnim.SetFollowUp(g.effectAnim("haste", targetPos, nil))
+		}
 		if zapper == g.Player && !g.Player.IsBlind() && (g.isInPlayerRoom(targetPos) || g.canPlayerSee(targetPos)) {
 			g.identification.EffectWitnessed()
 		}
@@ -485,6 +500,9 @@ func polymorph(g *GameState, zapper *Actor, aimPos geometry.Point) []foundation.
 		g.gridMap.AddActor(newMonster, targetPos)
 		newName := newMonster.Name()
 		g.msg(foundation.HiLite("%s turns into %s", oldName, newName))
+		if projAnim != nil {
+			projAnim.SetFollowUp(g.effectAnim("polymorph", targetPos, nil))
+		}
 		if zapper == g.Player && !g.Player.IsBlind() && (g.isInPlayerRoom(targetPos) || g.canPlayerSee(targetPos)) {
 			g.identification.EffectWitnessed()
 		}

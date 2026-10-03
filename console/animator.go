@@ -119,12 +119,16 @@ func (a *Animator) IsBusy() bool {
 	return len(a.running) > 0 || len(a.queue) > 0
 }
 
-func (a *Animator) Tick() {
+// retireFinished removes the finished animations and starts their follow-ups. It reports whether it removed any.
+func (a *Animator) retireFinished() bool {
+	removed := false
 	stillRunning := make([]*animationGroup, 0, len(a.running))
 	for _, group := range a.running {
 		for i := len(group.animations) - 1; i >= 0; i-- {
 			currentAnim := group.animations[i]
 			if currentAnim.IsDone() {
+				removed = true
+				currentAnim.Cancel() // an animation that was done from the start has not called done yet
 				followUp := currentAnim.GetFollowUp()
 				group.animations = append(group.animations[:i], group.animations[i+1:]...)
 				if currentAnim.IsRequestingMapStateUpdate() { // a vanish: the actors move now, not after the follow-ups
@@ -144,9 +148,16 @@ func (a *Animator) Tick() {
 		}
 	}
 	a.running = stillRunning
+	return removed
+}
 
-	for len(a.running) == 0 && len(a.queue) > 0 { // a batch without animations costs no frame
-		for _, group := range a.queue[0] {
+func (a *Animator) Tick() {
+	// chains of animations without frames (switched off effects) resolve within one tick
+	for a.retireFinished() || (len(a.running) == 0 && len(a.queue) > 0) {
+		if len(a.running) > 0 || len(a.queue) == 0 {
+			continue
+		}
+		for _, group := range a.queue[0] { // a batch without animations costs no frame
 			if len(group.animations) > 0 {
 				a.running = append(a.running, group)
 			} else {

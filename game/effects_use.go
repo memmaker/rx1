@@ -12,33 +12,33 @@ import (
 func GetAllUseEffects() map[string]func(g *GameState, user *Actor) (bool, []foundation.Animation) {
 	return map[string]func(g *GameState, user *Actor) (endsTurnDirectly bool, animations []foundation.Animation){
 		"phase_door":                     endTurn(true, phaseDoor),
-		"darkness":                       endTurn(true, noAnim(darkness)),
+		"darkness":                       endTurn(true, darkness),
 		"confuse":                        endTurn(true, confuse),
-		"haste":                          endTurn(true, noAnim(haste)),
-		"blindness":                      endTurn(true, noAnim(blindness)),
-		"hallucination":                  endTurn(true, noAnim(hallucination)),
-		"levitation":                     endTurn(true, noAnim(levitation)),
-		"see_invisible":                  endTurn(true, noAnim(seeInvisible)),
-		"confuse_monster_on_next_attack": endTurn(true, noAnim(confuseEnemyOnNextAttack)),
+		"haste":                          endTurn(true, withFx("haste", haste)),
+		"blindness":                      endTurn(true, withFx("blind", blindness)),
+		"hallucination":                  endTurn(true, withFx("hallucinate", hallucination)),
+		"levitation":                     endTurn(true, withFx("levitate", levitation)),
+		"see_invisible":                  endTurn(true, withFx("see_invisible", seeInvisible)),
+		"confuse_monster_on_next_attack": endTurn(true, withFx("red_glow", confuseEnemyOnNextAttack)),
 		"reveal_map":                     endTurn(true, revealMap),
 		"freeze_monsters_in_room":        endTurn(true, holdAllVisibleMonsters),
-		"fall_asleep":                    endTurn(true, noAnim(fallAsleep)),
-		"maniacal_laughter":              endTurn(true, noAnim(maniacalLaughter)),
+		"fall_asleep":                    endTurn(true, withFx("sleep", fallAsleep)),
+		"maniacal_laughter":              endTurn(true, withFx("laughter", maniacalLaughter)),
 		"enchant_armor":                  endTurn(false, playerEnchantArmor),
 		"enchant_weapon":                 endTurn(false, playerEnchantWeapon),
 		"aggravate_monsters":             endTurn(true, aggroMonsters),
-		"detect_food":                    endTurn(true, noAnim(playerDetectFood)),
-		"detect_magic":                   endTurn(true, noAnim(playerDetectMagic)),
-		"detect_monsters":                endTurn(true, noAnim(playerDetectMonsters)),
-		"detect_traps":                   endTurn(true, noAnim(playerDetectTraps)),
+		"detect_food":                    endTurn(true, withFx("detect_food", playerDetectFood)),
+		"detect_magic":                   endTurn(true, withFx("detect_magic", playerDetectMagic)),
+		"detect_monsters":                endTurn(true, withFx("detect_monsters", playerDetectMonsters)),
+		"detect_traps":                   endTurn(true, withFx("detect_traps", playerDetectTraps)),
 		"create_monster":                 endTurn(true, noAnim(createMonster)),
-		"light":                          endTurn(true, noAnim(light)),
+		"light":                          endTurn(true, light),
 		"drain_life":                     endTurn(true, drainLife),
 		"heal":                           endTurn(true, heal),
 		"extra_heal":                     endTurn(true, extraHeal),
 		"gain_strength":                  endTurn(true, gainStrength),
 		"gain_max_hp":                    endTurn(true, gainMaxHP),
-		"raise_level":                    endTurn(true, noAnim(raiseLevel)),
+		"raise_level":                    endTurn(true, withFx("raise_level", raiseLevel)),
 		"uncloak":                        endTurn(true, uncloak),
 		"vorpalize":                      endTurn(false, playerVorpalizeWeapon),
 		"satiate_fully":                  endTurn(true, satiateFully),
@@ -189,23 +189,40 @@ func noAnim(h func(g *GameState, user *Actor)) func(*GameState, *Actor) []founda
 		return nil
 	}
 }
+// withFx runs h and plays the named effect on the user.
+func withFx(effect string, h func(g *GameState, user *Actor)) func(*GameState, *Actor) []foundation.Animation {
+	return func(g *GameState, user *Actor) []foundation.Animation {
+		h(g, user)
+		return g.effectAnim(effect, user.Position(), nil)
+	}
+}
+
+// effectAnim plays the named effect at pos, if the player sees it happen.
+func (g *GameState) effectAnim(effect string, pos geometry.Point, area []geometry.Point) []foundation.Animation {
+	if pos != g.Player.Position() && !g.canPlayerSee(pos) {
+		return nil
+	}
+	return OneAnimation(g.ui.GetAnimEffect(effect, pos, area, nil))
+}
+
 func endTurn(endsTurnDirectly bool, h func(*GameState, *Actor) []foundation.Animation) func(*GameState, *Actor) (bool, []foundation.Animation) {
 	return func(g *GameState, user *Actor) (bool, []foundation.Animation) {
 		return endsTurnDirectly, h(g, user)
 	}
 }
 
-func light(g *GameState, user *Actor) {
+func light(g *GameState, user *Actor) []foundation.Animation {
 	room := g.getPlayerRoom()
 	if room == nil {
 		g.msg(foundation.Msg("Nothing happens."))
-		return
+		return nil
 	}
 
 	roomTiles := room.GetAbsoluteRoomTiles()
 	room.SetLit(true)
 	g.gridMap.SetLitMulti(roomTiles)
 	g.gridMap.SetListExplored(roomTiles, true)
+	return g.effectAnim("light", user.Position(), room.GetAbsoluteRoomTiles())
 }
 
 // genocide is Rogue 3.6's: the chosen monster leaves every level and is never generated again.
@@ -679,15 +696,17 @@ func maniacalLaughter(g *GameState, user *Actor) {
 // https://github.com/memmaker/rogue-pc-modern-C/blob/582340fcaef32dd91595721efb2d5db41ff3cb05/src/potions.c#L288C15-L288C31
 
 // darkness puts out the lights in the user's room (wraith, ur-vile).
-func darkness(g *GameState, user *Actor) {
+func darkness(g *GameState, user *Actor) []foundation.Animation {
 	room := g.dungeonLayout.GetRoomAt(user.Position())
 	if room == nil {
-		return
+		return nil
 	}
 	for _, pos := range room.GetAbsoluteRoomTiles() {
 		g.gridMap.SetLit(pos, false)
 	}
 	if room.ContainsIncludingWalls(g.Player.Position()) {
 		g.msg(foundation.HiLite("%s puts out the lights", user.Name()))
+		return g.effectAnim("darkness", user.Position(), room.GetAbsoluteRoomTiles())
 	}
+	return nil
 }

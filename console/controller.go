@@ -156,7 +156,7 @@ func (u *UI) OpenVendorMenu(shop string, itemsForSale []util.Tuple[foundation.It
 
 func (u *UI) GetAnimBackgroundColor(position geometry.Point, colorName string, frameCount int, done func()) foundation.Animation {
 	if !u.settings.AnimationsEnabled || !u.settings.AnimateEffects {
-		return nil
+		return noAnimation(done)
 	}
 	iconAtLocation, _ := u.mapLookup(position)
 	bgColor := u.currentTheme.GetColorByName(colorName)
@@ -507,7 +507,7 @@ func (u *UI) GetAnimAttack(attacker, defender foundation.ActorForUI) foundation.
 
 func (u *UI) GetAnimDamage(defenderPos geometry.Point, damage int, done func()) foundation.Animation {
 	if !u.settings.AnimationsEnabled || !u.settings.AnimateDamage {
-		return nil
+		return noAnimation(done)
 	}
 	animation := NewDamageAnimation(defenderPos, u.game.GetPlayerPosition(), damage)
 	animation.SetDoneCallback(done)
@@ -515,14 +515,14 @@ func (u *UI) GetAnimDamage(defenderPos geometry.Point, damage int, done func()) 
 }
 func (u *UI) GetAnimTiles(positions []geometry.Point, frames []foundation.TextIcon, done func()) foundation.Animation {
 	if !u.settings.AnimationsEnabled || !u.settings.AnimateEffects {
-		return nil
+		return noAnimation(done)
 	}
 	return NewTilesAnimation(positions, frames, done)
 }
 
 func (u *UI) GetAnimRadialReveal(position geometry.Point, dijkstra map[geometry.Point]int, done func()) foundation.Animation {
 	if !u.settings.AnimationsEnabled || !u.settings.AnimateEffects {
-		return nil
+		return noAnimation(done)
 	}
 
 	animation := NewRadialAnimation(position, dijkstra, u.currentTheme.GetColorByName, u.mapLookup, done)
@@ -533,7 +533,7 @@ func (u *UI) GetAnimRadialReveal(position geometry.Point, dijkstra map[geometry.
 
 func (u *UI) GetAnimRadialAlert(position geometry.Point, dijkstra map[geometry.Point]int, done func()) foundation.Animation {
 	if !u.settings.AnimationsEnabled || !u.settings.AnimateEffects {
-		return nil
+		return noAnimation(done)
 	}
 	lookup := func(loc geometry.Point) (foundation.TextIcon, bool) {
 		return foundation.TextIcon{
@@ -815,7 +815,7 @@ func (u *UI) GetAnimEnchantArmor(player foundation.ActorForUI, location geometry
 }
 func (u *UI) GetAnimThrow(item foundation.ItemForUI, origin geometry.Point, target geometry.Point) (foundation.Animation, int) {
 	if !u.settings.AnimationsEnabled || !u.settings.AnimateProjectiles {
-		return nil, 0
+		return noAnimation(nil), 0
 	}
 	textIcon := u.getIconForItem(item.GetCategory())
 
@@ -832,14 +832,14 @@ func (u *UI) GetAnimProjectile(icon rune, fgColor string, origin geometry.Point,
 }
 func (u *UI) GetAnimProjectileWithIcon(textIcon foundation.TextIcon, origin geometry.Point, target geometry.Point, done func()) (foundation.Animation, int) {
 	if !u.settings.AnimationsEnabled || !u.settings.AnimateProjectiles {
-		return nil, 0
+		return noAnimation(done), 0
 	}
 	pathOfFlight := geometry.BresenhamLine(origin, target, func(x, y int) bool {
 		return true
 	})
 
 	if len(pathOfFlight) == 0 {
-		return nil, 0
+		return noAnimation(done), 0
 	}
 
 	return NewProjectileAnimation(pathOfFlight, textIcon, u.mapLookup, done), len(pathOfFlight)
@@ -847,11 +847,11 @@ func (u *UI) GetAnimProjectileWithIcon(textIcon foundation.TextIcon, origin geom
 
 func (u *UI) GetAnimProjectileWithTrail(leadIcon rune, colorNames []string, pathOfFlight []geometry.Point, done func()) (foundation.Animation, int) {
 	if !u.settings.AnimationsEnabled || !u.settings.AnimateProjectiles {
-		return nil, 0
+		return noAnimation(done), 0
 	}
 
 	if len(pathOfFlight) == 0 {
-		return nil, 0
+		return noAnimation(done), 0
 	}
 
 	var trailIcons []foundation.TextIcon
