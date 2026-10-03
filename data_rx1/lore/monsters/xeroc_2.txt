@@ -1,0 +1,7 @@
+[#f5e342]Origin[-]
+
+The xeroc mk ii is an rx1 original, a newer model of the copying monster. Where the first xeroc copies the things lying in a room, the mark two copies the room itself: a pack of them presses into the walls, invisible, so that the room looks empty. Once an adventurer stands inside, the walls give them up and they step out from every side at once.
+
+[#f5e342]Rogue Trivia[-]
+
+No version of Rogue has it. It shares the xeroc's letter and its numbers, the same level, armor and 4d4 bite, but trades the disguise for an ambush. A way to see the invisible shows the pack waiting in the stone before the trap is sprung.

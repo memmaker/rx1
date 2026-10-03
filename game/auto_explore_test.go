@@ -63,3 +63,7 @@ func (stubUI) GetAnimRadialAlert(geometry.Point, map[geometry.Point]int, func())
 func (stubUI) GetAnimEffect(string, geometry.Point, []geometry.Point, func()) foundation.Animation {
 	return nil
 }
+
+func (stubUI) GetAnimUncloakAtPosition(foundation.ActorForUI, geometry.Point) (foundation.Animation, int) {
+	return stubAnim{}, 0
+}

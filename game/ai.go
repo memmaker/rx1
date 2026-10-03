@@ -30,6 +30,11 @@ func (g *GameState) aiAct(enemy *Actor) {
 		return
 	}
 
+	if g.lurksInWall(enemy) {
+		g.emergeFromWall(enemy)
+		return
+	}
+
 	if enemy.HasFlag(foundation.FlagHeld) {
 		if rand.Intn(10) == 0 {
 			enemy.GetFlags().Unset(foundation.FlagHeld)

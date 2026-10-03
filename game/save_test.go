@@ -7,6 +7,7 @@ import (
 	"rx1/foundation"
 	"rx1/geometry"
 	"rx1/gridmap"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -190,6 +191,11 @@ func TestWallSlideIntoCorridor(t *testing.T) {
 	}
 	for _, p := range []geometry.Point{at, at.Add(geometry.Point{X: 0, Y: -1}), at.Add(geometry.Point{X: 1, Y: -1}), at.Add(geometry.Point{X: 2, Y: -1})} {
 		g.gridMap.SetTile(p, floor)
+	}
+	for _, a := range slices.Clone(g.gridMap.Actors()) { // no monster in the way
+		if a != g.Player && geometry.DistanceChebyshev(a.Position(), at) <= 4 {
+			g.gridMap.RemoveActor(a)
+		}
 	}
 	g.gridMap.MoveActor(g.Player, at)
 	g.ManualMovePlayer(geometry.East)
