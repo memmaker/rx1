@@ -539,7 +539,7 @@ func (g *GameState) IsEquipped(items foundation.ItemForUI) bool {
 	if !isItem {
 		return false
 	}
-	return g.Player.GetEquipment().IsEquipped(itemStack.First())
+	return slices.ContainsFunc(itemStack.items, g.Player.GetEquipment().IsEquipped) // the quiver holds any one missile of a group
 }
 
 func (g *GameState) GetVisibleEnemies() []foundation.ActorForUI {
