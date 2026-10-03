@@ -6,6 +6,7 @@ import (
 	"rx1/foundation"
 	"rx1/geometry"
 	"rx1/gridmap"
+	"slices"
 	"testing"
 )
 
@@ -98,9 +99,13 @@ func TestRoomsGetMonsters(t *testing.T) {
 		g.spawnEntities(random, 3, newMap, dungeon)
 		rooms += len(dungeon.AllRooms())
 		for _, a := range newMap.Actors() {
-			monsters++
-			if !a.IsSleeping() {
+			if !a.IsSleeping() && newMap.IsTileWalkable(a.Position()) { // wall lurkers lie in wait awake
 				t.Fatal("room monsters start asleep")
+			}
+		}
+		for _, room := range dungeon.AllRooms() { // a pack counts once
+			if slices.ContainsFunc(newMap.Actors(), func(a *Actor) bool { return room.ContainsIncludingWalls(a.Position()) }) {
+				monsters++
 			}
 		}
 	}

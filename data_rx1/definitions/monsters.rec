@@ -549,7 +549,7 @@ color: White
 gold: 2d8
 carry_chance: 20
 gold_chance: 20
-flags: invisible | wall_crawler
+flags: invisible | wall_crawler | group
 
 name: xorn
 level: 7

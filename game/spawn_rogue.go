@@ -71,9 +71,21 @@ func (g *GameState) spawnEntities(random *rand.Rand, level int, newMap *gridmap.
 		}
 		if !g.inSecretLevel && rnd(random, 100) < chance { // the mega dungeon keeps its own population
 			if pos, ok := findFloor(room, 0, canHoldMonster); ok {
-				monster := g.NewEnemyFromDef(g.rogueMonsterFor(random, level, false, newMap.IsTileLit(pos)))
+				def := g.rogueMonsterFor(random, level, false, newMap.IsTileLit(pos))
+				if def.InternalName == "xeroc_2" {
+					g.placeWallLurkers(random, newMap, room, def)
+					continue
+				}
+				monster := g.NewEnemyFromDef(def)
 				monster.GetFlags().Set(foundation.FlagSleep)
 				newMap.AddActor(monster, pos)
+				if monster.HasFlag(foundation.FlagGroup) { // the rest of the pack sleeps around it
+					for _, p := range newMap.GetFreeCellsForDistribution(pos, 1+rnd(random, 3), canHoldMonster) {
+						kin := g.NewEnemyFromDef(def)
+						kin.GetFlags().Set(foundation.FlagSleep)
+						newMap.AddActor(kin, p)
+					}
+				}
 			}
 		}
 	}
