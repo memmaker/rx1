@@ -23,6 +23,8 @@ type Screen struct {
 	changed bool
 	cursor  image.Point // -1,-1: hidden
 	done    bool        // Fini was called: the game is over
+	frontW  int         // front's width (cells per row)
+	pending image.Point // SetSize from the window: applied by the game's goroutine (Clear), which owns cells
 }
 
 // Cell is one character of the screen with its colours (reverse already applied).
@@ -42,6 +44,7 @@ func NewScreen(w, h int) *Screen {
 
 func (s *Screen) resize(w, h int) {
 	s.cells.Resize(w, h)
+	s.frontW = w
 	s.front = make([]Cell, w*h)
 	s.dirty = make([]bool, w*h)
 }
@@ -74,7 +77,15 @@ func (s *Screen) Fini() {
 		close(s.evch) // ends cview's event loop
 	}
 }
-func (s *Screen) Clear()                                  { s.cells.Fill(' ', s.style) }
+func (s *Screen) Clear() { // cview clears on every resize event: the size SetSize asked for takes effect here
+	s.mu.Lock()
+	if p := s.pending; p != (image.Point{}) {
+		s.resize(p.X, p.Y)
+		s.pending = image.Point{}
+	}
+	s.mu.Unlock()
+	s.cells.Fill(' ', s.style)
+}
 func (s *Screen) Fill(r rune, st tcell.Style)             { s.cells.Fill(r, st) }
 func (s *Screen) SetStyle(st tcell.Style)                 { s.style = st }
 func (s *Screen) Get(x, y int) (string, tcell.Style, int) { return s.cells.Get(x, y) }
@@ -142,7 +153,7 @@ func (s *Screen) Resume() error                     { return nil }
 func (s *Screen) Beep() error                       { return nil }
 func (s *Screen) SetSize(w, h int) {
 	s.mu.Lock()
-	s.resize(w, h)
+	s.pending = image.Pt(w, h)
 	s.mu.Unlock()
 	s.post(tcell.NewEventResize(w, h))
 }

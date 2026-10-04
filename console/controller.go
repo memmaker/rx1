@@ -83,8 +83,10 @@ type UI struct {
 	hpFlashUntil     time.Time // the status bar is drawn inverted until then
 	panes            Panes     // nil: side windows are drawn in the terminal grid
 	paneSent         map[string]string
-	looking          bool     // targeting is the look command: its key confirms
-	paneRestore      []func() // panes a modal took over, put back when the map is in front again
+	looking          bool       // targeting is the look command: its key confirms
+	paneRestore      []func()   // panes a modal took over, put back when the map is in front again
+	overlay          *offscreen // while drawing with an OverlayPanes: the modals' window
+	overlayUsed      bool
 }
 
 // OpenVendorMenu: ←/→ or typed digits set how many of the selected ware to buy, Enter buys them,
@@ -213,7 +215,7 @@ func (u *UI) showWinScreen(scoreInfo foundation.ScoreInfo, highScores []foundati
 	textView.SetInputCapture(u.popOnSpaceWithNotification(panelName, func() {
 		u.showHighscoresAndRestart(highScores)
 	}))
-	u.pages.AddPanel(panelName, textView, true, true)
+	u.addPanel(panelName, textView)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(textView)
 }
@@ -256,7 +258,7 @@ func (u *UI) showDeathScreen(scoreInfo foundation.ScoreInfo, highScores []founda
 		u.game.Reset()
 	}
 	textView.SetInputCapture(u.yesNoReceiver(reset, u.application.Stop))
-	u.pages.AddPanel(panelName, textView, true, true)
+	u.addPanel(panelName, textView)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(textView)
 }
@@ -286,7 +288,7 @@ func (u *UI) showHighscoresAndRestart(highScores []foundation.ScoreInfo) {
 		u.game.Reset()
 	}
 	textView.SetInputCapture(u.yesNoReceiver(reset, u.application.Stop))
-	u.pages.AddPanel(panelName, textView, true, true)
+	u.addPanel(panelName, textView)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(textView)
 }
@@ -327,7 +329,7 @@ func (u *UI) ShowHighScoresOnly(highScores []foundation.ScoreInfo) {
 	}
 
 	textView.SetInputCapture(u.popOnAnyKeyWithNotification(panelName, u.application.Stop))
-	u.pages.AddPanel(panelName, textView, true, true)
+	u.addPanel(panelName, textView)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(textView)
 }
@@ -985,7 +987,7 @@ func (u *UI) ShowTextFileFullscreen(filename string, onClose func()) {
 	}
 
 	textView.SetInputCapture(u.popOnAnyKeyWithNotification(panelName, onClose))
-	u.pages.AddPanel(panelName, textView, true, true)
+	u.addPanel(panelName, textView)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(textView)
 }
@@ -1054,7 +1056,7 @@ func (u *UI) ToColoredText(h foundation.HiLiteString, intensity float64) string 
 	}
 	textColorCode := RGBAToFgColorCode(textColor)
 	if h.FormatString == "" {
-		return fmt.Sprintf("%s%s", textColorCode, h.Value[0])
+		return h.AppendRepetitions(fmt.Sprintf("%s%s", textColorCode, h.Value[0]))
 	}
 	hiLiteColorCode := RGBAToFgColorCode(hiLiteColor)
 	anyValues := make([]interface{}, len(h.Value)+1)
@@ -1144,7 +1146,7 @@ func (u *UI) initCoreUI() {
 	u.pages = cview.NewPanels()
 	u.pages.SetChangedFunc(u.restorePanes)
 
-	u.application.SetRoot(u.pages, true)
+	u.application.SetRoot(&overlayRoot{u.pages, u}, true)
 }
 func (u *UI) InitDungeonUI() {
 	if u.mainGrid != nil {
@@ -1204,7 +1206,7 @@ func (u *UI) InitDungeonUI() {
 
 	u.mainGrid = grid
 
-	u.pages.AddPanel("main", grid, true, true)
+	u.addPanel("main", grid)
 
 	u.application.SetFocus(grid)
 
@@ -1800,7 +1802,11 @@ func (u *UI) openInventory(items []foundation.ItemForUI) *TextInventory {
 	}
 	list.onCursor = func(item foundation.ItemForUI) {
 		description = item.Description()
-		u.setPane(u.lowerRightPanel, "visible", description)
+		text := description
+		if u.panes != nil { // the last line names the picture the web and gfx clients draw below the text (index.html, gfx/visible.go)
+			text += "\n" + PicMark + item.Picture()
+		}
+		u.setPane(u.lowerRightPanel, "visible", text)
 	}
 	if u.panes == nil { // a small box at the bottom while the terminal is too small for the Visible window
 		box := cview.NewBox()
@@ -1809,7 +1815,7 @@ func (u *UI) openInventory(items []foundation.ItemForUI) *TextInventory {
 			u.drawItemDescription(screen, width, height, list.listWidth+2, description)
 			return x, y, width, height
 		})
-		u.pages.AddPanel("itemDescription", box, true, true)
+		u.addPanel("itemDescription", box)
 	}
 	list.SetCloseHandler(func() {
 		u.pages.RemovePanel("itemDescription")
@@ -1824,7 +1830,7 @@ func (u *UI) openInventory(items []foundation.ItemForUI) *TextInventory {
 			u.UpdateVisibleEnemies()
 		})
 	}
-	u.pages.AddPanel(panelName, list, true, true)
+	u.addPanel(panelName, list)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(list)
 
@@ -1907,7 +1913,7 @@ func (u *UI) makeCenteredModal(panelName string, primitive cview.Primitive, cont
 	u.makeModal(wrapPrimitiveForModalCentered, panelName, primitive, contentHeight, contentWidth)
 }
 func (u *UI) makeModal(wrapperFunc func(p cview.Primitive, contentHeight int, contentWidth int) cview.Primitive, panelName string, primitive cview.Primitive, contentHeight int, contentWidth int) {
-	w, h := u.application.GetScreenSize()
+	w, h := u.modalArea()
 	height := contentHeight + 2
 	horizontalSpaceForBorder := 2
 	if height > h-4 { // needs scrolling
@@ -1920,13 +1926,13 @@ func (u *UI) makeModal(wrapperFunc func(p cview.Primitive, contentHeight int, co
 	if inputCapturer, ok := primitive.(InputCapturer); ok {
 		inputCapturer.SetInputCapture(u.popOnEscape)
 	}
-	u.pages.AddPanel(panelName, modalContainer, true, true)
+	u.addPanel(panelName, modalContainer)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(primitive)
 	u.modalPanel, u.modalContent = panelName, primitive
 }
 func (u *UI) makeSideBySideModal(panelName string, primitive, qPrimitive cview.Primitive, contentHeight int, contentWidth int) {
-	w, h := u.application.GetScreenSize()
+	w, h := u.modalArea()
 	height := contentHeight + 2
 	horizontalSpaceForBorder := 2
 	if height > h-4 { // needs scrolling
@@ -1943,7 +1949,7 @@ func (u *UI) makeSideBySideModal(panelName string, primitive, qPrimitive cview.P
 	if inputCapturer, ok := qPrimitive.(InputCapturer); ok {
 		inputCapturer.SetInputCapture(u.popOnEscape)
 	}
-	u.pages.AddPanel(panelName, modalContainer, true, true)
+	u.addPanel(panelName, modalContainer)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(qPrimitive)
 }
@@ -1982,6 +1988,15 @@ func (u *UI) OpenTitledMenu(title string, actions []foundation.MenuItem) {
 	u.makeCenteredModal("contextMenu", list, len(actions), longestItem)
 }
 func (u *UI) ShowMonsterInfo(monster foundation.ActorForUI) {
+	if u.panes != nil { // web and gfx: the client opens its monster window on the monster's line in the visible list
+		for i, enemy := range u.game.GetVisibleEnemies() {
+			if enemy == monster {
+				u.sendPane("showmonster", Pane{}) // the same monster again opens it again
+				u.sendPane("showmonster", Pane{Text: fmt.Sprint(i)})
+				return
+			}
+		}
+	}
 	monsterNameInternalName := monster.GetInternalName()
 	lorePath := path.Join(u.settings.DataRootDir, "lore", "monsters", monsterNameInternalName+".txt")
 	panels := cview.NewTabbedPanels()
@@ -2013,7 +2028,7 @@ func (u *UI) ShowMonsterInfo(monster foundation.ActorForUI) {
 	monsterLoreText.SetInputCapture(inputHandler("stats"))
 
 	panelName := "monsterInfo"
-	u.pages.AddPanel(panelName, panels, true, true)
+	u.addPanel(panelName, panels)
 	u.pages.ShowPanel(panelName)
 	u.application.SetFocus(panels)
 }
@@ -2337,7 +2352,7 @@ func (u *UI) onTerminalResized(width int, height int) {
 			u.tooSmall = true
 			view := cview.NewTextView()
 			view.SetText(fmt.Sprintf("Min. terminal size is %dx%d", tSizeX, tSizeY))
-			u.pages.AddPanel("tooSmall", view, true, true)
+			u.addPanel("tooSmall", view)
 		} else if u.tooSmall {
 			u.pages.HidePanel("tooSmall")
 			u.tooSmall = false

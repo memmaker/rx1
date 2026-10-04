@@ -261,7 +261,7 @@ func split(g *GameState, attacker, defender *Actor) []foundation.Animation {
 	clone := g.NewEnemyFromDef(def)
 	clone.GetFlags().Set(foundation.FlagAwareOfPlayer)
 	// D&D ochre jelly: the halves do half damage. ponytail: 1d2 approximates 1d3/2 and only fits the slime.
-	attacker.stats.Dmg, clone.stats.Dmg = "1d2", "1d2"
+	attacker.stats.Dmg, clone.stats.Dmg = rpg.Attacks{rpg.NewDice(1, 2, 0)}, rpg.Attacks{rpg.NewDice(1, 2, 0)}
 	clone.TakeDamage(clone.GetHitPoints() - half)
 	attacker.TakeDamage(half)
 	g.gridMap.AddActorWithDisplacement(clone, attacker.Position())

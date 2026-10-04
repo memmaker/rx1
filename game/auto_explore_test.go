@@ -57,6 +57,9 @@ func (stubUI) GetAnimBackgroundColor(geometry.Point, string, int, func()) founda
 }
 func (stubUI) GetAnimExplosion([]geometry.Point, func()) foundation.Animation { return nil }
 func (stubUI) GetAnimWakeUp(geometry.Point, func()) foundation.Animation      { return nil }
+func (stubUI) GetAnimThrow(foundation.ItemForUI, geometry.Point, geometry.Point) (foundation.Animation, int) {
+	return nil, 0
+}
 func (stubUI) GetAnimRadialAlert(geometry.Point, map[geometry.Point]int, func()) foundation.Animation {
 	return nil
 }

@@ -110,9 +110,11 @@ func charge(g *GameState, zapper *Actor, pos geometry.Point, isHeroic bool, getP
 	return moveAnim, targetPos
 }
 
+var boltDice = rpg.NewDice(6, 6, 0)
+
 // rollBoltDamage is 5.4 fire_bolt: 6d6 for fire, lightning and cold.
 func rollBoltDamage() int {
-	return rpg.ParseDice("6d6").Roll()
+	return boltDice.Roll()
 }
 
 // boltSaves: a victim that saves vs magic is missed (5.4 fire_bolt).
@@ -695,7 +697,7 @@ func fireBreath(g *GameState, zapper *Actor, pos geometry.Point) []foundation.An
 	breathAnim := g.ui.GetAnimBreath(path, nil)
 	var onHitAnimations []foundation.Animation
 	for _, victim := range hits {
-		onHitAnimations = append(onHitAnimations, g.damageActor(zapper.Name(), victim, fireDamage(victim, rpg.ParseDice("6d6").Roll()))...)
+		onHitAnimations = append(onHitAnimations, g.damageActor(zapper.Name(), victim, fireDamage(victim, boltDice.Roll()))...)
 	}
 	if breathAnim == nil {
 		return onHitAnimations

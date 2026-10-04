@@ -89,8 +89,9 @@ func (u *UI) restorePanes() {
 // offscreen draws into its own cells; anything it doesn't override (events, colours) still goes to the real screen.
 type offscreen struct {
 	tcell.Screen
-	cells tcell.CellBuffer
-	style tcell.Style
+	cells       tcell.CellBuffer
+	style       tcell.Style
+	transparent bool // cells in overlayBg are see-through: kept as Bg alpha 0, not trimmed when they carry no text
 }
 
 func (o *offscreen) Size() (int, int)                        { return o.cells.Size() }
@@ -125,6 +126,9 @@ func cellsToSpans(sim *offscreen, defFg, defBg color.RGBA) [][]Span {
 		if c == tcell.ColorDefault {
 			return def
 		}
+		if c == overlayBg {
+			return color.RGBA{}
+		}
 		r, g, b := c.RGB()
 		return color.RGBA{uint8(r), uint8(g), uint8(b), 255}
 	}
@@ -143,6 +147,13 @@ func cellsToSpans(sim *offscreen, defFg, defBg color.RGBA) [][]Span {
 			} else {
 				line = append(line, s)
 			}
+		}
+		if sim.transparent {
+			for len(line) > 0 && line[len(line)-1].Bg.A == 0 && strings.TrimSpace(line[len(line)-1].Text) == "" {
+				line = line[:len(line)-1]
+			}
+			out[y] = line
+			continue
 		}
 		out[y] = trimSpans(line)
 	}
@@ -260,9 +271,82 @@ func (p Pane) HTML() string {
 			if s.Reverse {
 				fg, bg = bg, fg
 			}
-			fmt.Fprintf(&b, `<span style="color:#%02x%02x%02x;background:#%02x%02x%02x">%s</span>`,
-				fg.R, fg.G, fg.B, bg.R, bg.G, bg.B, html.EscapeString(s.Text))
+			back := fmt.Sprintf("#%02x%02x%02x", bg.R, bg.G, bg.B)
+			if bg.A == 0 { // an overlay cell no modal drew on
+				back = "transparent"
+			}
+			fmt.Fprintf(&b, `<span style="color:#%02x%02x%02x;background:%s">%s</span>`,
+				fg.R, fg.G, fg.B, back, html.EscapeString(s.Text))
 		}
 	}
 	return b.String()
+}
+
+// OverlayPanes is Panes that draws the modals (log, character sheet, menus...) in their own window over the map,
+// in their own font: OverlaySize is that window's grid. Without it modals draw on the map's cells.
+// PicMark starts the Visible pane's last line while the inventory is open: PicMark + the item's picture name.
+const PicMark = "@pic "
+
+type OverlayPanes interface {
+	Panes
+	OverlaySize() (cols, rows int)
+}
+
+// overlayBg marks overlay cells no modal drew on: the client leaves the map visible there.
+var overlayBg = tcell.NewRGBColor(1, 2, 3)
+
+// addPanel adds a panel to the pages; with an overlay window a modal draws into it instead of over the map.
+func (u *UI) addPanel(name string, item cview.Primitive) {
+	if _, ok := u.panes.(OverlayPanes); ok && name != "main" && name != "inventory" && name != "itemDescription" && name != "tooSmall" {
+		item = &overlayItem{item, u}
+	}
+	u.pages.AddPanel(name, item, true, true)
+}
+
+// modalArea is the grid modals are laid out in: the overlay's, or the screen.
+func (u *UI) modalArea() (int, int) {
+	if op, ok := u.panes.(OverlayPanes); ok {
+		return op.OverlaySize()
+	}
+	return u.application.GetScreenSize()
+}
+
+type overlayItem struct {
+	cview.Primitive
+	u *UI
+}
+
+func (o *overlayItem) Draw(screen tcell.Screen) {
+	sim := o.u.overlay // only wrapped with an OverlayPanes, so overlayRoot set it
+	w, h := sim.Size()
+	o.Primitive.SetRect(0, 0, w, h)
+	o.Primitive.Draw(sim)
+	o.u.overlayUsed = true
+}
+
+// overlayRoot draws the pages; the modals among them land in u.overlay, which then becomes the "overlay" pane.
+type overlayRoot struct {
+	*cview.Panels
+	u *UI
+}
+
+func (r *overlayRoot) Draw(screen tcell.Screen) {
+	u := r.u
+	op, ok := u.panes.(OverlayPanes)
+	if !ok {
+		r.Panels.Draw(screen)
+		return
+	}
+	w, h := op.OverlaySize()
+	u.overlay = &offscreen{Screen: screen, style: tcell.StyleDefault.Background(overlayBg), transparent: true}
+	u.overlay.cells.Resize(w, h)
+	u.overlay.Clear()
+	u.overlayUsed = false
+	r.Panels.Draw(screen)
+	p := Pane{}
+	if u.overlayUsed {
+		p.spans = cellsToSpans(u.overlay, u.currentTheme.GetUIColor(UIColorUIForeground), u.currentTheme.GetUIColor(UIColorUIBackground))
+	}
+	u.overlay = nil
+	u.sendPane("overlay", p)
 }

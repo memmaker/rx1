@@ -71,6 +71,12 @@ func runUI(u *console.UI) { u.StartGameLoop() }
 // webPanes hands each side window to the page as HTML (coloured spans) plus plain text (for the prompt line).
 type webPanes struct{ fn js.Value }
 
+// OverlaySize is console.OverlayPanes: the page's overlay grid over the map (index.html rvipOverlaySize).
+func (w webPanes) OverlaySize() (int, int) {
+	r := js.Global().Call("rvipOverlaySize")
+	return max(1, r.Index(0).Int()), max(1, r.Index(1).Int())
+}
+
 func (w webPanes) Set(name string, p console.Pane) {
 	var plain strings.Builder
 	for _, line := range p.Lines() {

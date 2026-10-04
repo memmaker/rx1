@@ -8,3 +8,6 @@ scores.bin
 rx1
 rx1.exe
 gfx.json
+.claude/
+itempics/out/
+itempics/gen.log

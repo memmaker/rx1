@@ -65,6 +65,7 @@ func (i InventoryStack) WeaponTypeName() string { return i.items[0].WeaponTypeNa
 func (i InventoryStack) Description() string {
 	return i.items[0].Description()
 }
+func (i InventoryStack) Picture() string { return i.items[0].Picture() }
 func (i InventoryStack) Name() string {
 	return appendStacks(i.items[0].Name(), len(i.items))
 }

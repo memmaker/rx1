@@ -18,7 +18,7 @@ import (
 	"golang.org/x/term"
 )
 
-//go:embed web/fonts web/monsters
+//go:embed web/fonts web/monsters web/items
 var webAssets embed.FS
 
 // startup reads the command line: -g graphics / -t text mode (else a question), -s scores only, -n NAME,

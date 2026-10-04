@@ -13,7 +13,7 @@ func TestRogueRules(t *testing.T) {
 		}
 	}
 	calls := 0
-	dmg, hit := RollAttacks("1d1/2d1/0d0", func() bool { calls++; return calls != 2 }, 1)
+	dmg, hit := RollAttacks(ParseAttacks("1d1/2d1/0d0"), func() bool { calls++; return calls != 2 }, 1)
 	if !hit || dmg != 2+0+1 || calls != 3 {
 		t.Fatalf("roll_em off: %d %v %d", dmg, hit, calls)
 	}
@@ -25,5 +25,16 @@ func TestRogueRules(t *testing.T) {
 	}
 	if LevelForExp(1299) != 8 || LevelForExp(1300) != 9 || LevelForExp(8000000) != 21 {
 		t.Fatal("5.4 experience levels off")
+	}
+}
+
+// saves write the notation and read it back
+func TestAttacksText(t *testing.T) {
+	a := ParseAttacks("1d8/1d8/3d10+2")
+	b, _ := a.MarshalText()
+	var back Attacks
+	back.UnmarshalText(b)
+	if string(b) != "1d8/1d8/3d10+2" || back.String() != a.String() || back[2] != NewDice(3, 10, 2) {
+		t.Fatalf("%s -> %v", b, back)
 	}
 }

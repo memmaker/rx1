@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"rx1/console"
 
@@ -46,6 +48,8 @@ type state struct {
 	Images  bool           `json:"images"`
 	Scroll  bool           `json:"mapScroll"` // Map scroll: the map keeps its cell size (MapRow) and scrolls instead of fitting whole
 	MapRow  int            `json:"mapRow"`    // the map's cell height in CSS px while Scroll is on
+	// the modals (log, character sheet, menus) are drawn over the map in their own font; its size is FS/FS1["overlay"]
+	OverlayFace string `json:"overlayFace"`
 }
 
 type window struct {
@@ -99,7 +103,13 @@ type Client struct {
 	pop          *popup
 	clicked      image.Rectangle // the last chrome button clicked: where its menu opens
 	promptHidden bool
+	promptAt     time.Time // when the prompt line got its text: one-window mode hides it after promptLife
 	mapGrid      image.Rectangle
+	statusRows   int          // lines of the status pane: one-window mode keeps that much below the map
+	ov           *window      // the modals' window over the map (console OverlayPanes)
+	ovCols       atomic.Int32 // its grid in the overlay font: read by the console's goroutine
+	ovRows       atomic.Int32
+	ovOn         bool // a modal is up
 	mapImg       *ebiten.Image
 	mapFont      *cellFont
 	tiles        bool // the theme is in tiles mode: the map font is the tile font (Set "tiles")
@@ -107,6 +117,10 @@ type Client struct {
 	mapAll       bool // every map cell is to be drawn again
 	lastCell     image.Point
 	detail       detail
+	mon          *window // the monster modal (detail): over everything, centred
+	monDirty     bool
+	card         *window // the inventory cursor's item, over the map (drawCard)
+	cardDirty    bool
 	redraw       bool
 	keys         []ebiten.Key
 	chars        []rune
@@ -176,8 +190,15 @@ func (c *Client) Set(name string, p console.Pane) {
 	defer c.mu.Unlock()
 	lines := p.Lines()
 	if name == "prompt" {
-		c.prompt, c.promptHidden, c.redraw = plain(lines), false, true
+		c.prompt, c.promptHidden, c.promptAt, c.redraw = plain(lines), false, time.Now(), true
 		return
+	}
+	if name == "visible" { // the inventory cursor's item ends in "@pic <name>": it is the card, the list stays
+		if n := len(lines) - 1; n >= 0 && len(lines[n]) > 0 && strings.HasPrefix(lines[n][0].Text, console.PicMark) {
+			name = "card"
+		} else {
+			c.panes["card"], c.dirtyP["card"] = nil, true
+		}
 	}
 	c.panes[name] = lines
 	c.dirtyP[name] = true
@@ -213,6 +234,9 @@ func (c *Client) fs(id string) int {
 }
 
 func (c *Client) listFont(id string) *cellFont {
+	if id == "overlay" && c.st.OverlayFace != "" {
+		return c.fonts.font(c.st.OverlayFace, c.px(float64(c.fs(id))))
+	}
 	return c.fonts.font(c.st.Face, c.px(float64(c.fs(id))))
 }
 func (c *Client) ui(px float64) text.Face { return c.fonts.font("Inter", c.px(px)).face }
@@ -238,16 +262,16 @@ func (c *Client) relayout() {
 	c.hot, c.bars = c.hot[:0], nil
 	area := image.Rect(0, int(c.px(32)), c.w, c.h)
 	shown := map[string]image.Rectangle{}
-	if c.single() {
-		top := area.Min.Y + area.Dy()*15/100
-		shown["messages"] = image.Rect(area.Min.X, area.Min.Y, area.Max.X, top)
-		area.Min.Y = top + int(c.px(4))
+	if c.single() { // no message area: the newest message is the prompt line over the map (drawPrompt)
+		if c.statusRows > 0 {
+			sh := int(float64(c.statusRows)*c.listFont("status").rh + 2*c.px(2))
+			shown["status"] = image.Rect(area.Min.X, area.Max.Y-sh, area.Max.X, area.Max.Y)
+			area.Max.Y -= sh
+		}
 		shown["map"] = area
-		if c.modal { // the i menu lives in the Inventory pane, the item's description in Visible: both over the map, top right
-			g, side := int(c.px(4)), area.Dx()*3/10
-			split := area.Min.Y + area.Dy()*6/10
-			shown["inventory"] = image.Rect(area.Max.X-side, area.Min.Y, area.Max.X, split)
-			shown["visible"] = image.Rect(area.Max.X-side, split+g, area.Max.X, area.Max.Y)
+		if c.modal { // the i menu lives in the Inventory pane over the map, top right; the item's card left of it (drawCard)
+			side := area.Dx() * 3 / 10
+			shown["inventory"] = image.Rect(area.Max.X-side, area.Min.Y, area.Max.X, area.Min.Y+area.Dy()*6/10)
 		}
 	} else {
 		walk(c.tree, area, int(c.px(4)), int(c.px(60)), shown, &c.bars)
@@ -272,14 +296,42 @@ func (c *Client) relayout() {
 	}
 	c.chrome()
 	c.fitMap()
+	c.fitOverlay()
 	c.redraw = true
+}
+
+// fitOverlay sizes the modals' window to the map's body in the overlay font; the console asks for its grid
+// (OverlaySize) on every draw, a new one is drawn after a resize event.
+func (c *Client) fitOverlay() {
+	m := c.wins["map"]
+	if c.ov == nil {
+		c.ov = &window{id: "overlay"}
+	}
+	c.ov.shown, c.ov.body = m.shown, m.body
+	if sz := m.body.Size(); c.ov.img == nil || c.ov.img.Bounds().Size() != sz {
+		c.ov.img = nil
+		if sz.X > 0 && sz.Y > 0 {
+			c.ov.img = ebiten.NewImage(sz.X, sz.Y)
+		}
+	}
+	c.ov.dirty = true
+	cf := c.listFont("overlay")
+	cols, rows := int32(max(1, int(float64(m.body.Dx())/cf.cw))), int32(max(1, int(float64(m.body.Dy())/cf.rh)))
+	if oc, or := c.ovCols.Swap(cols), c.ovRows.Swap(rows); oc != cols || or != rows { // both Swaps must run
+		c.Screen.post(tcell.NewEventResize(c.cols, c.rows)) // only makes cview draw again
+	}
+}
+
+// OverlaySize is console.OverlayPanes.
+func (c *Client) OverlaySize() (int, int) {
+	return max(1, int(c.ovCols.Load())), max(1, int(c.ovRows.Load()))
 }
 
 // chrome places the top bar's and the title bars' buttons.
 func (c *Client) chrome() {
 	c.addButton(image.Pt(int(c.px(60)), int(c.px(6))), 13, "Windows ▾", c.windowsMenu)
 	font := "Font: " + c.faceLabel(c.st.Face) + " ▾"
-	c.addButton(image.Pt(int(c.px(160)), int(c.px(6))), 13, font, func() { c.fontMenu(false) })
+	c.addButton(image.Pt(int(c.px(160)), int(c.px(6))), 13, font, func() { c.fontMenu(&c.st.Face) })
 	x := int(c.px(168)) + c.buttonW(13, font)
 	scroll := "☐ Map scroll"
 	if c.st.Scroll {
@@ -289,11 +341,35 @@ func (c *Client) chrome() {
 	x += c.buttonW(13, scroll) + int(c.px(8))
 	if c.single() {
 		mf := "Map font: " + c.faceLabel(c.st.MapFace) + " ▾"
-		c.addButton(image.Pt(x, int(c.px(6))), 13, mf, func() { c.fontMenu(true) })
+		c.addButton(image.Pt(x, int(c.px(6))), 13, mf, func() { c.fontMenu(&c.st.MapFace) })
 		if c.st.Scroll { // no title bar in one-window mode: the map's zoom sits in the top bar
 			x += c.buttonW(13, mf) + int(c.px(8))
 			c.addButton(image.Pt(x, int(c.px(6))), 13, "−", func() { c.zoomMap(-1) })
 			c.addButton(image.Pt(x+c.buttonW(13, "−")+int(c.px(2)), int(c.px(6))), 13, "+", func() { c.zoomMap(1) })
+			x += c.buttonW(13, "−") + c.buttonW(13, "+") + int(c.px(2))
+		} else {
+			x += c.buttonW(13, mf)
+		}
+		// no title bars: the text sizes of what overlays the map sit in the top bar
+		x += int(c.px(12))
+		of := "Overlay: " + c.faceLabel(c.st.OverlayFace) + " ▾"
+		c.addButton(image.Pt(x, int(c.px(6))), 13, of, func() { c.fontMenu(&c.st.OverlayFace) })
+		x += c.buttonW(13, of)
+		for _, p := range [][]string{{"Messages", "messages"}, {"Inventory", "inventory", "visible"}, {"Status", "status"}, {"Overlay", "overlay"}} {
+			x += int(c.px(12))
+			ids := p[1:]
+			zoom := func(d int) func() {
+				return func() {
+					for _, id := range ids {
+						c.zoom(id, d)
+					}
+					c.relayout() // the status bar's height follows its font
+				}
+			}
+			c.addButton(image.Pt(x, int(c.px(6))), 13, p[0]+" A−", zoom(-1))
+			x += c.buttonW(13, p[0]+" A−") + int(c.px(2))
+			c.addButton(image.Pt(x, int(c.px(6))), 13, "A+", zoom(1))
+			x += c.buttonW(13, "A+")
 		}
 		return
 	}
@@ -308,7 +384,10 @@ func (c *Client) chrome() {
 		}
 		id := w.id
 		if id == "map" {
-			at("Font: "+c.faceLabel(c.st.MapFace)+" ▾", func() { c.fontMenu(true) })
+			at("Overlay A+", func() { c.zoom("overlay", 1) })
+			at("A−", func() { c.zoom("overlay", -1) })
+			at("Overlay: "+c.faceLabel(c.st.OverlayFace)+" ▾", func() { c.fontMenu(&c.st.OverlayFace) })
+			at("Font: "+c.faceLabel(c.st.MapFace)+" ▾", func() { c.fontMenu(&c.st.MapFace) })
 			if c.st.Scroll {
 				at("+", func() { c.zoomMap(1) })
 				at("−", func() { c.zoomMap(-1) })
@@ -344,6 +423,10 @@ func (c *Client) zoom(id string, d int) {
 	}
 	m[id] = max(8, min(28, c.fs(id)+d))
 	c.save()
+	if id == "overlay" {
+		c.fitOverlay()
+		return
+	}
 	c.wins[id].dirty = true
 	c.redraw = true
 }
@@ -378,7 +461,7 @@ func (c *Client) fitMap() {
 	if c.st.Scroll { // fixed cells, as many as the window holds: the game scrolls the map in them
 		rh := max(1, int(c.px(float64(c.mapRow()))))
 		cw := max(1, int(math.Round(float64(rh)*cwEm/rhEm)))
-		cols, rows = max(1, m.body.Dx()/cw), max(1, m.body.Dy()/rh)
+		cols, rows = max(1, (m.body.Dx()+cw-1)/cw), max(1, (m.body.Dy()+rh-1)/rh) // the last row and column cut by the edge
 	}
 	if cols != c.cols || rows != c.rows {
 		c.cols, c.rows = cols, rows
@@ -396,6 +479,9 @@ func (c *Client) fitMap() {
 	cf := c.fonts.font(c.mapFace(), math.Floor(float64(rh)/rhEm*100)/100).tiles(cw, rh)
 	gw, gh := c.cols*cw, c.rows*rh
 	c.mapGrid = image.Rect(0, 0, gw, gh).Add(image.Pt(m.body.Min.X+(m.body.Dx()-gw)/2, m.body.Min.Y+(m.body.Dy()-gh)/2))
+	if c.st.Scroll { // the grid fills the window from its top left corner, no border for the prompt line to sit in
+		c.mapGrid = image.Rect(0, 0, gw, gh).Add(m.body.Min)
+	}
 	if c.mapFont == nil || *cf != *c.mapFont || c.mapImg == nil || c.mapImg.Bounds().Size() != image.Pt(gw, gh) {
 		c.mapFont, c.mapImg, c.mapAll = cf, ebiten.NewImage(gw, gh), true
 	}
@@ -426,15 +512,13 @@ func (c *Client) windowsMenu() {
 	})
 }
 
-func (c *Client) fontMenu(forMap bool) {
+// fontMenu picks *face: the list, map or overlay font.
+func (c *Client) fontMenu(face *string) {
 	items := []string{"Default font", "#Modern"}
 	items = append(items, Fonts[:modernCount]...)
 	items = append(items, "#Old-school")
 	items = append(items, Fonts[modernCount:]...)
-	cur := c.st.Face
-	if forMap {
-		cur = c.st.MapFace
-	}
+	cur := *face
 	at := image.Pt(c.clicked.Min.X, c.clicked.Max.Y) // beneath the button that opened it
 	on := 0
 	for i, n := range items {
@@ -447,11 +531,7 @@ func (c *Client) fontMenu(forMap bool) {
 		if i > 0 {
 			name = items[i]
 		}
-		if forMap {
-			c.st.MapFace = name
-		} else {
-			c.st.Face = name
-		}
+		*face = name
 		c.save()
 		c.fonts.adv = map[advKey]glyphInfo{}
 		for _, w := range c.wins {
@@ -516,6 +596,10 @@ func (c *Client) Update() error {
 		}
 		return nil
 	}
+	if c.detail.open {
+		c.monsterInput(pt, down, wheel)
+		return nil
+	}
 	if b := c.drag; b != nil {
 		if !c.held() {
 			c.drag = nil
@@ -571,6 +655,10 @@ func (c *Client) Update() error {
 	}
 	if m := c.wins["map"]; m.shown && pt.In(m.body) && c.mapFont != nil {
 		cell := image.Pt(min(c.cols-1, max(0, int(float64(pt.X-c.mapGrid.Min.X)/c.mapFont.cw))), min(c.rows-1, max(0, int(float64(pt.Y-c.mapGrid.Min.Y)/c.mapFont.rh))))
+		if c.ovOn { // a modal is up: its cells, in the overlay font
+			cf := c.listFont("overlay")
+			cell = image.Pt(int(float64(pt.X-m.body.Min.X)/cf.cw), int(float64(pt.Y-m.body.Min.Y)/cf.rh))
+		}
 		mouse := func(b tcell.ButtonMask) { c.Screen.post(tcell.NewEventMouse(cell.X, cell.Y, b, tcell.ModNone)) }
 		switch {
 		case down:
@@ -699,9 +787,14 @@ func (c *Client) handleKeys() {
 			any = true
 		}
 	}
+	c.mu.Lock() // Set (the game's goroutine) writes the prompt fields
+	if !c.promptHidden && !question(c.prompt) && time.Since(c.promptAt) > promptLife {
+		c.promptHidden, c.redraw = true, true
+	}
 	if any && !c.promptHidden { // a key hides the prompt line, as on the web
 		c.promptHidden, c.redraw = true, true
 	}
+	c.mu.Unlock()
 }
 
 // ---- drawing ----
@@ -732,8 +825,32 @@ func (c *Client) Draw(screen *ebiten.Image) {
 				}
 			}
 			continue
+		case name == "status" && len(c.panes[name]) != c.statusRows:
+			c.statusRows = len(c.panes[name])
+			if c.single() {
+				c.relayout()
+			}
+		case name == "overlay":
+			c.ovOn = len(c.panes[name]) > 0
+			if c.ov != nil {
+				c.ov.dirty = true
+			}
+			continue
+		case name == "showmonster": // a right-click on the map (console ShowMonsterInfo): the monster's line
+			if i, err := strconv.Atoi(plain(c.panes[name])); err == nil {
+				for _, m := range parseVisible(c.panes["visible"]) {
+					if m.line == i {
+						c.opener(m)()
+					}
+				}
+			}
+			continue
+		case name == "card":
+			c.cardDirty, c.redraw = true, true
+			continue
 		case strings.HasPrefix(name, "sheet"), strings.HasPrefix(name, "lore"):
-			name = "visible"
+			c.monDirty, c.redraw = true, true
+			continue
 		}
 		if w := c.wins[name]; w != nil {
 			w.dirty = true
@@ -749,6 +866,11 @@ func (c *Client) Draw(screen *ebiten.Image) {
 			c.redraw = true
 		}
 		w.dirty = false
+	}
+	if ov := c.ov; ov != nil && ov.dirty && ov.img != nil {
+		ov.img.Clear()
+		c.renderText(ov, c.panes["overlay"], false)
+		ov.dirty, c.redraw = false, true
 	}
 	c.paintMap()
 	c.mu.Unlock()
@@ -804,7 +926,14 @@ func (c *Client) Draw(screen *ebiten.Image) {
 		strokeRect(screen, b.r, c.px(1), colLine)
 		label(screen, c.ui(b.px), b.s, float64(b.r.Min.X)+c.px(7), float64(b.r.Min.Y)+c.px(3), colText)
 	}
+	if ov := c.ov; ov != nil && ov.shown && ov.img != nil && c.ovOn {
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64(ov.body.Min.X), float64(ov.body.Min.Y))
+		screen.DrawImage(ov.img, op)
+	}
 	c.drawPrompt(screen)
+	c.drawCard(screen)
+	c.drawMonster(screen)
 	c.drawPopup(screen)
 	c.shot(screen)
 }
@@ -858,7 +987,7 @@ func (c *Client) paintMap() {
 	s := c.Screen
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if c.mapImg == nil || (!s.changed && !c.mapAll) {
+	if c.mapImg == nil || (!s.changed && !c.mapAll) || s.frontW != c.cols { // a resize the game has not taken yet
 		return
 	}
 	cf := c.mapFont
@@ -881,7 +1010,7 @@ func (c *Client) drawMapWindow(screen *ebiten.Image, w *window) {
 	}
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(c.mapGrid.Min.X), float64(c.mapGrid.Min.Y))
-	screen.DrawImage(c.mapImg, op)
+	screen.SubImage(w.body).(*ebiten.Image).DrawImage(c.mapImg, op) // Map scroll: the edge cells are cut by the window
 	c.Screen.mu.Lock()
 	cur := c.Screen.cursor
 	c.Screen.mu.Unlock()
@@ -894,15 +1023,24 @@ func (c *Client) drawMapWindow(screen *ebiten.Image, w *window) {
 
 // drawPrompt is the prompt line over the map (-more-, questions, the newest message): shown while it has text,
 // hidden by a key.
+// question says whether a prompt line waits for an answer: it stays until a key, a message goes after promptLife.
+func question(txt string) bool {
+	txt = strings.TrimSpace(txt)
+	return strings.HasSuffix(txt, "?") || strings.HasSuffix(txt, "(y/n)") || strings.HasPrefix(txt, "Press ")
+}
+
+// promptLife is how long a message shows over the map (a new one or a key replaces it sooner).
+const promptLife = 8 * time.Second
+
 func (c *Client) drawPrompt(screen *ebiten.Image) {
 	m := c.wins["map"]
 	c.mu.Lock()
 	txt := c.prompt
 	c.mu.Unlock()
-	if txt == "" || c.promptHidden || !m.shown {
+	if txt == "" || c.promptHidden || !m.shown || (!question(txt) && time.Since(c.promptAt) > promptLife) {
 		return
 	}
-	cf := c.fonts.font(c.st.Face, c.px(13))
+	cf := c.listFont("messages")
 	cols := max(1, int((float64(m.body.Dx())-c.px(12))/cf.cw))
 	var lines []string
 	for _, l := range strings.Split(txt, "\n") {
@@ -919,7 +1057,8 @@ func (c *Client) drawPrompt(screen *ebiten.Image) {
 	for _, l := range lines {
 		w = max(w, len([]rune(l)))
 	}
-	x, y := float64(m.body.Min.X), float64(m.body.Min.Y)
+	at := image.Pt(max(m.body.Min.X, c.mapGrid.Min.X), max(m.body.Min.Y, c.mapGrid.Min.Y)) // on the map, not in the border around it
+	x, y := float64(at.X), float64(at.Y)
 	bw, bh := float64(w)*cf.cw+c.px(12), float64(len(lines))*cf.rh+c.px(4)
 	fillRect(screen, x, y, bw, bh, color.RGBA{0, 0, 0, 204})
 	fillRect(screen, x+bw-c.px(1), y, c.px(1), bh, colLine)
@@ -983,6 +1122,10 @@ func (c *Client) render(w *window) {
 // renderText shows lines as a character grid in the window's list font; right: the lines hug the right edge
 // (the Inventory window, so the i menu lands its names exactly on the list).
 func (c *Client) renderText(w *window, lines [][]console.Span, right bool) {
+	box := c.single() && c.modal && w.id != "overlay" // over the map: only what is printed gets a background
+	if box {
+		w.img.Clear()
+	}
 	cf := c.listFont(w.id)
 	padX, padY := c.px(4), c.px(2)
 	W, H := float64(w.img.Bounds().Dx()), float64(w.img.Bounds().Dy())
@@ -1002,6 +1145,29 @@ func (c *Client) renderText(w *window, lines [][]console.Span, right bool) {
 	x0 := padX
 	if right {
 		x0 = math.Max(padX, W-padX-float64(longest)*cf.cw)
+	}
+	if box { // one black rectangle around what is printed (border included), not the whole pane
+		c0, c1, r0, r1 := -1, -1, -1, -1
+		for i, l := range lines {
+			col := 0
+			for _, s := range l {
+				for _, r := range s.Text {
+					if r != ' ' {
+						if c0 < 0 || col < c0 {
+							c0 = col
+						}
+						c1, r1 = max(c1, col), i
+						if r0 < 0 {
+							r0 = i
+						}
+					}
+					col++
+				}
+			}
+		}
+		if r0 >= 0 {
+			fillRect(w.img, x0+float64(c0)*cf.cw, padY+float64(r0)*cf.rh-w.scroll, float64(c1-c0+1)*cf.cw, float64(r1-r0+1)*cf.rh, color.Black)
+		}
 	}
 	for i, l := range lines {
 		y := padY + float64(i)*cf.rh - w.scroll

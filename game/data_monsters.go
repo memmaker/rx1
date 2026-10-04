@@ -19,8 +19,8 @@ type MonsterDef struct {
 
 	// Rogue 3.6 monster stats: hit points are level d8
 	Level         int
-	Armor         int    // armor class, lower is better
-	Damage        string // "1d8/1d8/3d10": one roll per attack
+	Armor         int         // armor class, lower is better
+	Damage        rpg.Attacks // "1d8/1d8/3d10": one roll per attack
 	Exp           int
 	ZapEffects    []string
 	UseEffects    []string
@@ -63,7 +63,7 @@ func NewMonsterDefFromRecord(record recfile.Record) MonsterDef {
 		case "armor":
 			monsterDef.Armor = field.AsInt()
 		case "damage":
-			monsterDef.Damage = field.Value
+			monsterDef.Damage = rpg.ParseAttacks(field.Value)
 		case "exp":
 			monsterDef.Exp = field.AsInt()
 		case "zap_effect":

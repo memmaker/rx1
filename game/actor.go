@@ -15,9 +15,9 @@ type Stats struct {
 	Lvl, Exp    int
 	HP, MaxHP   int
 	Arm         int
-	Dmg         string // "1d4", or one roll per attack "1d8/1d8/3d10"
-	FP, MaxFP   int    // fatigue, spent on tactics
-	FoodLeft    int    // Rogue's food_left, only the player digests
+	Dmg         rpg.Attacks // "1d4", or one roll per attack "1d8/1d8/3d10"
+	FP, MaxFP   int         // fatigue, spent on tactics
+	FoodLeft    int         // Rogue's food_left, only the player digests
 }
 
 type Actor struct {
@@ -40,8 +40,8 @@ type Actor struct {
 	intrinsicStruckEffects []HitEffect
 	intrinsicGazeEffects   []string
 	disguise               foundation.ItemCategory
-	holdHits               int // Rogue's vf_hit: the flytrap's growing grip
-	carryChance            int // Rogue 5.4 m_carry: percent chance to walk to an item in its room
+	holdHits               int      // Rogue's vf_hit: the flytrap's growing grip
+	carryChance            int      // Rogue 5.4 m_carry: percent chance to walk to an item in its room
 	head                   *Actor   // set on a worm segment
 	tail                   []*Actor // a worm's segments, nearest first
 
@@ -57,7 +57,7 @@ func (a *Actor) Color() string {
 // NewPlayer starts like Rogue: Str 16, level 1, 12 hp, AC 10, 1d4 bare-handed.
 func NewPlayer(name string, playerIcon rune, playerColor string) *Actor {
 	player := NewActor(name, playerIcon, playerColor)
-	player.stats = Stats{Str: 16, MaxStr: 16, Lvl: 1, HP: 12, MaxHP: 12, Arm: 10, Dmg: "1d4", FP: 3, MaxFP: 3,
+	player.stats = Stats{Str: 16, MaxStr: 16, Lvl: 1, HP: 12, MaxHP: 12, Arm: 10, Dmg: rpg.Attacks{rpg.NewDice(1, 4, 0)}, FP: 3, MaxFP: 3,
 		FoodLeft: rpg.HungerTime}
 	return player
 }
@@ -70,7 +70,7 @@ func NewActor(name string, icon rune, color string) *Actor {
 		inventory:   NewInventory(23),
 		equipment:   NewEquipment(),
 		statusFlags: foundation.NewMapFlags(),
-		stats:       Stats{Lvl: 1, HP: 1, MaxHP: 1, Arm: 10, Dmg: "1d2"},
+		stats:       Stats{Lvl: 1, HP: 1, MaxHP: 1, Arm: 10, Dmg: rpg.Attacks{rpg.NewDice(1, 2, 0)}},
 	}
 }
 
@@ -317,36 +317,36 @@ func (a *Actor) HealPast(amount int, extra bool) {
 }
 
 func (a *Actor) GetIntrinsicDamageAsString() string {
-	return a.stats.Dmg
+	return a.stats.Dmg.String()
 }
 
 // GetMelee is the to-hit and damage bonus plus the damage dice of a melee attack (Rogue's roll_em).
-func (a *Actor) GetMelee(enemyInternalName string) (hplus, dplus int, dmg string) {
+func (a *Actor) GetMelee(enemyInternalName string) (hplus, dplus int, dmg rpg.Attacks) {
 	hplus = a.GetEquipment().GetStatModifier(rpg.StatToHit)
 	dplus = a.GetEquipment().GetStatModifier(rpg.StatDamage)
 	if a.GetEquipment().HasMeleeWeaponEquipped() {
 		weapon := a.GetEquipment().GetMainWeapon(MeleeAttack).GetWeapon()
 		vh, vd := weapon.GetVorpalBonus(enemyInternalName)
-		return hplus + vh + weapon.hitPlus, dplus + vd + weapon.damagePlus, weapon.damageDice.String()
+		return hplus + vh + weapon.hitPlus, dplus + vd + weapon.damagePlus, rpg.Attacks{weapon.damageDice}
 	}
 	return hplus, dplus, a.stats.Dmg
 }
 
 // GetThrowing: a thrown item uses its thrown damage, a missile shot from its launcher adds the launcher's plusses.
-func (a *Actor) GetThrowing(enemyInternalName string, missile *Item) (hplus, dplus int, dmg string) {
+func (a *Actor) GetThrowing(enemyInternalName string, missile *Item) (hplus, dplus int, dmg rpg.Attacks) {
 	hplus = a.GetEquipment().GetStatModifier(rpg.StatToHit)
 	dplus = a.GetEquipment().GetStatModifier(rpg.StatDamage)
 	if !missile.IsWeapon() {
-		return hplus, dplus, missile.GetThrowDamageDice().String()
+		return hplus, dplus, rpg.Attacks{missile.GetThrowDamageDice()}
 	}
 	weapon := missile.GetWeapon()
 	vh, vd := weapon.GetVorpalBonus(enemyInternalName)
 	hplus, dplus = hplus+vh+weapon.hitPlus, dplus+vd+weapon.damagePlus
 	if a.IsLaunching(missile) {
 		launcher := a.GetEquipment().GetMissileLauncher().GetWeapon()
-		return hplus + launcher.hitPlus, dplus + launcher.damagePlus, weapon.damageDice.String()
+		return hplus + launcher.hitPlus, dplus + launcher.damagePlus, rpg.Attacks{weapon.damageDice}
 	}
-	return hplus, dplus, missile.GetThrowDamageDice().String()
+	return hplus, dplus, rpg.Attacks{missile.GetThrowDamageDice()}
 }
 
 func (a *Actor) GetHitPoints() int {

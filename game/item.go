@@ -184,6 +184,14 @@ func (i *Item) Description() string {
 	return strings.Join(lines, "\n")
 }
 
+// Picture names the item's flavour picture: a plain one of its kind while unidentified, so it spoils nothing.
+func (i *Item) Picture() string {
+	if (i.IsPotion() || i.IsScroll() || i.IsRing() || i.IsWand()) && !i.id.IsItemIdentified(i.internalName) {
+		return "unknown_" + strings.TrimSuffix(strings.ToLower(i.category.String()), "s")
+	}
+	return i.internalName
+}
+
 func (i *Item) InventoryNameWithColors(colorCode string) string {
 	line := cview.Escape(i.Name())
 	if i.IsWeapon() {

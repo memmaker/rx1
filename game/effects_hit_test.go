@@ -1,10 +1,12 @@
 package game
 
 import (
+	"fmt"
 	"rx1/foundation"
 	"rx1/geometry"
 	"rx1/recfile"
 	"rx1/util"
+	"strings"
 	"testing"
 )
 
@@ -76,7 +78,7 @@ func TestSlimeSplitHalvesDamage(t *testing.T) {
 		t.Fatal("slime should split")
 	}
 	split(g, slime, g.Player)
-	if slime.stats.HP != 5 || slime.stats.Dmg != "1d2" {
+	if slime.stats.HP != 5 || slime.stats.Dmg.String() != "1d2" {
 		t.Errorf("after split: hp %d dmg %s", slime.stats.HP, slime.stats.Dmg)
 	}
 }
@@ -112,5 +114,39 @@ func TestWraithHalvesMundaneDamage(t *testing.T) {
 	mace.GetWeapon().AddEnchantment()
 	if got := mundaneHalf(wraith, mace, 8); got != 8 {
 		t.Errorf("enchanted mace: %d, want 8", got)
+	}
+}
+
+func TestItemPicture(t *testing.T) {
+	g := newMagicTestGame()
+	wand := g.NewItemFromName("wand_cold")
+	if p := wand.Picture(); p != "unknown_wand" {
+		t.Errorf("unidentified wand shows %q", p)
+	}
+	g.identification.IdentifyItem("wand_cold")
+	if p := wand.Picture(); p != "wand_cold" {
+		t.Errorf("identified wand shows %q", p)
+	}
+	if p := g.NewItemFromName("mace").Picture(); p != "mace" {
+		t.Errorf("mace shows %q", p)
+	}
+}
+
+// every shot is logged: thrown into an empty spot, it is a miss
+func TestShotIntoNothingIsLogged(t *testing.T) {
+	g := newMagicTestGame()
+	dart := g.NewItemFromName("dart")
+	g.Player.GetInventory().Add(dart)
+	p := g.Player.Position()
+	var to geometry.Point
+	for _, d := range []geometry.Point{{X: 1}, {X: -1}, {Y: 1}, {Y: -1}} {
+		if q := p.Add(d); g.gridMap.IsTileWalkable(q) && !g.gridMap.IsActorAt(q) && !g.gridMap.IsObjectAt(q) {
+			to = q
+		}
+	}
+	g.logBuffer = nil
+	g.actorRangedAttackWithMissile(g.Player, dart, p, to)
+	if !strings.Contains(fmt.Sprint(g.logBuffer), "The dart misses") {
+		t.Errorf("log %v", g.logBuffer)
 	}
 }

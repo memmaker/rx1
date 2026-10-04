@@ -1,0 +1,94 @@
+# id<TAB>item line appended to the prompt. id = internal_name from data_rx1/definitions/*.rec;
+# the four unknown_* are shown for unidentified potions/scrolls/rings/wands so the picture spoils nothing.
+unknown_potion	a plain corked glass potion flask, nothing special about it
+unknown_scroll	a rolled-up parchment scroll tied with string, sealed shut
+unknown_ring	a plain metal finger ring with a small cut gemstone
+unknown_wand	a slender wooden magic wand with a metal cap at each end
+amulet_of_yendor	the legendary Amulet of Yendor, an ornate ancient magical pendant on a heavy chain
+leather_armor	a sleeveless leather cuirass of hardened leather with laces at the sides
+ring_mail	a leather coat covered with sewn-on metal rings
+studded_leather	a leather jerkin covered in rows of metal studs
+chain_mail	a chain mail shirt of tightly interlocking rings
+scale_mail	a coat of overlapping metal scales like a fish's skin
+banded_mail	a lorica segmentata armor, Roman horizontal steel bands over torso and shoulders
+splint_mail	a steel breastplate armor of riveted overlapping metal strips, samurai style
+plate_mail	a full suit of knight's plate armor standing upright, empty
+buckler	a small round fist shield with a central metal boss
+large_shield	a tall kite shield with metal rim and rivets
+food_ration	a ration of food: hard bread, dried meat and cheese wrapped in cloth
+torch	a wooden torch with an oil-soaked rag head, burning
+lantern	a simple tin lantern with a candle inside and a carrying ring
+brass_lantern	an ornate brass oil lantern with glass panes and a hooked handle
+star_glass	the Star-Glass, a legendary amulet: a clear crystal phial on a fine chain, glowing with pure starlight
+morning_star	the Morning Star, a legendary red crystal cut in the shape of a star, blazing with light
+potion_confusion	a magical potion of confusion: a crooked twisted glass bottle with a spiral neck, swirling liquid inside
+potion_monster_detection	a magical potion of monster detection: a squat potion flask with a staring eye engraved on the glass
+potion_magic_detection	a magical potion of magic detection: a slim potion vial with glittering sparkles floating in the liquid
+potion_haste	a magical potion of haste: a tall narrow potion bottle with wing-shaped glass handles, bubbling fast
+potion_blindness	a magical potion of blindness: a black opaque potion bottle with a cloth blindfold tied around its neck
+potion_levitation	a magical potion of levitation: a potion flask hovering in the air, a feather sealed inside the liquid
+potion_see_invisible	a magical potion of see invisible: a perfectly clear crystal potion vial, almost invisible itself
+potion_healing	a magical potion of healing: a round-bellied potion flask with a cross-shaped stopper
+potion_extra_healing	a magical potion of extra healing: a large ornate potion decanter with a heart-shaped body and gold filigree
+potion_raise_level	a magical potion of raise level: a potion flask shaped like a stepped tower, liquid rising upward
+potion_hallucination	a magical potion of hallucination: a bulbous potion bottle with mushrooms and wavy patterns etched on it
+potion_gain_strength	a magical potion of gain strength: a heavy thick-walled potion jug shaped like a flexed arm
+potion_life	a magical potion of life: a radiant potion phial with a sprouting leaf sealed in it, glowing
+ring_protection	a magical ring of protection: a heavy signet ring bearing a tiny engraved shield
+ring_strength	a magical ring of strength: a thick iron ring shaped like a clenched fist
+ring_dexterity	a magical ring of dexterity: a delicate ring of two intertwined slender bands
+ring_increase_damage	a magical ring of increase damage: a spiked ring with a small sword crossing its face
+ring_regeneration	a magical ring of regeneration: a ring shaped like a serpent biting its own tail
+ring_see_invisible	a magical ring of see invisible: a ring set with a clear stone carved as an open eye
+ring_teleportation	a magical ring of teleportation: a ring with a stone that is split in two, sparks between the halves
+ring_slow_digestion	a magical ring of slow digestion: a plain wide ring with a tiny engraved loaf of bread
+ring_stealth	a magical ring of stealth: a dark matte ring engraved with a cat's paw print
+ring_searching	a magical ring of searching: a ring set with a tiny magnifying lens
+scroll_monster_confusion	a magical scroll of monster confusion: an open scroll with spiralling tangled runes
+magic_mapping	a magical scroll of magic mapping: an unrolled scroll showing a dungeon floor plan
+hold_monster	a magical scroll of hold monster: a scroll bound with chains and a heavy lock
+charm_monster	a magical scroll of charm monster: a scroll sealed with a heart-shaped wax seal
+sleep	a magical scroll of sleep: a scroll with a crescent moon wax seal, rolled loosely
+identify	a magical scroll of identify: an open scroll with a magnifying glass lying on it
+scare_monster	a magical scroll of scare monster: a scroll with a grinning skull wax seal
+food_detection	a magical scroll of food detection: a scroll tied with a sprig of herbs and a wheat ear
+trap_detection	a magical scroll of trap detection: a scroll with a small bear trap drawn on it
+teleportation	a magical scroll of teleportation: a scroll half-dissolving into swirling sparkles
+enchant_weapon	a magical scroll of enchant weapon: a scroll wrapped around the blade of a dagger
+enchant_armor	a magical scroll of enchant armor: a scroll draped over a small steel gauntlet
+create_monster	a magical scroll of create monster: a scroll with a clawed hand emerging from the paper
+remove_curse	a magical scroll of remove curse: a scroll with a broken chain lying on it
+aggravate_monsters	a magical scroll of aggravate monsters: a scroll with jagged angry runes and a roaring mouth seal
+vorpalize_weapon	a magical scroll of vorpalize weapon: a scroll sliced cleanly in half by an invisible blade
+fire_wall	a magical scroll of fire wall: a scroll with its edges burning in flames
+genocide	a magical scroll of genocide: a black-edged scroll sealed with a skull and crossed bones
+wand_magic_missile	a magical wand of magic missile: a wand with a pointed tip shooting a small glowing dart
+wand_light	a magical wand of light: a wand with a shining star at its tip
+wand_polymorph	a magical wand of polymorph: a twisted wand whose wood changes into a snake at one end
+wand_slow	a magical wand of slow: a wand with a snail shell carved at its handle
+wand_haste	a magical wand of haste: a wand with tiny wings carved at its tip
+wand_teleportation_away	a magical wand of teleport away: a wand with an arrow-shaped tip pointing outward
+wand_teleportation_to	a magical wand of teleport to: a wand with a hooked tip like a shepherd's crook
+wand_invisibility	a magical wand of invisibility: a glass wand fading to nothing at its tip
+wand_drain_life	a magical wand of drain life: a bone wand topped with a small skull
+wand_cancellation	a magical wand of cancellation: a plain iron rod with a crossed-out rune engraved on it
+wand_cold	a magical wand of cold: an icicle-shaped wand covered in frost
+wand_fire	a magical wand of fire: a wand of charred wood with a flame at its tip
+wand_lightning	a magical wand of lightning: a zigzag wand crackling with lightning bolts
+main_gauche	a parrying dagger with a wide shell guard and long quillons
+mace	a flanged iron mace with a wooden haft
+long_sword	a straight double-edged long sword with a cross guard
+short_bow	a short curved wooden bow, strung
+arrow	a single arrow with fletching and a steel broadhead
+dagger	a plain dagger with a leather-wrapped grip
+two_handed_sword	a huge two-handed greatsword with a long grip
+dart	a small weighted throwing dart with feather flights
+crossbow	a wooden crossbow with a steel prod and trigger
+crossbow_bolt	a short heavy crossbow bolt with a square head
+spear	a long wooden spear with a leaf-shaped iron head
+overkill	a powerful magical sword called Overkill, broad runed blade crackling with power
+club	a knotty wooden club, thick at one end
+axe	a single-bladed hand axe with a wooden handle
+rapier	a slender rapier with a swept-hilt guard
+whip	a coiled leather bullwhip with a braided handle
+battle_axe	a large double-bladed battle axe on a long haft

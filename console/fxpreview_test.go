@@ -25,13 +25,13 @@ func (roomGame) IsVisibleToPlayer(p geometry.Point) bool {
 }
 func (roomGame) GetHudFlags() map[foundation.ActorFlag]int { return nil }
 func (roomGame) GetPlayerPosition() geometry.Point         { return previewCenter }
-func (roomGame) PlayerWielding() (string, string) { return "", "" }
+func (roomGame) PlayerWielding() (string, string)          { return "", "" }
 func (roomGame) GetPlayerLight() (foundation.LightInfo, bool) {
 	return foundation.LightInfo{}, false
 }
 func (roomGame) GlowAt(geometry.Point) (color.RGBA, bool)          { return color.RGBA{}, false }
 func (roomGame) ObjectAt(geometry.Point) foundation.ObjectCategory { return -1 }
-func (g roomGame) IsPlayer(a foundation.ActorForUI) bool { return a == g.player }
+func (g roomGame) IsPlayer(a foundation.ActorForUI) bool           { return a == g.player }
 func (g roomGame) ActorAt(p geometry.Point) foundation.ActorForUI {
 	if p == previewCenter {
 		return g.player

@@ -15,6 +15,7 @@ type ItemForUI interface {
 	IsUsableOrZappable() bool
 	GetListInfo() string
 	Description() string // cview-tagged lines for the Visible window while the inventory is open
+	Picture() string     // web/items/<Picture()>.png, the item's flavour picture
 	Shortcut() rune
 	DisplayLength() int
 	Position() geometry.Point

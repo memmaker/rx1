@@ -57,15 +57,42 @@ func Save(lvl, which int) bool {
 	return rand.Intn(20)+1 >= 14+which-lvl/2
 }
 
-// RollAttacks rolls each "XdY" of a Rogue damage string like "1d8/1d8/3d10" as a separate attack.
-// hit is called per attack and returns whether it connected; the damage of each hit is summed.
-func RollAttacks(dmg string, hit func() bool, dplus int) (damage int, didHit bool) {
+// Attacks is a Rogue damage string like "1d8/1d8/3d10", parsed once: one roll per attack.
+type Attacks []Dice
+
+func ParseAttacks(dmg string) Attacks {
+	var a Attacks
 	for _, part := range strings.Split(dmg, "/") {
+		a = append(a, ParseDice(part))
+	}
+	return a
+}
+
+// String is the data file notation, "1d8/1d8/3d10".
+func (a Attacks) String() string {
+	parts := make([]string, len(a))
+	for i, d := range a {
+		parts[i] = d.notation()
+	}
+	return strings.Join(parts, "/")
+}
+
+// saves keep the notation
+func (a Attacks) MarshalText() ([]byte, error) { return []byte(a.String()), nil }
+func (a *Attacks) UnmarshalText(b []byte) error {
+	*a = ParseAttacks(string(b))
+	return nil
+}
+
+// RollAttacks rolls each attack separately.
+// hit is called per attack and returns whether it connected; the damage of each hit is summed.
+func RollAttacks(attacks Attacks, hit func() bool, dplus int) (damage int, didHit bool) {
+	for _, d := range attacks {
 		if !hit() {
 			continue
 		}
 		didHit = true
-		damage += max(0, ParseDice(part).Roll()+dplus)
+		damage += max(0, d.Roll()+dplus)
 	}
 	return damage, didHit
 }

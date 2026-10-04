@@ -316,7 +316,7 @@ func (g *GameState) ascendWithStairs(stairs StairsInLevel) {
 
 // rollAttack is Rogue's roll_em: every part of the damage string is its own swing.
 // A defender that is asleep or held is hit at +4.
-func (g *GameState) rollAttack(attacker, defender *Actor, hplus, dplus int, dmg string) (int, bool) {
+func (g *GameState) rollAttack(attacker, defender *Actor, hplus, dplus int, dmg rpg.Attacks) (int, bool) {
 	if defender != g.Player && (defender.IsSleeping() || defender.HasFlag(foundation.FlagHeld)) {
 		hplus += 4
 	}
@@ -330,12 +330,12 @@ func (g *GameState) rollAttack(attacker, defender *Actor, hplus, dplus int, dmg 
 	return rpg.RollAttacks(dmg, swing, dplus+rpg.AddDam(str))
 }
 
-func (g *GameState) attackMessage(attacker, defender *Actor, didHit bool) {
-	verb := "misses"
-	if didHit {
-		verb = "hits"
+func (g *GameState) attackMessage(attacker, defender *Actor, didHit bool, damage int) {
+	if !didHit {
+		g.msg(foundation.Msg(fmt.Sprintf("%s misses %s", attacker.Name(), defender.Name())))
+		return
 	}
-	g.msg(foundation.Msg(fmt.Sprintf("%s %s %s", attacker.Name(), verb, defender.Name())))
+	g.msg(foundation.Msg(fmt.Sprintf("%s hits %s for %d", attacker.Name(), defender.Name(), damage)))
 }
 
 func (g *GameState) actorMeleeAttack(attacker *Actor, hitMod int, defender *Actor) []foundation.Animation {
@@ -363,7 +363,7 @@ func (g *GameState) actorMeleeAttackMult(attacker *Actor, hitMod int, defender *
 	}
 	damageDone, didHit := g.rollAttack(attacker, defender, hplus+hitMod, dplus, dmg)
 	damageDone = mundaneHalf(defender, attacker.GetEquipment().GetMainWeapon(MeleeAttack), damageDone*mult)
-	g.attackMessage(attacker, defender, didHit)
+	g.attackMessage(attacker, defender, didHit, damageDone)
 
 	animAttackerIndicator := g.ui.GetAnimBackgroundColor(attacker.Position(), "VeryDarkGray", 4, nil)
 	afterAttackAnimations = append(afterAttackAnimations, animAttackerIndicator)
@@ -398,7 +398,7 @@ func (g *GameState) actorRangedAttack(attacker *Actor, defender *Actor, missile 
 	hplus, dplus, dmg := attacker.GetThrowing(defender.GetInternalName(), missile)
 	damageDone, didHit := g.rollAttack(attacker, defender, hplus, dplus, dmg)
 	damageDone = mundaneHalf(defender, missile, damageDone)
-	g.attackMessage(attacker, defender, didHit)
+	g.attackMessage(attacker, defender, didHit, damageDone)
 	if !didHit {
 		return nil
 	}
@@ -487,9 +487,12 @@ func (g *GameState) actorRangedAttackWithMissile(thrower *Actor, missile *Item, 
 		consequenceOfActorHit := g.actorRangedAttack(thrower, defender, missile)
 		onHitAnimations = append(onHitAnimations, consequenceOfActorHit...)
 	} else if g.gridMap.IsObjectAt(targetPos) {
+		g.msg(foundation.Msg(fmt.Sprintf("The %s misses", missile.Name())))
 		object := g.gridMap.ObjectAt(targetPos)
 		consequenceOfObjectHit := object.OnDamage()
 		onHitAnimations = append(onHitAnimations, consequenceOfObjectHit...)
+	} else {
+		g.msg(foundation.Msg(fmt.Sprintf("The %s misses", missile.Name()))) // nobody where it landed
 	}
 
 	if throwAnim != nil {

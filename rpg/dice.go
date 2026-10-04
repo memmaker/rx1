@@ -26,15 +26,22 @@ func (r Dice) Min() int {
 	return r.dice + r.bonus
 }
 
-func (r Dice) String() string {
+// notation is "XdY+Z" without String's range.
+func (r Dice) notation() string {
 	if r.isFixed() {
-		flatValue := r.Min()
-		return fmt.Sprintf("%d", flatValue)
+		return fmt.Sprintf("%d", r.Min())
 	}
 	if r.bonus == 0 {
-		return fmt.Sprintf("%dd%d (%d-%d)", r.dice, r.sides, r.Min(), r.Max())
+		return fmt.Sprintf("%dd%d", r.dice, r.sides)
 	}
-	return fmt.Sprintf("%dd%d%+d (%d-%d)", r.dice, r.sides, r.bonus, r.Min(), r.Max())
+	return fmt.Sprintf("%dd%d%+d", r.dice, r.sides, r.bonus)
+}
+
+func (r Dice) String() string {
+	if r.isFixed() {
+		return r.notation()
+	}
+	return fmt.Sprintf("%s (%d-%d)", r.notation(), r.Min(), r.Max())
 }
 
 func (r Dice) isFixed() bool {

@@ -12,18 +12,18 @@ rsync -a --delete ~/Games/roguelikes-index/fonts/ "$OUT/fonts/"
 install -m 644 web/fonts/Oryx_Tiles.woff "$OUT/fonts/" # the tile font (data_rx1/tiles/mkoryx.py), for tiles mode
 # monster pictures for the Visible window's Images mode (index.html: monsters/<name>.png)
 rsync -a --delete web/monsters/ "$OUT/monsters/"
+rsync -a --delete web/items/ "$OUT/items/" # item pictures under the inventory description (index.html)
 # tcell's DOM renderer, minus its own loader (index.html loads the wasm)
 WEB=$(go list -m -f '{{.Dir}}' github.com/gdamore/tcell/v3)/webfiles
 sed '/^const go = new Go/,$d' "$WEB/tcell.js" > "$OUT/tcell.js"
 # ...plus the mouse wheel, which tcell's web screen does not pass on: rxWheel (startup_js.go) posts it as a tcell event
 cat >> "$OUT/tcell.js" <<'EOF'
-term.addEventListener("wheel", (e) => {
+term.parentNode.addEventListener("wheel", (e) => {
   if (typeof rxWheel !== "function" || e.deltaY === 0) return;
   e.preventDefault();
-  // cell from the terminal's box: e.offsetX is relative to the <span> under the mouse, so menus never got the wheel
-  const r = term.getBoundingClientRect();
-  rxWheel(Math.min(width - 1, Math.max(0, ((e.clientX - r.left) / r.width * width) | 0)),
-          Math.min(height - 1, Math.max(0, ((e.clientY - r.top) / r.height * height) | 0)), e.deltaY);
+  // the page's cellAt: map cells, or the overlay's while a modal is up (e.offsetX is relative to the <span> under the mouse)
+  const [x, y] = cellAt(e);
+  rxWheel(x, y, e.deltaY);
 }, { passive: false });
 EOF
 install -m 644 "$WEB/termstyle.css" "$WEB/beep.wav" "$OUT/"

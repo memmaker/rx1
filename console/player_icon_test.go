@@ -22,8 +22,8 @@ type playerGame struct {
 
 func (playerGame) GetHudFlags() map[foundation.ActorFlag]int      { return nil }
 func (playerGame) GetPlayerPosition() geometry.Point              { return geometry.Point{} }
-func (playerGame) PlayerWielding() (string, string) { return "", "" }
-func (g playerGame) IsPlayer(a foundation.ActorForUI) bool { return a == g.player }
+func (playerGame) PlayerWielding() (string, string)               { return "", "" }
+func (g playerGame) IsPlayer(a foundation.ActorForUI) bool        { return a == g.player }
 func (g playerGame) ActorAt(geometry.Point) foundation.ActorForUI { return g.player }
 
 // The player is drawn as the theme says, other actors as they are.

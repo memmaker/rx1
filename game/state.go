@@ -100,7 +100,9 @@ func (g *GameState) ObjectAt(loc geometry.Point) foundation.ObjectCategory {
 	return -1
 }
 
-func (g *GameState) IsPlayer(actor foundation.ActorForUI) bool { return actor == foundation.ActorForUI(g.Player) }
+func (g *GameState) IsPlayer(actor foundation.ActorForUI) bool {
+	return actor == foundation.ActorForUI(g.Player)
+}
 
 func (g *GameState) ActorAt(loc geometry.Point) foundation.ActorForUI {
 	if g.gridMap.Contains(loc) && g.gridMap.IsActorAt(loc) {
@@ -493,6 +495,7 @@ func (g *GameState) init() {
 	g.levelStyles = dungen.PlanLevelStyles(rand.New(rand.NewSource(time.Now().UnixNano())), g.maximumDungeonLevel)
 	g.showEverything = false
 	g.usedDocuments = make(map[string]bool)
+	g.appendLogMessage(foundation.Msg("Welcome to the dungeons of doom")) // the UI has no game yet: no UpdateLogWindow
 }
 
 // pickUnusedDocument returns a lore document that has not been placed in this game yet.
