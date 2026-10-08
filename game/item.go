@@ -165,18 +165,12 @@ func (i *Item) WeaponTypeName() string {
 }
 
 func (i *Item) Description() string {
-	lines := []string{i.InventoryNameWithColors(""), " " + i.category.String()}
-	if i.IsMagic() && !i.id.IsItemIdentified(i.internalName) {
-		return strings.Join(append(lines, "", " Unidentified: use it, or have it identified."), "\n")
-	}
-	if i.IsWeapon() && i.thrownDamage.NotZero() {
-		lines = append(lines, " thrown: "+i.thrownDamage.ShortString())
+	lines := []string{i.InventoryNameWithColors("")}
+	if (i.IsPotion() || i.IsScroll() || i.IsRing() || i.IsWand()) && !i.id.IsItemIdentified(i.internalName) {
+		return strings.Join(append(lines, "", "Unidentified: use it, or have it identified."), "\n")
 	}
 	if i.IsRing() && i.stat != "" {
-		lines = append(lines, fmt.Sprintf(" %s %+d", i.stat, i.statBonus))
-	}
-	if (i.IsWeapon() || i.IsArmor()) && !i.isKnown {
-		lines = append(lines, " enchantment unknown")
+		lines = append(lines, fmt.Sprintf("%s %+d", i.stat, i.statBonus))
 	}
 	if i.description != "" {
 		lines = append(lines, "", cview.Escape(i.description))
