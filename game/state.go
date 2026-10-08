@@ -45,6 +45,8 @@ type GameState struct {
 	exploreSeen                      map[any]bool            // items and traps auto-explore has already stopped for
 	exploreVisited                   map[geometry.Point]bool // tiles auto explore stood on, for exploreVisitedMap
 	exploreVisitedMap                *gridmap.GridMap[*Actor, *Item, *Object]
+	travelPath                       []geometry.Point // planned stairs route, travelPath[0] is where the player should stand
+	travelPathMap                    *gridmap.GridMap[*Actor, *Item, *Object]
 	starGlassSpawned                 bool
 	morningStarSpawned               bool
 	genocided                        map[string]bool                 // internal names wiped out by the scroll

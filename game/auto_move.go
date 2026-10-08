@@ -1,6 +1,9 @@
 package game
 
 import (
+	"container/heap"
+	"slices"
+
 	"rx1/foundation"
 	"rx1/geometry"
 )
@@ -80,7 +83,7 @@ func (g *GameState) TravelToStairsStep(down bool) bool {
 	if g.IsPlayerOnStairs(down) || len(g.GetVisibleEnemies()) > 0 || g.Player.HasFlag(foundation.FlagConfused) {
 		return false
 	}
-	if g.autoMoveToward(isGoal, false) {
+	if g.travelAlongPath(isGoal) {
 		return true
 	}
 	if !g.IsPlayerOnStairs(down) { // no step and not arrived: no known path
@@ -144,6 +147,109 @@ func (g *GameState) spotNewThings() bool {
 		}
 	}
 	return found
+}
+
+// travelAlongPath takes one step along the cheapest A* path over known floor to the closest goal
+// tile, with diagonals costing 1.4 straight steps so routes follow the straight line; false if
+// none is reachable or the player stops on an item. The path is planned once and only re-planned
+// when the player left it, the level changed or the next tile stopped being known floor.
+func (g *GameState) travelAlongPath(isGoal func(geometry.Point) bool) bool {
+	m := g.gridMap
+	start := g.Player.Position()
+	isKnownFloor := func(p geometry.Point) bool {
+		return m.Contains(p) && m.IsExplored(p) && m.IsWalkable(p) && !m.IsObviousHazardAt(p)
+	}
+	path := g.travelPath
+	if g.travelPathMap != m || len(path) < 2 || path[0] != start || !isGoal(path[len(path)-1]) || !isKnownFloor(path[1]) {
+		var goals []geometry.Point
+		for y := 0; y < m.GetHeight(); y++ {
+			for x := 0; x < m.GetWidth(); x++ {
+				if p := (geometry.Point{X: x, Y: y}); p != start && isGoal(p) && isKnownFloor(p) {
+					goals = append(goals, p)
+				}
+			}
+		}
+		path = astarPath(start, goals, func(p geometry.Point) []geometry.Point { return m.NeighborsAll(p, isKnownFloor) })
+	}
+	g.travelPath, g.travelPathMap = nil, m
+	if len(path) < 2 || !g.autoExploreMove(start, path[1]) {
+		return false
+	}
+	g.travelPath = path[1:]
+	return len(path) > 2 // false once the goal is reached
+}
+
+// stepCost is 10 for a straight step and 14 for a diagonal one.
+func stepCost(a, b geometry.Point) int {
+	if a.X != b.X && a.Y != b.Y {
+		return 14
+	}
+	return 10
+}
+
+// octile is the exact stepCost distance on an empty grid, so it never overestimates.
+func octile(a, b geometry.Point) int {
+	dx, dy := geometry.Abs(a.X-b.X), geometry.Abs(a.Y-b.Y)
+	return 10*max(dx, dy) + 4*min(dx, dy)
+}
+
+type astarItem struct {
+	p          geometry.Point
+	rank, cost int
+}
+
+type astarQueue []astarItem
+
+func (q astarQueue) Len() int           { return len(q) }
+func (q astarQueue) Less(i, j int) bool { return q[i].rank < q[j].rank }
+func (q astarQueue) Swap(i, j int)      { q[i], q[j] = q[j], q[i] }
+func (q *astarQueue) Push(x any)        { *q = append(*q, x.(astarItem)) }
+func (q *astarQueue) Pop() any {
+	old := *q
+	it := old[len(old)-1]
+	*q = old[:len(old)-1]
+	return it
+}
+
+// astarPath returns the cheapest path from start to the nearest of goals (both included), nil if none.
+// ponytail: heuristic scans every goal per node, fine for a handful of stairs.
+func astarPath(start geometry.Point, goals []geometry.Point, neighbors func(geometry.Point) []geometry.Point) []geometry.Point {
+	if len(goals) == 0 {
+		return nil
+	}
+	h := func(p geometry.Point) int {
+		best := octile(p, goals[0])
+		for _, goal := range goals[1:] {
+			best = min(best, octile(p, goal))
+		}
+		return best
+	}
+	cost := map[geometry.Point]int{start: 0}
+	parent := map[geometry.Point]geometry.Point{}
+	queue := &astarQueue{{start, h(start), 0}}
+	for queue.Len() > 0 {
+		cur := heap.Pop(queue).(astarItem)
+		if cur.cost > cost[cur.p] {
+			continue // stale entry
+		}
+		if h(cur.p) == 0 {
+			path := []geometry.Point{cur.p}
+			for p := cur.p; p != start; {
+				p = parent[p]
+				path = append(path, p)
+			}
+			slices.Reverse(path)
+			return path
+		}
+		for _, next := range neighbors(cur.p) {
+			c := cur.cost + stepCost(cur.p, next)
+			if old, seen := cost[next]; !seen || c < old {
+				cost[next], parent[next] = c, cur.p
+				heap.Push(queue, astarItem{next, c + h(next), c})
+			}
+		}
+	}
+	return nil
 }
 
 // autoMoveToward takes one step along a known-floor path to the nearest goal tile; false if none is reachable.
