@@ -13,6 +13,7 @@ BUG: Blindness Status doesn't do anything and will stay forever
      - While hungry Str. is reduced
      - While hungry, no hp regenerates and you loose fp constantly
    - Give a meaning to the fatigue points: add tactics menu
+   - Skill & Tactics overhaul
    - Traps
    - Item Effects
      - Scrolls - Complete

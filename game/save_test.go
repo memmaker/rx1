@@ -204,6 +204,68 @@ func TestWallSlideIntoCorridor(t *testing.T) {
 	}
 }
 
+// A charge needs a visible monster in range; a heroic charge costs FP only when it reaches one.
+func TestChargeNeedsAMonsterAndHeroicPaysOnHit(t *testing.T) {
+	g := newMagicTestGame()
+	p := g.Player
+	for _, a := range g.gridMap.Actors() {
+		if a != p {
+			g.gridMap.RemoveActor(a)
+		}
+	}
+	var spot, target geometry.Point
+	found := false
+	for y := 0; y < g.gridMap.GetHeight() && !found; y++ {
+		for x := 0; x < g.gridMap.GetWidth()-3 && !found; x++ {
+			ok := true
+			for i := 0; i <= 3; i++ {
+				q := geometry.Point{X: x + i, Y: y}
+				ok = ok && g.gridMap.IsWalkable(q) && !g.gridMap.IsActorAt(q) && g.canFlyThrough(q)
+			}
+			if ok {
+				spot, target, found = geometry.Point{X: x, Y: y}, geometry.Point{X: x + 3, Y: y}, true
+			}
+		}
+	}
+	if !found {
+		t.Fatal("no open row in town")
+	}
+	g.gridMap.MoveActor(p, spot)
+	g.exploreMap()
+	if g.chargeTargetProblem(target) == "" {
+		t.Fatal("charging an empty tile must be refused")
+	}
+	p.stats.FP = 3
+	heroicCharge(g, p, target) // nobody there: no hit, no cost
+	if p.GetFatiguePoints() != 3 {
+		t.Fatalf("a heroic charge that hits nothing cost FP: %d left", p.GetFatiguePoints())
+	}
+	g.gridMap.MoveActor(p, spot)
+	def, _ := g.monsterDefByInternalName("jackal")
+	jackal := g.NewEnemyFromDef(def)
+	g.gridMap.AddActor(jackal, target)
+	g.exploreMap()
+	if msg := g.chargeTargetProblem(target); msg != "" {
+		t.Fatal(msg)
+	}
+	heroicCharge(g, p, target)
+	if p.GetFatiguePoints() != 2 || p.Position() != target.Add(geometry.Point{X: -1}) {
+		t.Fatalf("after a heroic charge: fp %d at %v", p.GetFatiguePoints(), p.Position())
+	}
+}
+
+// A sprint while slowed still gives haste for the 2 FP it costs.
+func TestSprintWhileSlowedHastes(t *testing.T) {
+	g := newSaveTestGame(t)
+	p := g.Player
+	p.stats.FP = 2
+	p.GetFlags().Set(foundation.FlagSlow)
+	g.startSprint(p)
+	if p.HasFlag(foundation.FlagSlow) || !p.HasFlag(foundation.FlagHaste) {
+		t.Fatal("sprint should clear the slow and haste the player")
+	}
+}
+
 func TestTacticsBalance(t *testing.T) {
 	g := newSaveTestGame(t)
 	p := g.Player

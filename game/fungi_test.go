@@ -16,7 +16,7 @@ func TestHardHitSeversBranch(t *testing.T) {
 	if branches < 1 || branches > 4 {
 		t.Fatalf("%d branches, want 1..4", branches)
 	}
-	g.actorMeleeAttackMult(g.Player, 0, fungus, 10) // never misses, at least 10 damage
+	g.actorMeleeAttackMult(g.Player, 100, fungus, 10) // never misses, at least 10 damage
 	if fungus.GetFlags().Get(foundation.FlagBranches) != branches-1 {
 		t.Fatal("a hard hit should sever a branch")
 	}

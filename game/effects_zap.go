@@ -79,11 +79,18 @@ func chargeAttack(g *GameState, zapper *Actor, pos geometry.Point) []foundation.
 	moveAnim, _ := charge(g, zapper, pos, false, g.getLineOfSight)
 	return []foundation.Animation{moveAnim}
 }
+
+// heroicCharge hits normally for double damage; it costs 1 FP only when it reaches a foe.
 func heroicCharge(g *GameState, zapper *Actor, pos geometry.Point) []foundation.Animation {
-	moveAnim, _ := charge(g, zapper, pos, true, g.getLineOfSight)
+	moveAnim, hit := charge(g, zapper, pos, true, g.getLineOfSight)
+	if hit {
+		zapper.LooseFatigue(1)
+	}
 	return []foundation.Animation{moveAnim}
 }
-func charge(g *GameState, zapper *Actor, pos geometry.Point, isHeroic bool, getPath func(src, dst geometry.Point) []geometry.Point) (foundation.Animation, geometry.Point) {
+
+// charge rushes along the path and attacks the first actor in the way; true when it reached one.
+func charge(g *GameState, zapper *Actor, pos geometry.Point, isHeroic bool, getPath func(src, dst geometry.Point) []geometry.Point) (foundation.Animation, bool) {
 	origin := zapper.Position()
 	pathOfFlight := getPath(origin, pos)
 
@@ -100,14 +107,13 @@ func charge(g *GameState, zapper *Actor, pos geometry.Point, isHeroic bool, getP
 	moveAnim := g.ui.GetAnimQuickMove(zapper, pathOfFlight)
 
 	if hitActor != nil {
-		hitMod := 0
-		if !isHeroic {
-			hitMod = -4
+		hitMod, mult := -4, 1
+		if isHeroic {
+			hitMod, mult = 0, 2
 		}
-		attackAnims := g.actorMeleeAttack(zapper, hitMod, hitActor)
-		moveAnim.SetFollowUp(attackAnims)
+		moveAnim.SetFollowUp(g.actorMeleeAttackMult(zapper, hitMod, hitActor, mult))
 	}
-	return moveAnim, targetPos
+	return moveAnim, hitActor != nil
 }
 
 var boltDice = rpg.NewDice(6, 6, 0)

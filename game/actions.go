@@ -49,7 +49,12 @@ func (g *GameState) playerStrike(defender *Actor, lunge bool) []foundation.Anima
 	}
 	var anims []foundation.Animation
 	for _, target := range targets {
-		anims = append(anims, g.actorMeleeAttackMult(g.Player, 0, target, g.sneakMultiplier(target, lunge))...)
+		mult := g.sneakMultiplier(target, lunge)
+		hitMod := 0
+		if mult > 1 { // a sneak attack never misses
+			hitMod = 100
+		}
+		anims = append(anims, g.actorMeleeAttackMult(g.Player, hitMod, target, mult)...)
 		if !g.Player.HasFlag(foundation.FlagInvisible) {
 			target.GetFlags().Set(foundation.FlagAwareOfPlayer)
 		}
@@ -342,7 +347,7 @@ func (g *GameState) actorMeleeAttack(attacker *Actor, hitMod int, defender *Acto
 	return g.actorMeleeAttackMult(attacker, hitMod, defender, 1)
 }
 
-// actorMeleeAttackMult: a damage multiplier above 1 is a sneak attack that never misses.
+// actorMeleeAttackMult multiplies the damage of a hit.
 func (g *GameState) actorMeleeAttackMult(attacker *Actor, hitMod int, defender *Actor, mult int) []foundation.Animation {
 	if !defender.IsAlive() {
 		return nil
@@ -358,9 +363,6 @@ func (g *GameState) actorMeleeAttackMult(attacker *Actor, hitMod int, defender *
 
 	g.revealDisguised(defender)
 	hplus, dplus, dmg := attacker.GetMelee(defender.GetInternalName())
-	if mult > 1 {
-		hitMod += 100
-	}
 	damageDone, didHit := g.rollAttack(attacker, defender, hplus+hitMod, dplus, dmg)
 	damageDone = mundaneHalf(defender, attacker.GetEquipment().GetMainWeapon(MeleeAttack), damageDone*mult)
 	g.attackMessage(attacker, defender, didHit, damageDone)

@@ -50,9 +50,12 @@ corridors), `poisoned` (player status; 1 damage per turn).
 
 ## Still open
 
-- Monsters give no XP. `getLevelForExperience` (`data_defs.go`) has no callers.
-  This is a design decision for rx1's character-point system.
-- `drain_level` can push character points negative. Check the character screen.
 - Nothing here has been tried in actual play yet. Spawn each monster from the
   wizard menu and check messages and balance. Splitting slimes, packs and
   tunneling are the most likely to need tuning.
+- No full run has reached the Amulet (level 26+) and carried it back up, so
+  overall balance (food, gear, XP over 26 levels) is unchecked.
+
+Resolved: monsters give XP (`AddExperience` in `game/state.go`), and
+`drain_level` keeps level, experience and hit points consistent
+(`game/drain_level_test.go`).

@@ -148,7 +148,7 @@ func (g *GameState) OpenTacticsMenu() {
 	menuItems = append(menuItems, foundation.MenuItem{
 		Name: "Charge Attack",
 		Action: func() {
-			g.startCharge("charge_attack", nil)
+			g.startCharge("charge_attack")
 		},
 		CloseMenus: true,
 	})
@@ -158,10 +158,7 @@ func (g *GameState) OpenTacticsMenu() {
 			Name: "Heroic Charge",
 			Action: func() {
 				if g.Player.GetFatiguePoints() > 0 {
-					payFatigue := func() {
-						g.Player.LooseFatigue(1)
-					}
-					g.startCharge("heroic_charge", payFatigue)
+					g.startCharge("heroic_charge")
 				} else {
 					g.msg(foundation.Msg("You are too fatigued to perform a heroic charge"))
 				}
@@ -1259,9 +1256,8 @@ func (g *GameState) checkPlayerCanAct() {
 		g.Player.GetFlags().Increment(foundation.FlagStun)
 
 		g.msg(foundation.Msg("You are stunned and cannot act"))
-
-		// TODO: animate a small delay here?
-		g.endPlayerTurn()
+		g.endPlayerTurn() // one lost turn, even when also held
+		return
 	}
 	if g.Player.HasFlag(foundation.FlagHeld) {
 		if rpg.Save(g.Player.GetLevel()+rpg.StrPlus(g.Player.GetStrength()), rpg.VsPoison) {
@@ -1271,8 +1267,6 @@ func (g *GameState) checkPlayerCanAct() {
 		}
 
 		g.msg(foundation.Msg("You are held and cannot act"))
-
-		// TODO: animate a small delay here?
 		g.endPlayerTurn()
 	}
 }
@@ -1398,19 +1392,27 @@ const (
 	sprintTurns    = 10
 )
 
-// startCharge aims a charge; a target out of range costs nothing.
-func (g *GameState) startCharge(effect string, payCost func()) {
+// startCharge aims a charge at a monster; an invalid target costs nothing.
+func (g *GameState) startCharge(effect string) {
 	g.ui.SelectTarget(g.Player.Position(), func(targetPos geometry.Point) {
-		d := g.Player.Position().Sub(targetPos)
-		if r := max(abs(d.X), abs(d.Y)); r < chargeMinRange || r > chargeMaxRange {
-			g.msg(foundation.Msg(fmt.Sprintf("A charge needs a target %d to %d tiles away", chargeMinRange, chargeMaxRange)))
+		if msg := g.chargeTargetProblem(targetPos); msg != "" {
+			g.msg(foundation.Msg(msg))
 			return
-		}
-		if payCost != nil {
-			payCost()
 		}
 		g.playerInvokeZapEffectAndEndTurn(effect, targetPos)
 	})
+}
+
+// chargeTargetProblem says why the player cannot charge targetPos, "" when they can.
+func (g *GameState) chargeTargetProblem(targetPos geometry.Point) string {
+	d := g.Player.Position().Sub(targetPos)
+	if r := max(abs(d.X), abs(d.Y)); r < chargeMinRange || r > chargeMaxRange {
+		return fmt.Sprintf("A charge needs a target %d to %d tiles away", chargeMinRange, chargeMaxRange)
+	}
+	if !g.gridMap.IsActorAt(targetPos) || g.actorAt(targetPos) == g.Player || !g.canPlayerSee(targetPos) {
+		return "A charge needs a monster to charge at"
+	}
+	return ""
 }
 
 func (g *GameState) startSprint(actor *Actor) {
@@ -1419,6 +1421,7 @@ func (g *GameState) startSprint(actor *Actor) {
 		return
 	}
 	actor.LooseFatigue(sprintCost)
+	actor.GetFlags().Unset(foundation.FlagSlow) // so the haste is not spent cancelling a slow
 	hasteFor(g, actor, sprintTurns)
 }
 

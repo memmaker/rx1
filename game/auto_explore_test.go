@@ -67,6 +67,10 @@ func (stubUI) GetAnimEffect(string, geometry.Point, []geometry.Point, func()) fo
 	return nil
 }
 
+func (stubUI) GetAnimQuickMove(foundation.ActorForUI, []geometry.Point) foundation.Animation {
+	return stubAnim{} // charging monsters ask for it
+}
+
 func (stubUI) GetAnimUncloakAtPosition(foundation.ActorForUI, geometry.Point) (foundation.Animation, int) {
 	return stubAnim{}, 0
 }
